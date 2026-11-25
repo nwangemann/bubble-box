@@ -32,8 +32,9 @@ MVP is done when a stranger understands it without words, and it holds 60 fps wi
 
 ## Phase 2: touch depth
 
-- [ ] Finger pressure and size shape the growing bubble
-- [ ] Curved swipes add spin
+- [ ] (blocked) Finger pressure and size shape the growing bubble. Gesture Handler reports only positions, so this needs a small native module, an ADR and a phone; recent iPhones report size but not pressure
+- [x] Curved swipes add spin
+- [ ] Tune `TUNING.spin` on a phone
 - [ ] Several fingers grow several bubbles
 - [ ] Flick a bubble to nudge it
 - [ ] Tilt adds a gentle gravity

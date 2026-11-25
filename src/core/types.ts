@@ -13,6 +13,9 @@ export type Bubble = {
   /** Squash per axis (0 = round) and its rate. */
   d: Vec3;
   dv: Vec3;
+  /** Turn rate about the line of sight, clockwise, and how far it has turned. Radians. */
+  spin: number;
+  turn: number;
   /** Seconds since it began popping; negative while alive. */
   popping: number;
   /** Effect chosen when it began popping. */
@@ -58,6 +61,8 @@ export type Held = {
   target: { x: number; y: number };
   /** Where the touch began. */
   start: { x: number; y: number };
+  /** The finger's latest points, oldest first; `t` is in hold seconds. */
+  trail: { x: number; y: number; t: number }[];
   /** Bubble under the touch when it began, or 0. */
   over: number;
 };

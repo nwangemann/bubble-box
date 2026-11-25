@@ -10,6 +10,24 @@ export const TUNING = {
     maxSwipe: 3.5,
     heaviness: 0.9,
   },
+  /**
+   * Spin from a curved swipe. Only the last `window` seconds count, in steps of at least `spacing`;
+   * bends below `slop` are straight, and one sharper than `corner` is a change of mind. `full` is
+   * the swipe speed that gives all of it. `curve` bends the path, `grip` kicks off side walls.
+   */
+  spin: {
+    window: 0.22,
+    spacing: 0.04,
+    slop: 0.25,
+    corner: 1.2,
+    gain: 3.2,
+    max: 6,
+    full: 1.5,
+    curve: 0.45,
+    fade: 1.8,
+    grip: 0.35,
+    keep: 0.6,
+  },
   wobble: { stiffness: 11, damping: 2.2, impact: 0.8, max: 0.26 },
   step: 1 / 120,
   maxFrame: 1 / 20,

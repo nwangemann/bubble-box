@@ -7,6 +7,7 @@ import {
   createWorld,
   feelOf,
   finishTap,
+  moveHold,
   radiusAt,
   release,
   beginSweep,
@@ -49,6 +50,54 @@ test('flies away, hits the back wall and returns to the glass', () => {
 test('a longer hold launches harder and a swipe steers', () => {
   expect(launch(3).bubbles[0]!.v.z).toBeGreaterThan(launch(0.2).bubbles[0]!.v.z);
   expect(launch(0.5, 4, 0).bubbles[0]!.v.x).toBeGreaterThan(0.5);
+});
+
+/** Swipes along an arc that bends by `bend` radians in 0.2 s, then lets go. */
+const swipe = (bend: number, wait = 0, speed = 3) => {
+  const w = createWorld();
+  beginHold(w, box, 0, 0, 'soap');
+  let x = 0;
+  let y = 0;
+  let a = 0;
+  for (let i = 0; i < 12; i++) {
+    a = (bend * i) / 11;
+    x += Math.cos(a) * 0.05;
+    y += Math.sin(a) * 0.05;
+    moveHold(w, x, y);
+    run(w, 1 / 60);
+  }
+  run(w, wait);
+  release(w, Math.cos(a) * speed, Math.sin(a) * speed, 1);
+  return w;
+};
+
+test('a curved swipe spins the bubble and bends its path the same way', () => {
+  const spin = (w: ReturnType<typeof createWorld>) => w.bubbles[0]!.spin;
+  expect(spin(swipe(0))).toBe(0);
+  expect(spin(swipe(1.2))).toBeGreaterThan(1);
+  expect(spin(swipe(-1.2))).toBeCloseTo(-spin(swipe(1.2)));
+  expect(spin(swipe(1.2, 0.5))).toBe(0);
+  expect(spin(swipe(1.2, 0, 0))).toBeCloseTo(0);
+
+  for (const side of [1, -1]) {
+    const w = swipe(1.2 * side);
+    const b = w.bubbles[0]!;
+    const before = { x: b.v.x, y: b.v.y };
+    run(w, 0.15, FEELS.weightless);
+    expect(Math.sign(before.x * b.v.y - before.y * b.v.x)).toBe(side);
+    expect(Math.sign(b.turn)).toBe(side);
+  }
+});
+
+test('turning round sharply is not a curve', () => {
+  const w = createWorld();
+  beginHold(w, box, 0, 0, 'soap');
+  for (const x of [0.1, 0.2, 0.3, 0.2, 0.1, 0]) {
+    moveHold(w, x, 0);
+    run(w, 1 / 60);
+  }
+  release(w, -3, 0, 1);
+  expect(w.bubbles[0]!.spin).toBeCloseTo(0);
 });
 
 test.each(Object.entries(FEELS))('%s keeps a crowd finite and inside the box', (_, feel) => {

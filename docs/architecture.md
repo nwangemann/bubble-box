@@ -20,6 +20,8 @@ Each step: grow and move the held bubble, integrate free bubbles, resolve bubble
 
 A touch that starts on a bubble stays hidden and weightless for `TUNING.tap.seconds`. Released sooner without moving, it pops that bubble; held longer, it grows as usual.
 
+A curved swipe gives `spin` about the line of sight, from how far the finger's path bent in its last moments. Spin rotates the sideways velocity, kicks off side walls, fades, and turns the surface through the `turn` uniform.
+
 A second finger starts a sweep: the first finger's new bubble is taken back, and fingers pop what they cross. Bubbles born during the sweep are spared.
 
 Meetings and pops add a `Burst`: contact normal, sideways rub (`spin`), strength and both styles. `drawBurst` draws it as one additive shader rect aimed along the normal.

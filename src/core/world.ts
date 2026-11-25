@@ -1,7 +1,7 @@
 import { TUNING as T } from '../config/tuning';
 import type { Feel } from '../config/feels';
 import { scaleAt, unproject } from './projection';
-import type { Axis, Box, Bubble, Burst, FxPools, World } from './types';
+import type { Axis, Box, Bubble, Burst, FxPools, Held, World } from './types';
 
 export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces: {} }): World {
   'worklet';
@@ -92,6 +92,8 @@ export function popApart(world: World, b: Bubble) {
       v: { x: b.v.x + dx * out, y: b.v.y + dy * out, z: b.v.z + (i % 2 ? 0.3 : -0.3) },
       d: { x: 0, y: 0, z: 0 },
       dv: { x: 0, y: 0, z: 0 },
+      spin: b.spin,
+      turn: b.turn,
       popping: -1,
       popFx: '',
     });
@@ -173,18 +175,55 @@ export function beginHold(
     v: { x: 0, y: 0, z: 0 },
     d: { x: 0, y: 0, z: 0 },
     dv: { x: 0, y: 0, z: 0 },
+    spin: 0,
+    turn: 0,
     popping: -1,
     popFx: '',
   };
   const over = tapPops ? bubbleAt(world, box, sx, sy) : 0;
-  world.held = { bubble, seconds: 0, target: { x: sx, y: sy }, start: { x: sx, y: sy }, over };
+  world.held = {
+    bubble,
+    seconds: 0,
+    target: { x: sx, y: sy },
+    start: { x: sx, y: sy },
+    trail: [{ x: sx, y: sy, t: 0 }],
+    over,
+  };
 }
 
 export function moveHold(world: World, sx: number, sy: number) {
   'worklet';
-  if (!world.held) return;
-  world.held.target.x = sx;
-  world.held.target.y = sy;
+  const h = world.held;
+  if (!h) return;
+  h.target.x = sx;
+  h.target.y = sy;
+  const last = h.trail[h.trail.length - 1];
+  if (last && Math.hypot(sx - last.x, sy - last.y) < T.spin.spacing) return;
+  h.trail.push({ x: sx, y: sy, t: h.seconds });
+  h.trail = h.trail.filter((p) => h.seconds - p.t <= T.spin.window);
+}
+
+/** Spin from how far the finger's path bent just before letting go. */
+export function spinOf(held: Held, swipe: number) {
+  'worklet';
+  const S = T.spin;
+  const trail = held.trail.filter((p) => held.seconds - p.t <= S.window);
+  let bend = 0;
+  for (let i = 2; i < trail.length; i++) {
+    const a = trail[i - 2]!;
+    const b = trail[i - 1]!;
+    const c = trail[i]!;
+    const ux = b.x - a.x;
+    const uy = b.y - a.y;
+    const vx = c.x - b.x;
+    const vy = c.y - b.y;
+    const angle = Math.atan2(ux * vy - uy * vx, ux * vx + uy * vy);
+    // What came before a sharp corner was another gesture.
+    if (Math.abs(angle) > S.corner) bend = 0;
+    else bend += angle;
+  }
+  const size = Math.max(0, Math.abs(bend) - S.slop) * S.gain;
+  return Math.sign(bend) * Math.min(S.max, size) * Math.min(1, swipe / S.full);
 }
 
 /** Launches the held bubble. `swipeX`, `swipeY` are finger velocity in units per second. */
@@ -202,6 +241,7 @@ export function release(world: World, swipeX: number, swipeY: number, speed: num
   b.v.x = swipeX * lateral;
   b.v.y = swipeY * lateral;
   b.v.z = (L.base + L.hold * charge + L.swipeForward * swipe * limit) * speed;
+  b.spin = spinOf(held, swipe) * Math.min(1, speed);
   // Letting go of the glass stretches the bubble along its flight.
   b.dv.z += 1.2;
   b.dv.x -= 0.9;
@@ -286,6 +326,13 @@ function bounce(
   if (into <= 0) return;
   b.v[axis] = -into * e * side;
   squash(b, axis, into, feel.wobble);
+  // A spinning bubble rolls a little along a side wall.
+  if (axis !== 'z') {
+    const kick = T.spin.grip * b.spin * b.r * side;
+    if (axis === 'x') b.v.y -= kick;
+    else b.v.x += kick;
+    b.spin *= T.spin.keep;
+  }
   world.impact = Math.max(world.impact, into);
   // Chooses the glass when several are in play; the wave and the ring must agree.
   const variant = Math.random();
@@ -423,6 +470,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     b.dv.y += Math.sin(t * 3.1 + 2.2) * 0.35 * dt * 10;
     relaxShape(b, dt);
   }
+  const spinFade = Math.exp(-dt / T.spin.fade);
   for (const b of world.bubbles) {
     const feel = feelOf(b, feels);
     const fade = Math.exp(-feel.drag * dt);
@@ -438,6 +486,15 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     b.v.x *= k;
     b.v.y *= k;
     b.v.z *= k;
+    // Spin bends the path the way the finger was bending.
+    const bend = b.spin * T.spin.curve * dt;
+    const cos = Math.cos(bend);
+    const sin = Math.sin(bend);
+    const vx = b.v.x;
+    b.v.x = vx * cos - b.v.y * sin;
+    b.v.y = vx * sin + b.v.y * cos;
+    b.turn += b.spin * dt;
+    b.spin *= spinFade;
     b.p.x += b.v.x * dt;
     b.p.y += b.v.y * dt;
     b.p.z += b.v.z * dt;

@@ -59,6 +59,7 @@ function drawBubble(
     born * (1 - gone * gone),
     body.tear ? gone : 0,
     b.p.z / box.depth,
+    b.turn,
   ]);
   paint.setShader(shader);
   canvas.save();

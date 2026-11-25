@@ -8,6 +8,8 @@ Everything below appears in the tray and its previews, and joins Random, automat
 2. Use the helpers in `prelude.ts`: `fbm`, `film`, `spectrum`, `shine`, `skin`, `rimPow`.
 3. Register it in `src/styles/index.ts`, with the `tint` it lends to effects.
 
+Add `turn` to the rotation of anything on the surface so spin shows (`skin` already does). Leave highlights still: the light does not spin.
+
 Keep to about 6 `fbm` calls per pixel: ten bubbles can overlap.
 
 ## Environment

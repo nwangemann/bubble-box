@@ -6,7 +6,7 @@ Zen simplicity and beauty. Every action is simple, organic and calm.
 
 1. Touch: a bubble begins under the finger, against the glass.
 2. Hold: it grows steadily, always slowing, and breathes. It follows the finger with a soft lag.
-3. Release: it leaves the glass into the box. A longer hold launches harder; a swipe steers; a larger bubble turns less readily.
+3. Release: it leaves the glass into the box. A longer hold launches harder; a swipe steers; a larger bubble turns less readily. A curved swipe spins it, and its path keeps curving.
 4. It meets a wall, squashes, sends a ripple across it and rebounds, eventually back to the viewer.
 5. Meeting the glass sends a gentle refracting ripple across the screen (the Glass option).
 6. Bubbles that meet throw light shaped by the collision (the Meet option).

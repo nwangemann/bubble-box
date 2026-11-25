@@ -2,7 +2,7 @@
  * Shared SkSL. A style supplies `half4 style(vec2 p, vec3 n, float rim)` (premultiplied) and
  * `half4 halo()` (rgb, strength). `p` is -1..1 across the bubble, `n` the surface normal facing
  * the viewer, `rim` 0 at the centre and 1 at the edge. Draw area reaches 1.5 for the halo.
- * Uniform order must match `packUniforms` in scene/drawScene.ts.
+ * Uniform order must match `drawBubble` in scene/drawScene.ts.
  */
 export const PRELUDE = `
 uniform float time;
@@ -11,6 +11,7 @@ uniform float px;
 uniform float fade;
 uniform float pop;
 uniform float fog;
+uniform float turn;
 `;
 
 /** Helpers shared with effects. */
@@ -52,7 +53,7 @@ float rimPow(float rim, float k) { return pow(clamp(rim, 0.0, 1.0), k); }
 export const SKIN = `
 // Spherical coordinates that swirl, for anything living on the surface.
 vec2 skin(vec3 n, float speed) {
-  return rot(seed * TAU + time * speed) * (n.xy / (0.55 + n.z));
+  return rot(seed * TAU + time * speed + turn) * (n.xy / (0.55 + n.z));
 }
 `;
 

@@ -14,7 +14,7 @@ half4 halo() { return half4(1.0, 0.5, 0.2, 0.34 + 0.06 * sin(time * 1.3 + seed *
 export const aurora = `
 half4 style(vec2 p, vec3 n, float rim) {
   vec2 s = n.xy / (0.6 + n.z) * 1.1;
-  s = rot(seed * TAU) * s;
+  s = rot(seed * TAU + turn) * s;
   vec3 c = vec3(0.0);
   for (int i = 0; i < 3; i++) {
     float k = float(i);

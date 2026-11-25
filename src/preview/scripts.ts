@@ -68,6 +68,8 @@ function add(stage: Stage, part: Part, x: number, y: number, z: number, r: numbe
     v: { x: 0, y: 0, z: 0 },
     d: { x: 0, y: 0, z: 0 },
     dv: { x: 0, y: 0, z: 0 },
+    spin: 0,
+    turn: 0,
     popping: -1,
     popFx: '',
   };

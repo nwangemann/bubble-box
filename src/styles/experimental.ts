@@ -8,8 +8,8 @@ float stars(vec2 q, float cut) {
 }
 half4 style(vec2 p, vec3 n, float rim) {
   // Layers at different depths turn at different rates, so the inside feels deep.
-  vec2 a = rot(time * 0.1 + seed * TAU) * p * (1.0 + 0.6 * rim);
-  vec2 b = rot(-time * 0.06 + seed * 3.0) * p * (1.5 + rim);
+  vec2 a = rot(time * 0.1 + seed * TAU + turn) * p * (1.0 + 0.6 * rim);
+  vec2 b = rot(-time * 0.06 + seed * 3.0 + turn * 0.8) * p * (1.5 + rim);
   float gas = fbm(a * 2.4 + fbm(b * 2.0 + time * 0.05) * 1.8);
   float gas2 = fbm(b * 2.8 + 11.0);
   vec3 c = vec3(0.03, 0.01, 0.09);
@@ -25,7 +25,7 @@ half4 halo() { return half4(0.6, 0.25, 0.95, 0.2); }
 
 export const ink = `
 half4 style(vec2 p, vec3 n, float rim) {
-  vec2 q = rot(seed * TAU) * p * 1.3;
+  vec2 q = rot(seed * TAU + turn) * p * 1.3;
   vec2 w = vec2(fbm(q * 1.6 + time * 0.08), fbm(q * 1.6 - time * 0.07 + 5.0));
   vec2 w2 = vec2(fbm(q * 1.4 + w * 3.0 + 1.7), fbm(q * 1.4 + w * 3.0 + 9.2 + time * 0.05));
   float v = fbm(q * 1.5 + w2 * 3.0);
@@ -74,7 +74,7 @@ half4 style(vec2 p, vec3 n, float rim) {
   float flare = noise(vec2(cos(ang), sin(ang)) * 3.0 + time * 0.25 + seed * 9.0);
   float ring = exp(-abs(d - 0.84) * (26.0 - 12.0 * flare));
   float corona = smoothstep(0.82, 0.86, d) * (0.35 + 0.6 * flare);
-  float bead = spot(vec3(p / max(d, 0.001), 0.0), vec3(cos(time * 0.2 + seed * TAU), sin(time * 0.2 + seed * TAU), 0.0), 120.0);
+  float bead = spot(vec3(p / max(d, 0.001), 0.0), vec3(cos(time * 0.2 + seed * TAU + turn), sin(time * 0.2 + seed * TAU + turn), 0.0), 120.0);
   vec3 c = vec3(1.0, 0.8, 0.55) * ring + vec3(0.95, 0.4, 0.3) * corona * (1.0 - smoothstep(0.86, 1.0, d));
   c += vec3(1.0, 0.95, 0.85) * bead * exp(-abs(d - 0.84) * 12.0);
   return half4(c, (1.0 - smoothstep(0.84, 1.0, d)) * 0.98);
@@ -85,7 +85,7 @@ half4 halo() { return half4(0.95, 0.4, 0.25, 0.1); }
 export const medusa = `
 half4 style(vec2 p, vec3 n, float rim) {
   float pulse = 0.5 + 0.5 * sin(time * 1.6 + seed * TAU);
-  vec2 q = rot(0.25 * sin(time * 0.4 + seed * 9.0)) * p;
+  vec2 q = rot(0.25 * sin(time * 0.4 + seed * 9.0) + turn) * p;
   float ang = atan(q.y, q.x);
   float d = length(q);
   float ribs = pow(0.5 + 0.5 * cos(ang * 12.0 + sin(d * 6.0 - time) * 0.6), 7.0) * smoothstep(0.15, 0.6, d);
