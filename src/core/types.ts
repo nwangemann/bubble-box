@@ -56,6 +56,8 @@ export type FxPools = {
 };
 
 export type Held = {
+  /** Touch id. */
+  finger: number;
   bubble: Bubble;
   seconds: number;
   target: { x: number; y: number };
@@ -63,6 +65,8 @@ export type Held = {
   start: { x: number; y: number };
   /** The finger's latest points, oldest first; `t` is in hold seconds. */
   trail: { x: number; y: number; t: number }[];
+  /** Every point of the last moments, for swipe speed. */
+  recent: { x: number; y: number; t: number }[];
   /** Bubble under the touch when it began, or 0. */
   over: number;
 };
@@ -73,10 +77,10 @@ export type World = {
   waves: Wave[];
   bursts: Burst[];
   fx: FxPools;
-  /** A two-finger swipe in progress. Bubbles born during it are spared. */
-  sweep: { firstSpared: number; travelled: number } | null;
-  lastLaunch: { id: number; time: number; heldFor: number };
-  held: Held | null;
+  /** A two-finger swipe in progress. Bubbles born or launched during it are spared. */
+  sweep: { firstSpared: number; launched: number[] } | null;
+  /** One per finger that is growing a bubble. */
+  holds: Held[];
   time: number;
   leftover: number;
   nextId: number;

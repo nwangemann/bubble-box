@@ -9,7 +9,7 @@ import { TUNING } from '@/config/tuning';
 import type { Environment } from '@/config/environments';
 import { STYLES, type StyleId } from '@/styles';
 import { scaleAt } from '@/core/projection';
-import { mayBeTap } from '@/core/world';
+import { heldBubbles } from '@/core/world';
 import type { Box, Bubble, Burst, Ripple, World } from '@/core/types';
 
 export type Effects = Record<string, SkRuntimeEffect>;
@@ -163,8 +163,7 @@ export function drawScene(
     if (bends[Math.floor(r.variant * bends.length)] && r.axis === 'z' && r.p.z === 0) continue;
     drawRipple(canvas, ripplePaint, r, box, view, env);
   }
-  const all =
-    world.held && !mayBeTap(world) ? [...world.bubbles, world.held.bubble] : [...world.bubbles];
+  const all = [...world.bubbles, ...heldBubbles(world)];
   all.sort((a, b) => b.p.z - a.p.z);
   for (const b of all) drawBubble(canvas, bubblePaint, fx, b, world, box, view);
   for (const o of world.bursts) drawBurst(canvas, burstPaint, burstFx, o, box, view);

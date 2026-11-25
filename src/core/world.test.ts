@@ -12,6 +12,7 @@ import {
   release,
   beginSweep,
   endSweep,
+  swipeOf,
   sweepAlong,
 } from './world';
 
@@ -144,7 +145,7 @@ test('a quick tap pops the bubble under it; holding there grows a new one', () =
   beginHold(w, box, 0, 0, 'soap', true);
   run(w, 0.1);
   expect(finishTap(w)).toBe(true);
-  expect(w.held).toBeNull();
+  expect(w.holds).toHaveLength(0);
   run(w, 1);
   expect(w.bubbles).toHaveLength(0);
 
@@ -202,7 +203,7 @@ test('a tapped bubble can break into pieces, small ones cannot', () => {
   expect(alive()).toHaveLength(4);
 });
 
-test('a two-finger swipe pops what it crosses and takes back the first finger', () => {
+test('a two-finger swipe pops what it crosses and takes back what its fingers began', () => {
   const w = createWorld(pools);
   beginHold(w, box, 0, 0, 'soap');
   run(w, 1);
@@ -210,9 +211,13 @@ test('a two-finger swipe pops what it crosses and takes back the first finger', 
   run(w, 0.5);
   beginHold(w, box, 0.8, 1.8, 'soap');
   run(w, 0.05);
-  beginSweep(w);
-  expect(w.held).toBeNull();
-  expect(sweepAlong(w, box, 0, 0, 0.01, 0)).toBe(0);
+  expect(beginSweep(w)).toHaveLength(0);
+  beginHold(w, box, 0.6, 1.8, 'soap', false, 1);
+  moveHold(w, 0.8, 1.6);
+  expect(beginSweep(w)).toHaveLength(0);
+  moveHold(w, 0.6, 1.6, 1);
+  expect(beginSweep(w)).toHaveLength(2);
+  expect(w.holds).toHaveLength(0);
   expect(sweepAlong(w, box, -0.9, 1.9, -0.9, 1.5)).toBe(0);
   expect(sweepAlong(w, box, -0.9, 0, 0.9, 0)).toBe(1);
   // Its pieces survive the swipe that made them.
@@ -232,4 +237,58 @@ test('with several feels, bubbles differ and each keeps its own', () => {
   expect(new Set(first).size).toBeGreaterThan(2);
   for (let i = 0; i < 60; i++) advance(w, box, feels, 1, 1 / 60);
   expect(w.bubbles.map((b) => feelOf(b, feels))).toEqual(first);
+});
+
+test('each finger grows and launches its own bubble', () => {
+  const w = createWorld();
+  beginHold(w, box, -0.5, 0, 'soap', false, 3);
+  run(w, 0.5);
+  beginHold(w, box, 0.5, 0, 'ink', false, 7);
+  run(w, 0.5);
+  expect(w.holds[0]!.bubble.r).toBeGreaterThan(w.holds[1]!.bubble.r);
+  // Fingers that have lingered do not sweep.
+  moveHold(w, -0.5, 0.5, 3);
+  moveHold(w, 0.5, 0.5, 7);
+  expect(beginSweep(w)).toHaveLength(0);
+  release(w, 0, 0, 1, 3);
+  expect(w.bubbles.map((b) => b.style)).toEqual(['soap']);
+  expect(w.holds.map((h) => h.finger)).toEqual([7]);
+});
+
+test('a finger already growing a bubble keeps it through a sweep by two others', () => {
+  const w = createWorld();
+  beginHold(w, box, 0, 1.5, 'soap', false, 0);
+  run(w, 1);
+  beginHold(w, box, -0.5, 0, 'soap', false, 1);
+  beginHold(w, box, 0.5, 0, 'soap', false, 2);
+  moveHold(w, -0.5, -0.3, 1);
+  moveHold(w, 0.5, -0.3, 2);
+  expect(beginSweep(w).map((h) => h.finger)).toEqual([1, 2]);
+  expect(w.holds.map((h) => h.finger)).toEqual([0]);
+  release(w, 0, 0, 1);
+  expect(sweepAlong(w, box, 0, 1, 0, 2)).toBe(0);
+});
+
+test('bubbles grown side by side press apart and stay in the box', () => {
+  const w = createWorld();
+  for (const [i, x] of [-0.1, 0, 0.1, 0.95].entries()) beginHold(w, box, x, 0, 'soap', false, i);
+  run(w, 4);
+  const [a, , c] = w.holds.map((h) => h.bubble);
+  expect(c!.p.x - a!.p.x).toBeGreaterThan(0.2);
+  for (const { bubble: b } of w.holds) {
+    expect(Math.abs(b.p.x) + b.r).toBeLessThanOrEqual(1 + 1e-9);
+    expect(Math.abs(b.p.y) + b.r).toBeLessThanOrEqual(2.17 + 1e-9);
+  }
+});
+
+test('swipe speed follows the finger and fades when it rests', () => {
+  const w = createWorld();
+  beginHold(w, box, 0, 0, 'soap');
+  for (let i = 1; i <= 12; i++) {
+    run(w, 1 / 60);
+    moveHold(w, i * 0.05, 0);
+  }
+  expect(swipeOf(w.holds[0]!).x).toBeCloseTo(3, 0);
+  run(w, 0.3);
+  expect(swipeOf(w.holds[0]!)).toEqual({ x: 0, y: 0 });
 });

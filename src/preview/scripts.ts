@@ -152,8 +152,8 @@ export function play(stage: Stage, part: Part, seconds: number) {
     }
   } else if (kind === 'feel') {
     if (starts) beginHold(w, box, -0.2, 0.15, styleFor(part, stage.turn));
-    if (at(P.act.feel) && w.held) {
-      const held = w.held.bubble;
+    if (at(P.act.feel) && w.holds[0]) {
+      const held = w.holds[0].bubble;
       const feel = part.feels[Math.floor(((held.id * 0.75488) % 1) * part.feels.length)]!;
       release(w, 1.1, -0.8, feel.speed);
     }
@@ -186,7 +186,7 @@ export function play(stage: Stage, part: Part, seconds: number) {
       const since = now - P.act.tap;
       stage.finger = smooth((since + 0.3) / 0.3) * (1 - smooth((since - P.press) / 0.4));
       if (at(P.act.tap)) beginHold(w, box, 0, 0, styleFor(part, stage.turn + 1), tap.pops);
-      if (at(P.act.tap + P.press) && w.held && !finishTap(w)) release(w, 0.9, -0.6, 1);
+      if (at(P.act.tap + P.press) && w.holds.length > 0 && !finishTap(w)) release(w, 0.9, -0.6, 1);
     }
   }
   if ((kind === 'feel' || kind === 'meet' || kind === 'pop' || kind === 'tap') && at(P.clear[kind]))

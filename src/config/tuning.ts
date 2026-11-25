@@ -44,8 +44,15 @@ export const TUNING = {
   burst: { max: 8, minClosing: 0.18, pairPause: 0.45 },
   /** Popping into pieces. */
   brood: { minRadius: 0.16, size: 0.42, speed: 0.9 },
-  /** Two-finger swipe. `undo` forgives a bubble begun by the first finger. */
-  sweep: { slop: 0.06, reach: 0.16, undo: 0.35 },
+  /**
+   * Two-finger swipe: two fingers down less than `fresh` seconds that both travel `slop`. Fingers
+   * that linger longer grow bubbles instead.
+   */
+  sweep: { slop: 0.1, reach: 0.16, fresh: 0.4 },
+  /** Swipe speed is measured over the last `window` seconds, and never over less than `least`. */
+  swipe: { window: 0.08, least: 0.016 },
+  /** How firmly bubbles held by different fingers press apart each step, 0 to 1. */
+  heldPush: 0.2,
   hapticMinImpact: 0.35,
   /** Light from glowing bubbles; seconds for water to settle in an empty room. */
   walls: { glow: 0.9, settle: 1.2 },

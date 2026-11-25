@@ -35,7 +35,8 @@ MVP is done when a stranger understands it without words, and it holds 60 fps wi
 - [ ] (blocked) Finger pressure and size shape the growing bubble. Gesture Handler reports only positions, so this needs a small native module, an ADR and a phone; recent iPhones report size but not pressure
 - [x] Curved swipes add spin
 - [ ] Tune `TUNING.spin` on a phone
-- [ ] Several fingers grow several bubbles
+- [x] Several fingers grow several bubbles
+- [ ] On a phone: judge several fingers, swipe strength and telling a sweep from growing (`TUNING.sweep`, `swipe`)
 - [ ] Flick a bubble to nudge it
 - [ ] Tilt adds a gentle gravity
 

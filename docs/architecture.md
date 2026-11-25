@@ -16,13 +16,13 @@ The whole loop (touch, physics, drawing) runs on the UI thread. React renders on
 
 `World` is plain mutable data in one shared value. `advance` runs fixed 1/120 s steps, so motion is the same at 60 and 120 Hz. Frames longer than 1/20 s are shortened.
 
-Each step: grow and move the held bubble, integrate free bubbles, resolve bubble contacts, then walls last so nothing ends outside. Bubbles have equal density; a held bubble has infinite mass. Squash is a damped spring per axis, visual only.
+Each step: grow and move held bubbles, integrate free bubbles, resolve bubble contacts, then walls last so nothing ends outside. Bubbles have equal density; a held bubble has infinite mass, and held bubbles only press each other apart along the glass. Squash is a damped spring per axis, visual only.
 
 A touch that starts on a bubble stays hidden and weightless for `TUNING.tap.seconds`. Released sooner without moving, it pops that bubble; held longer, it grows as usual.
 
 A curved swipe gives `spin` about the line of sight, from how far the finger's path bent in its last moments. Spin rotates the sideways velocity, kicks off side walls, fades, and turns the surface through the `turn` uniform.
 
-A second finger starts a sweep: the first finger's new bubble is taken back, and fingers pop what they cross. Bubbles born during the sweep are spared.
+Each finger has its own `Held`, keyed by touch id. Two fingers down less than `TUNING.sweep.fresh` seconds that both travel start a sweep: what they began is taken back, and they pop what they cross, including the path so far. Other fingers keep their bubbles. Bubbles born or launched during the sweep are spared. `swipeOf` measures launch speed from the finger's last moments.
 
 Meetings and pops add a `Burst`: contact normal, sideways rub (`spin`), strength and both styles. `drawBurst` draws it as one additive shader rect aimed along the normal.
 

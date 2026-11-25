@@ -7,6 +7,7 @@ import {
 import type { Environment, WallId } from '@/config/environments';
 import { TUNING } from '@/config/tuning';
 import type { Box, World } from '@/core/types';
+import { heldBubbles } from '@/core/world';
 import { STYLES, type BubbleStyle } from '@/styles';
 import { LIB } from '@/styles/prelude';
 import type { View } from './drawScene';
@@ -218,7 +219,7 @@ export function drawWallLight(
   if (!effect) return;
   const lamps: number[] = [];
   const tints: number[] = [];
-  const all = world.held ? [...world.bubbles, world.held.bubble] : world.bubbles;
+  const all = [...world.bubbles, ...heldBubbles(world)];
   for (const b of all) {
     const g = GLOWS[b.style];
     if (!g || g.glow === 0 || lamps.length >= LAMPS * 4) continue;
