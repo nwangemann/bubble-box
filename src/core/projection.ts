@@ -11,3 +11,9 @@ export function unproject(box: Box, s: number, z: number) {
   'worklet';
   return s / scaleAt(box, z);
 }
+
+/** How far into the box a depth is: 0 up to the share `from`, 1 at the back wall. */
+export function awayAt(box: Box, z: number, from: number) {
+  'worklet';
+  return Math.max(0, Math.min(1, (z / box.depth - from) / (1 - from)));
+}

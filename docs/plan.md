@@ -2,7 +2,7 @@
 
 In priority order, for iOS. Each numbered box is one small session: do the first open one, tick it, and move **Next**. For anything that draws, check frame time on the simulator in the same session; device numbers come in 8.
 
-**Next: 1.2, depth cues on bubbles.**
+**Next: 1.3, contact with the room.**
 
 Sections 1 to 7 need no device. Section 8 needs a person, mostly with a phone, and stays last.
 
@@ -11,7 +11,7 @@ Sections 1 to 7 need no device. Section 8 needs a person, mostly with a phone, a
 Make it plain where each entrant is, where it is going, and why two met or missed.
 
 - [x] 1.1 See-through grid rooms for all six arenas: the core app's Lattice in each theme's colours, with the old scenery as a faint mural on the back wall. Solid painted rooms were tried and dropped: they hid the depth
-- [ ] 1.2 Depth cues on bubbles: haze, dimming and softer focus with distance
+- [x] 1.2 Depth cues on bubbles: haze, dimming and softer focus with distance (`AIR` in `config/arena`)
 - [ ] 1.3 Contact with the room: shadows and reflections on floor and walls, light on a wall a bubble nears, ripples where it hits
 - [ ] 1.4 Try a deeper arena (`TUNING.showdown.depth`) now that depth reads
 - [ ] 1.5 Redraw the murals less like cartoons, still faint, to sit with the films
@@ -89,7 +89,7 @@ In order. 8.1 to 8.7 need a phone.
 - [ ] 8.3 Tune the core: growth (start size, pace, largest size), launch (hold power, swipe strength, depth of the box), rebound, drift, wobble, haptics
 - [ ] 8.4 Tune gestures: several fingers, `swipe`, `TUNING.sweep`, `spin`, `flick` (does it get in the way of launching from a crowd?), `tilt` (does it want its own setting?)
 - [ ] 8.5 Judge looks: maker and patterns, merging (`TUNING.merge`), materials, day and wall light, the picker
-- [ ] 8.6 Judge showdown: grid and mural strength (`config/arena`), how often titles appear (`config/feats`), pace, merge and odds; tune `TUNING.showdown`
+- [ ] 8.6 Judge showdown: grid, mural and distance strength (`config/arena`), how often titles appear (`config/feats`), pace, merge and odds; tune `TUNING.showdown`
 - [ ] 8.7 Live with Meet and Pop on Random; note loved and unloved effects
 - [ ] 8.8 Reduce: keep 5 or 6 styles, the loved effects, trails and liquids; choose defaults
 - [ ] 8.9 Store listing

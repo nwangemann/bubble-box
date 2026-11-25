@@ -24,6 +24,8 @@ uniform float rad;
 uniform float2 modes;
 uniform float3 axis;
 uniform float3 hole;
+uniform float2 away;
+uniform float3 air;
 uniform float4 pA;
 uniform float4 pB;
 uniform float4 pC;
@@ -57,16 +59,20 @@ vec3 slope(vec3 q) {
   return normalize(vec3(field(q + e.xyy) - field(q - e.xyy), field(q + e.yxy) - field(q - e.yxy),
                         field(q + e.yyx) - field(q - e.yyx)));
 }
-float softbox(vec2 r, vec2 at, vec2 size) {
+float softbox(vec2 r, vec2 at, vec2 size, float blur) {
   vec2 d = abs(r - at) - size;
-  return 1.0 - smoothstep(-0.03, 0.05, max(d.x, d.y));
+  return 1.0 - smoothstep(-0.03 - blur, 0.05 + blur, max(d.x, d.y));
+}
+// The bars of that window.
+float panes(vec2 d, float from) {
+  return smoothstep(from, 0.03, abs(d.x)) * smoothstep(from, 0.03, abs(d.y));
 }
 // What the film mirrors: sky above, floor below, and one window of light.
-vec3 room(vec3 r) {
+vec3 room(vec3 r, float blur) {
   vec3 c = mix(ground, skyLow, smoothstep(-0.3, 0.1, -r.y));
   c = mix(c, skyHigh, smoothstep(0.1, 0.95, -r.y));
-  float w = softbox(r.xy, vec2(-0.52, -0.56), vec2(0.17, 0.22));
-  w *= smoothstep(0.012, 0.03, abs(r.x + 0.52)) * smoothstep(0.012, 0.03, abs(r.y + 0.56));
+  float w = softbox(r.xy, vec2(-0.52, -0.56), vec2(0.17, 0.22), blur);
+  w *= mix(panes(r.xy + vec2(0.52, 0.56), 0.012), 0.8, min(1.0, blur * 12.0));
   return c * 0.75 + vec3(1.0, 0.97, 0.92) * (w * 1.9 + 0.25 * pow(max(-r.y, 0.0), 6.0));
 }
 // What the vapour inside looks like: one of twelve, so no two in a cast match.
@@ -95,14 +101,16 @@ float dye(vec3 q, vec4 p, float mine) {
 half4 main(vec2 p) {
   vec3 q = vec3(p, 0.0);
   float cover;
+  // Softer with distance, judged at the centre so the edge is even all round.
+  float blur = air.z * clamp(away.x, 0.0, 1.0);
   bool lone = pA.w < 0.001;
   bool calm = lone && abs(modes.x) < 0.003 && abs(modes.y) < 0.003;
   vec3 n;
   if (calm) {
     float l = length(p);
-    cover = 1.0 - smoothstep(1.0 - 1.5 * px, 1.0, l);
+    cover = 1.0 - smoothstep(1.0 - 1.5 * px, 1.0 + blur, l);
     if (cover <= 0.0) return half4(0.0);
-    n = vec3(p, sqrt(max(0.0, 1.0 - l * l)));
+    n = vec3(p / max(1.0, l), sqrt(max(0.0, 1.0 - l * l)));
     q = n;
   } else {
     float z = 2.4;
@@ -113,8 +121,10 @@ half4 main(vec2 p) {
       z -= max(d, 0.004) * 0.92;
       if (d < 0.004 || z < -2.2) break;
     }
-    cover = 1.0 - smoothstep(0.004, 0.006 + 1.5 * px, least);
+    cover = 1.0 - smoothstep(0.004, 0.006 + 1.5 * px + blur, least);
     if (cover <= 0.0) return half4(0.0);
+    // A ray that missed is in the soft edge: judge it level with the centre.
+    if (least > 0.004) z = 0.0;
     q = vec3(p, z);
     n = slope(q);
     n.z = max(n.z, 0.0);
@@ -138,9 +148,9 @@ half4 main(vec2 p) {
   vec3 sheen = film(thick);
   vec3 r = vec3(2.0 * n.xy * n.z, 2.0 * n.z * n.z - 1.0);
   float mirror = 0.05 + 0.95 * pow(rim, 3.0);
-  vec3 front = room(r);
+  vec3 front = room(r, blur);
   // The far side of the film shows the window again, upside down.
-  vec3 behind = room(vec3(-r.x, -r.y, r.z)) * vec3(0.8, 0.9, 1.0);
+  vec3 behind = room(vec3(-r.x, -r.y, r.z), blur) * vec3(0.8, 0.9, 1.0);
   float light = 0.55 + 0.55 * max(dot(n, normalize(vec3(-0.45, -0.65, 0.6))), 0.0);
   // Light gathers on the side away from the window, as through any sphere of fluid.
   float gather = pow(max(dot(n, normalize(vec3(0.42, 0.62, 0.5))), 0.0), 5.0);
@@ -156,9 +166,9 @@ half4 main(vec2 p) {
   c += front * iris * mirror * 0.75;
   c += sheen * (0.05 + 0.16 * rim) * (skyLow * 0.5 + 0.5);
   vec2 w = r.xy;
-  c += vec3(1.0, 0.98, 0.95) * 0.7 * softbox(w, vec2(-0.6, -0.62), vec2(0.15, 0.19))
-     * smoothstep(0.01, 0.03, abs(w.x + 0.6)) * smoothstep(0.01, 0.03, abs(w.y + 0.62));
-  c += behind * softbox(w, vec2(0.6, 0.64), vec2(0.13, 0.15)) * 0.22;
+  c += vec3(1.0, 0.98, 0.95) * 0.7 * softbox(w, vec2(-0.6, -0.62), vec2(0.15, 0.19), blur)
+     * mix(panes(w + vec2(0.6, 0.62), 0.01), 0.8, min(1.0, blur * 12.0));
+  c += behind * softbox(w, vec2(0.6, 0.64), vec2(0.13, 0.15), blur) * 0.22;
   c *= 1.0 - 0.35 * smoothstep(0.82, 1.0, rim);
   a = clamp(max(a, max(c.r, max(c.g, c.b)) * 0.75), 0.0, 1.0);
   // A burst film: a hole opens from where it was struck and gathers a bead along its edge.
@@ -173,6 +183,9 @@ half4 main(vec2 p) {
   }
   c = min(c, vec3(1.0));
   a = clamp(max(a, max(c.r, max(c.g, c.b)) * 0.6), 0.0, 1.0);
+  // The air between: each part of a joined surface by its own depth. The room's light is skyLow.
+  float off = clamp(away.x - q.z * away.y, 0.0, 1.0);
+  c = mix(c * (1.0 - air.y * off), skyLow * a, air.x * off);
   c = min(c, vec3(a));
   return half4(half3(c * cover), half(a * cover));
 }

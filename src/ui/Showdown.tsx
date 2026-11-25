@@ -57,6 +57,7 @@ const STILL = {
   modes: [0, 0],
   axis: [1, 0, 0],
   hole: [0, 0, 1],
+  away: [0, 0],
   partners: [],
   dyes: [],
 };
@@ -148,7 +149,7 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
           const y = U.roster * 0.55;
           const r = cell * 0.44;
           const gone = out.includes(i);
-          drawFigure(canvas, look.layer, f, x, y, r * 1.2, 0, gone ? 0.2 : 1);
+          drawFigure(canvas, look.layer, f, x, y, r * 1.2, 0, gone ? 0.2 : 1, 0);
           if (gone || !liquid || !back) return;
           drawLiquid(canvas, look.film, liquid, back, f, look.room, x, y, r, r, {
             ...STILL,

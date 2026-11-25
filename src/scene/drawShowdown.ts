@@ -5,8 +5,9 @@ import {
   type SkRuntimeEffect,
   type SkShader,
 } from '@shopify/react-native-skia';
+import { AIR } from '@/config/arena';
 import { TUNING } from '@/config/tuning';
-import { scaleAt } from '@/core/projection';
+import { awayAt, scaleAt } from '@/core/projection';
 import type { Box, Bubble, Clash, World } from '@/core/types';
 import type { Theme } from '@/showdown/types';
 import type { View } from './drawScene';
@@ -36,7 +37,7 @@ export function showdownLook(theme: Theme): ShowdownLook {
   fill.setAntiAlias(true);
   const rgb = (c: string) => [...Skia.Color(c)].slice(0, 3);
   return {
-    cast: theme.cast.map(fighterLook),
+    cast: theme.cast.map((f) => fighterLook(f, rgb(theme.backdrop[0]))),
     accent: [...Skia.Color(theme.accent)],
     mote: { ...theme.motes, color: [...Skia.Color(theme.motes.color)] },
     room: [...rgb(theme.backdrop[1]), ...rgb(theme.backdrop[0]), ...rgb(theme.backdrop[1])],
@@ -82,6 +83,7 @@ export function drawFigure(
   r: number,
   lean: number,
   alpha: number,
+  away: number,
 ) {
   'worklet';
   if (!f.figure || alpha <= 0.01 || r <= 0.5) return;
@@ -89,8 +91,16 @@ export function drawFigure(
   canvas.translate(x, y + r * FIGURE.drop);
   canvas.rotate(lean, 0, 0);
   canvas.scale(r * FIGURE.size, r * FIGURE.size);
-  layer.setAlphaf(alpha);
-  canvas.drawImageRect(f.figure, f.src, f.dest, layer);
+  // The distant painting comes up beneath before the near one goes, so it never turns see-through.
+  const near = f.distant ? 1 - smooth(away * 1.25 - 0.25) : 1;
+  if (f.distant && away > 0) {
+    layer.setAlphaf(alpha * Math.min(1, away * 4));
+    canvas.drawImageRect(f.distant, f.distantSrc, f.dest, layer);
+  }
+  if (near > 0.01) {
+    layer.setAlphaf(alpha * near);
+    canvas.drawImageRect(f.figure, f.src, f.dest, layer);
+  }
   canvas.restore();
 }
 
@@ -102,6 +112,8 @@ export type Surface = {
   modes: number[];
   axis: number[];
   hole: number[];
+  /** How far into the arena its centre is, unclamped, and its radius on that scale. */
+  away: number[];
   /** Offsets and radii of what it is taking in, in its own radii, and their colours. */
   partners: number[][];
   dyes: number[][];
@@ -136,12 +148,20 @@ export function drawLiquid(
     ...o.modes,
     ...o.axis,
     ...o.hole,
+    ...o.away,
+    AIR.haze,
+    AIR.dim,
+    AIR.film,
   ];
-  let reach = 1.02 + Math.abs(o.modes[0]!) + Math.abs(o.modes[1]!);
+  let reach =
+    1.02 +
+    AIR.film * Math.max(0, Math.min(1, o.away[0]!)) +
+    Math.abs(o.modes[0]!) +
+    Math.abs(o.modes[1]!);
   for (let i = 0; i < PARTNERS; i++) {
     const p = o.partners[i] ?? NO_PARTNER;
     uniforms.push(...p);
-    if (p[3]! > 0) reach = Math.max(reach, Math.hypot(p[0]!, p[1]!) + p[3]! + 0.1);
+    if (p[3]! > 0) reach = Math.max(reach, Math.hypot(p[0]!, p[1]!) + p[3]! + 0.1 + AIR.film);
   }
   for (let i = 0; i < PARTNERS; i++) uniforms.push(...(o.dyes[i] ?? NO_DYE));
   uniforms.push(...f.lit, ...f.shade, ...room);
@@ -203,7 +223,17 @@ function drawBubble(
     const oy = v.cy + o.p.y * os;
     const g = look.cast[castOf(w, o.id)]!;
     // The figure dissolves as its bubble drains.
-    drawFigure(canvas, look.layer, g, ox, oy, o.r * os, lean, smooth(o.fade * 1.4 - 0.4));
+    drawFigure(
+      canvas,
+      look.layer,
+      g,
+      ox,
+      oy,
+      o.r * os,
+      lean,
+      smooth(o.fade * 1.4 - 0.4),
+      awayAt(box, o.p.z, AIR.from),
+    );
     if (partners.length >= PARTNERS) continue;
     partners.push([
       (ox - x) / r,
@@ -213,7 +243,7 @@ function drawBubble(
     ]);
     dyes.push(g.lit);
   }
-  drawFigure(canvas, look.layer, f, x, y, r, lean, 1 - gone * 1.6);
+  drawFigure(canvas, look.layer, f, x, y, r, lean, 1 - gone * 1.6, awayAt(box, b.p.z, AIR.from));
   if (!effect || !back) return;
   const ring = duel.ringing[b.id];
   let hole = [0, 0, 1];
@@ -232,6 +262,7 @@ function drawBubble(
     modes: ring ? [ring.a2, ring.a3] : [0, 0],
     axis: ring ? [ring.n.x, ring.n.y, -ring.n.z] : [1, 0, 0],
     hole,
+    away: [(b.p.z / box.depth - AIR.from) / (1 - AIR.from), b.r / box.depth / (1 - AIR.from)],
     partners,
     dyes,
   });
@@ -266,6 +297,7 @@ function drawSpray(canvas: SkCanvas, look: ShowdownLook, c: Clash, w: World, box
   const life = c.age / S.clash;
   const s = scaleAt(box, c.at.z) * v.ppu;
   const merged = w.duel!.absorb;
+  const clear = 1 - AIR.haze * awayAt(box, c.at.z, AIR.from);
   const loser = look.cast[castOf(w, c.loser)]!.lit;
   const nx = c.at.x - c.p.x;
   const ny = c.at.y - c.p.y;
@@ -289,7 +321,7 @@ function drawSpray(canvas: SkCanvas, look: ShowdownLook, c: Clash, w: World, box
     }
     y += c.age * c.age * 0.14;
     const size = (0.0035 + ((i * 0.713) % 1) ** 2 * 0.011) * s;
-    const alpha = (1 - life) * (merged ? 0.45 : 0.6);
+    const alpha = (1 - life) * (merged ? 0.45 : 0.6) * clear;
     tint(look.fill, loser, alpha * 0.7);
     canvas.drawCircle(v.cx + x * s, v.cy + y * s, size, look.fill);
     look.fill.setColor(Float32Array.of(1, 1, 1, alpha));

@@ -1,4 +1,5 @@
 import {
+  BlendMode,
   BlurStyle,
   ClipOp,
   createPicture,
@@ -11,9 +12,10 @@ import {
   TileMode,
   type SkCanvas,
   type SkImage,
+  type SkPaint,
   type SkPicture,
 } from '@shopify/react-native-skia';
-import { ARENA } from '@/config/arena';
+import { AIR, ARENA } from '@/config/arena';
 import { scaleAt } from '@/core/projection';
 import type { Box } from '@/core/types';
 import { INK, type Shape } from '@/showdown/shapes';
@@ -92,30 +94,55 @@ function drawFigure(canvas: SkCanvas, f: Fighter) {
 }
 
 /** Figures are painted once into images this many pixels wide, reaching this many radii. */
-const FIGURE = { pixels: 640, reach: 2.2 };
+const FIGURE = { pixels: 640, distant: 200, reach: 2.2 };
+
+type Rect = { x: number; y: number; width: number; height: number };
 
 export type FighterLook = {
   figure: SkImage | null;
-  src: { x: number; y: number; width: number; height: number };
+  src: Rect;
+  /** The same at the back wall: hazed, dimmed and out of focus. Smaller, as it holds no detail. */
+  distant: SkImage | null;
+  distantSrc: Rect;
   /** In figure radii. */
-  dest: { x: number; y: number; width: number; height: number };
+  dest: Rect;
   lit: number[];
   shade: number[];
 };
 
-export function fighterLook(f: Fighter): FighterLook {
-  const { pixels, reach } = FIGURE;
+/** Paints through what lies between here and the back wall. `air` is 0 to 1 rgb; as in `liquid`. */
+function distantPaint(air: number[]) {
+  const paint = Skia.Paint();
+  // Dimming, then haze, as one blend.
+  const cover = 1 - (1 - AIR.dim) * (1 - AIR.haze);
+  const [r, g, b] = air.map((c) => (cover > 0 ? (c * AIR.haze) / cover : 0));
+  paint.setColorFilter(
+    Skia.ColorFilter.MakeBlend(Float32Array.of(r!, g!, b!, cover), BlendMode.SrcATop),
+  );
+  paint.setImageFilter(Skia.ImageFilter.MakeBlur(AIR.figure, AIR.figure, TileMode.Decal, null));
+  return paint;
+}
+
+function paintFigure(f: Fighter, pixels: number, through?: SkPaint) {
   const surface = Skia.Surface.Make(pixels, pixels);
-  const canvas = surface?.getCanvas();
-  if (canvas) {
-    canvas.translate(pixels / 2, pixels / 2);
-    canvas.scale(pixels / 2 / reach, pixels / 2 / reach);
-    drawFigure(canvas, f);
-  }
+  if (!surface) return null;
+  const canvas = surface.getCanvas();
+  canvas.translate(pixels / 2, pixels / 2);
+  canvas.scale(pixels / 2 / FIGURE.reach, pixels / 2 / FIGURE.reach);
+  if (through) canvas.saveLayer(through);
+  drawFigure(canvas, f);
+  if (through) canvas.restore();
+  return surface.makeImageSnapshot();
+}
+
+export function fighterLook(f: Fighter, air: number[]): FighterLook {
+  const { pixels, distant, reach } = FIGURE;
   const rgb = (c: string) => [...Skia.Color(c)].slice(0, 3);
   return {
-    figure: surface?.makeImageSnapshot() ?? null,
+    figure: paintFigure(f, pixels),
     src: { x: 0, y: 0, width: pixels, height: pixels },
+    distant: paintFigure(f, distant, distantPaint(air)),
+    distantSrc: { x: 0, y: 0, width: distant, height: distant },
     dest: { x: -reach, y: -reach, width: reach * 2, height: reach * 2 },
     lit: rgb(f.skin[0]),
     shade: rgb(f.skin[1]),

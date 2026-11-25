@@ -10,3 +10,16 @@ export const ARENA = {
   mural: 0.16,
   horizon: 0.8,
 };
+
+/**
+ * How distance changes a showdown bubble. Clear up to `from`, a share of the arena's depth; the rest
+ * are its amounts at the back wall. Haze is towards the arena's own light. Blur is in radii of the
+ * bubble for the film, of the figure for the figure.
+ */
+export const AIR = {
+  from: 0.3,
+  haze: 0.5,
+  dim: 0.35,
+  film: 0.1,
+  figure: 0.12,
+};

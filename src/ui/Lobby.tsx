@@ -67,7 +67,7 @@ export function Lobby({ rule, onRule, count, onCount, onPick, onClose }: Props) 
           look.cast.forEach((f, i) => {
             const r = (w / 2) * C.ball;
             const at = { x: w * (0.2 + 0.3 * i), y: h * (i === 1 ? 0.32 : 0.52) };
-            drawFigure(canvas, look.layer, f, at.x, at.y, r, 0, 1);
+            drawFigure(canvas, look.layer, f, at.x, at.y, r, 0, 1, 0);
             if (!liquid || !shader) return;
             const back = { shader, scale: 1 };
             drawLiquid(canvas, look.film, liquid, back, f, look.room, at.x, at.y, r, r, {
@@ -78,6 +78,7 @@ export function Lobby({ rule, onRule, count, onCount, onPick, onClose }: Props) 
               modes: [0, 0],
               axis: [1, 0, 0],
               hole: [0, 0, 1],
+              away: [0, 0],
               partners: [],
               dyes: [],
             });
