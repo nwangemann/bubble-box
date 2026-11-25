@@ -7,7 +7,10 @@ import type { Box, Bubble, Trail, Vec3 } from './types';
 /**
  * A ball. The cue ball is the first. `sunk` is seconds since it left play, or negative; `pocket` is
  * the one it dropped in, or -1 if it only faded. `lively` follows its
- * speed, 0 to 1, for what is drawn.
+ * speed, 0 to 1, for what is drawn. `weight` is how much its pot means, set by the rules as it
+ * drops (`weigh` in `core/poolGame`), or -1. `back` is seconds since it was set back on its spot,
+ * while it eases in, or -1; `emptying` if its place in the row, filled when it was potted, empties
+ * meanwhile.
  */
 export type Ball = {
   r: number;
@@ -17,6 +20,9 @@ export type Ball = {
   sunk: number;
   pocket: number;
   lively: number;
+  weight: number;
+  back: number;
+  emptying: boolean;
 };
 
 export type Pool = {
@@ -42,6 +48,8 @@ export type Pool = {
   first: number;
   /** Seconds a shot after the break has run, for its later, harder drag; -1 once all have stopped. */
   hurry: number;
+  /** The game is over: a cleared table waits, and is set again only after `clearTable`. */
+  over: boolean;
 };
 
 /** A contact: ball `i` with ball `j`, with a cushion (`j` is the axis), or with pocket `j`. */
@@ -58,6 +66,8 @@ export type Trace = {
   hit: number;
   lands: Vec3 | null;
   drops: boolean;
+  /** The pocket it would drop in, or -1. */
+  pocket: number;
 };
 
 /** All on the far wall: its 4 corners, and the middles of its 2 long edges. */
@@ -90,6 +100,9 @@ function newBall(p: Vec3, r: number): Ball {
     sunk: -1,
     pocket: -1,
     lively: 0,
+    weight: -1,
+    back: -1,
+    emptying: false,
   };
 }
 
@@ -148,6 +161,7 @@ export function createPool(box: Box): Pool {
     trails: [],
     first: -1,
     hurry: -1,
+    over: false,
   };
 }
 
@@ -452,6 +466,21 @@ export function retire(pool: Pool) {
   cue.pocket = -1;
 }
 
+/**
+ * For the next game: every ball still on the table fades where it rests, as an old cue ball does,
+ * and the table is set again once they have gone.
+ */
+export function clearTable(pool: Pool) {
+  'worklet';
+  pool.over = false;
+  pool.balls.forEach((b) => {
+    if (b.sunk >= 0) return;
+    b.sunk = 0;
+    b.pocket = -1;
+    b.v = { x: 0, y: 0, z: 0 };
+  });
+}
+
 /** Returns whether any is still settling, so that it is drawn until it has. */
 function enliven(balls: Ball[], seconds: number) {
   'worklet';
@@ -541,6 +570,30 @@ export function fitCue(pool: Pool, box: Box, p: Vec3, r: number): Vec3 {
   return { x: x0, y: y0, z: r };
 }
 
+/**
+ * Sets a potted ball back on its place in the rack, or, if a ball is there, the nearest free place
+ * on the line from there to the far wall (towards the glass if none is), to ease in. Only once the
+ * table is still.
+ */
+export function spotBall(pool: Pool, box: Box, i: number) {
+  'worklet';
+  const b = pool.balls[i];
+  const home = rack(box)[i - 1];
+  if (!b || !home || b.sunk < 0) return;
+  const { x, y } = home.p;
+  const free = (z: number) =>
+    pool.balls.every(
+      (o, j) => j === i || o.sunk >= 0 || Math.hypot(o.p.x - x, o.p.y - y, o.p.z - z) >= b.r + o.r,
+    );
+  const { step } = POOL.spot;
+  let z = home.p.z;
+  while (z + step <= box.depth - b.r && !free(z)) z += step;
+  if (!free(z)) for (z = home.p.z; z - step >= b.r && !free(z);) z -= step;
+  Object.assign(b, newBall({ x, y, z }, b.r));
+  b.back = 0;
+  b.emptying = true;
+}
+
 /** Advances by real elapsed seconds. Returns whether anything moved or is leaving. */
 export function advancePool(pool: Pool, box: Box, seconds: number) {
   'worklet';
@@ -553,8 +606,9 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
   const busy = moving || (pool.hurry < 0 && tipping(pool, box));
   const lands = landsAt(pool.calm);
   balls.forEach((b, i) => {
+    if (b.back >= 0) b.back = b.back + seconds < POOL.spot.ease ? b.back + seconds : -1;
     if (b.sunk < 0) return;
-    if (i > 0 && b.sunk < lands && b.sunk + seconds >= lands) pool.landed++;
+    if (i > 0 && b.pocket >= 0 && b.sunk < lands && b.sunk + seconds >= lands) pool.landed++;
     b.sunk += seconds;
   });
   if (busy) {
@@ -570,15 +624,23 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
   // Until nothing of a pot shows.
   const ends = potEnds(pool.calm);
   const filling = balls.some((b, i) => i > 0 && b.sunk >= 0 && b.sunk < ends);
-  const settling = enliven(balls, seconds) || fading || filling;
+  const easing = balls.some((b) => b.back >= 0);
+  const settling = enliven(balls, seconds) || fading || filling || easing;
   if (balls.some((b, i) => i > 0 && b.sunk < POOL.sink)) {
     pool.done = 0;
     return busy || settling;
   }
   pool.done += seconds;
+  if (pool.over) return busy || settling;
   if (pool.done < POOL.again) return true;
   pool.done = 0;
-  pool.balls = [balls[0]!, ...rack(box)];
+  const fresh = rack(box);
+  // Each swells in, and a potted one's place in the row empties meanwhile.
+  fresh.forEach((b, i) => {
+    b.back = 0;
+    b.emptying = (balls[i + 1]?.pocket ?? -1) >= 0;
+  });
+  pool.balls = [balls[0]!, ...fresh];
   pool.racked = true;
   // It may be where one belongs.
   retire(pool);
@@ -614,7 +676,15 @@ export function traceAhead(pool: Pool, box: Box, p: Vec3, r: number): Trace {
   }
   const hit = nextHit(balls, box, holes, 100);
   travel(balls, hit.t);
-  const out: Trace = { from: p, to: { ...cue.p }, r, hit: -1, lands: null, drops: false };
+  const out: Trace = {
+    from: p,
+    to: { ...cue.p },
+    r,
+    hit: -1,
+    lands: null,
+    drops: false,
+    pocket: -1,
+  };
   if (hit.kind !== 'ball') return out;
   resolve(balls, hit);
   out.hit = hit.j;
@@ -624,12 +694,14 @@ export function traceAhead(pool: Pool, box: Box, p: Vec3, r: number): Trace {
   travel(balls, next.t);
   const b = balls[hit.j]!;
   out.lands = { ...b.p };
-  out.drops = next.kind === 'pocket';
+  let into = next;
   if (next.kind === 'wall') {
     // Off a pocket's own jaw is as good as straight in.
     const speed = Math.hypot(b.v.x, b.v.y, b.v.z);
     resolve(balls, next);
-    out.drops = nextHit(balls, box, holes, POOL.mouth / Math.max(1e-6, speed)).kind === 'pocket';
+    into = nextHit(balls, box, holes, POOL.mouth / Math.max(1e-6, speed));
   }
+  out.drops = into.kind === 'pocket';
+  out.pocket = out.drops ? into.j : -1;
   return out;
 }

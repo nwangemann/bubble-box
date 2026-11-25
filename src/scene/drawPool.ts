@@ -8,8 +8,17 @@ import {
   type SkRuntimeEffect,
 } from '@shopify/react-native-skia';
 import { POOL } from '@/config/pool';
-import { filled, placeAt, turnMark, type PoolRowLayout, type RowTurn } from '@/core/poolRow';
-import { pockets, type Ball, type Pool, type Trace } from '@/core/pool';
+import {
+  crownAt,
+  filled,
+  placeAt,
+  smooth,
+  turnMark,
+  type PoolRowLayout,
+  type RowTurn,
+} from '@/core/poolRow';
+import { pockets, snugs, type Ball, type Pool, type Trace } from '@/core/pool';
+import { EIGHT } from '@/core/poolGame';
 import { scaleAt } from '@/core/projection';
 import type { Box, Bubble, Vec3 } from '@/core/types';
 import { LIB } from '@/styles/prelude';
@@ -212,16 +221,33 @@ function drawRow(
   v: View,
 ) {
   'worklet';
-  const { top, ghost, ring } = POOL.row;
+  const { top, ghost, ring, win } = POOL.row;
   const r = row.radius;
   for (const { kind, places } of row.groups)
     for (const { ball, x } of places) {
       const b = pool.balls[ball];
-      const k = b ? filled(b.sunk, pool.calm) : 0;
+      // One set back empties its place as it eases in on the table; one that only faded, for the
+      // next game, never filled it.
+      const k = !b
+        ? 0
+        : b.back >= 0
+          ? b.emptying
+            ? 1 - smooth(b.back / POOL.spot.ease)
+            : 0
+          : b.sunk >= 0 && b.pocket < 0
+            ? 0
+            : filled(b.sunk, pool.calm);
       const size = r * (0.8 + 0.2 * k);
       const at = placeAt(row, kind, x, turn.swap);
       const px = v.cx + at.x;
       const py = top + at.y;
+      if (turn.won > 0 && (kind === 'eight' || kind === turn.crown)) {
+        // The winner's: lit from the 8 outwards.
+        const lit = crownAt(turn.won, Math.abs(at.x) / row.end);
+        const [cr, cg, cb] = INK;
+        ink(gpu.line, true, cr!, cg!, cb!, win.opacity * lit, win.width);
+        canvas.drawCircle(px, py, r + win.out * lit, gpu.line);
+      }
       drawDisc(canvas, gpu.ball, effect, ball, px, py, size, size, ghost + (1 - ghost) * k, 0, 0);
       if (k >= 1) continue;
       const t = MARKS[ball]!;
@@ -234,7 +260,9 @@ function drawRow(
   const y = top + below;
   // Round ends, then back to butt for the rest.
   gpu.line.setStrokeCap(1);
-  ink(gpu.line, true, cr!, cg!, cb!, opacity, width);
+  // The winner's line brightens.
+  const bright = opacity + (win.line - opacity) * smooth(turn.won);
+  ink(gpu.line, true, cr!, cg!, cb!, bright, width);
   canvas.drawLine(v.cx + mark.x - mark.half, y, v.cx + mark.x + mark.half, y, gpu.line);
   if (turn.second > 0) {
     // A second shot to come, after the opponent's foul.
@@ -257,6 +285,8 @@ export function drawPool(
   trace: Trace | null,
   /** How plainly that shows, 0 to 1. */
   sure: number,
+  /** The pocket that line calls for the 8, or -1. */
+  called: number,
   row: PoolRowLayout,
   turn: RowTurn,
   box: Box,
@@ -308,8 +338,10 @@ export function drawPool(
     const c = at(p);
     const lit = trace && i === trace.hit ? sure : 0;
     const away = p.z / box.depth;
-    const r = b.r * c.s * (1 - 0.6 * k * k);
-    drawDisc(canvas, gpu.ball, effect, i, c.x, c.y, r, r, 1 - k * k, away, lit);
+    // One set back on its spot swells in.
+    const e = b.back >= 0 ? smooth(b.back / POOL.spot.ease) : 1;
+    const r = b.r * c.s * (1 - 0.6 * k * k) * (0.6 + 0.4 * e);
+    drawDisc(canvas, gpu.ball, effect, i, c.x, c.y, r, r, (1 - k * k) * e, away, lit);
   }
   drawWakes(canvas, gpu, pieces, next, -Infinity, pool.time, box, v);
   if (trace?.lands) {
@@ -320,6 +352,15 @@ export function drawPool(
     ink(line, true, r, g, bl, 0.8 * sure, trace.drops ? 2.4 : 1.2);
     canvas.drawLine(a.x, a.y, b.x, b.y, line);
     canvas.drawCircle(b.x, b.y, POOL.radius * b.s, line);
+  }
+  const hole = snugs(box)[called];
+  if (hole) {
+    // The pocket called for the 8: a ring round where it would sit.
+    const { size, opacity, width } = POOL.aim.call;
+    const c = at(hole);
+    const [r, g, bl] = MARKS[EIGHT] as [number, number, number];
+    ink(line, true, r, g, bl, opacity * sure, width);
+    canvas.drawCircle(c.x, c.y, POOL.radius * size * c.s, line);
   }
   if (held) {
     const c = at(held.p);

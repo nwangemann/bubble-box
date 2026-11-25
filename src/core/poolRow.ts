@@ -41,13 +41,20 @@ export function poolRow(width: number): PoolRowLayout {
 
 /**
  * Whose the row shows, eased: `side` 0 for player 1, 1 for player 2; `swap` 1 once the stripes are
- * player 1's; `second` 1 while the shooter has two shots. Each goes linearly; drawn eased.
+ * player 1's; `second` 1 while the shooter has two shots; `won` 1 once the game is over, with
+ * `crown` the winner's group, whose places and the 8's are lit. Each goes linearly; drawn eased.
  */
-export type RowTurn = { side: number; swap: number; second: number };
+export type RowTurn = {
+  side: number;
+  swap: number;
+  second: number;
+  won: number;
+  crown: Group | null;
+};
 
 export function createRowTurn(): RowTurn {
   'worklet';
-  return { side: 0, swap: 0, second: 0 };
+  return { side: 0, swap: 0, second: 0, won: 0, crown: null };
 }
 
 /** Moves `from` towards `to` by `step`, at most. */
@@ -59,16 +66,32 @@ function towards(from: number, to: number, step: number) {
 /** Follows the game by `dt` seconds, or at once with Reduce Motion. Whether anything moved. */
 export function followGame(t: RowTurn, game: PoolGame, dt: number, calm: boolean) {
   'worklet';
-  const { swap, turn } = POOL.row;
-  const side = game.turn;
+  const { swap, turn, win } = POOL.row;
+  const over = game.winner !== null;
+  // Once over, the line goes to the winner.
+  const side = game.winner ?? game.turn;
   const swapped = game.groups && game.groups[0] === 'stripe' ? 1 : 0;
-  const second = game.shots > 1 ? 1 : 0;
-  const was = t.side + t.swap + t.second;
+  const second = game.shots > 1 && !over ? 1 : 0;
+  const was = t.side + t.swap + t.second + t.won;
   const quick = calm ? 1 : dt / turn.seconds;
   t.side = towards(t.side, side, quick);
   t.second = towards(t.second, second, quick);
   t.swap = towards(t.swap, swapped, calm ? 1 : dt / swap.seconds);
-  return t.side + t.swap + t.second !== was;
+  t.won = towards(t.won, over ? 1 : 0, calm ? 1 : dt / win.seconds);
+  if (over && game.groups && game.winner !== null) t.crown = game.groups[game.winner];
+  else if (t.won <= 0) t.crown = null;
+  return t.side + t.swap + t.second + t.won !== was;
+}
+
+/**
+ * How lit a winner's place is, 0 to 1, as `won` rises: from the 8 outwards, `order` 0 being the 8
+ * and 1 the far end of their half.
+ */
+export function crownAt(won: number, order: number) {
+  'worklet';
+  const { spread } = POOL.row.win;
+  const k = Math.max(0, Math.min(1, (won - spread * order) / (1 - spread)));
+  return k * k * (3 - 2 * k);
 }
 
 /** Eased in and out. */

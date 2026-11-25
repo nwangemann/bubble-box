@@ -82,6 +82,12 @@ export type PotsGpu = ReturnType<typeof compilePots>;
 /** Light of a pot: the 8's is pale, as its own colour would hardly show. */
 const COLORS = POOL.looks.map(({ kind }, i) => (kind === 'eight' ? [0.8, 0.85, 0.9] : LIGHTS[i]!));
 
+/** How much a pot means, for its light: 1 until the rules have said. */
+function weightOf(b: Ball) {
+  'worklet';
+  return b.weight < 0 ? 1 : b.weight;
+}
+
 function square(
   canvas: SkCanvas,
   paint: ReturnType<typeof Skia.Paint>,
@@ -117,7 +123,7 @@ export function drawPots(canvas: SkCanvas, gpu: PotsGpu, pool: Pool, box: Box, v
     // Where it dropped: snug in the pocket, a little off its walls.
     const p = o ? o.b.p : { x: 0, y: 0, z: 0 };
     at.push(p.x, p.y, p.z, o ? o.b.sunk : 0);
-    const k = o ? potLight(o.b.sunk) * P.spill * (pool.calm ? P.calm : 1) : 0;
+    const k = o ? potLight(o.b.sunk) * P.spill * (pool.calm ? P.calm : 1) * weightOf(o.b) : 0;
     tints.push(c[0]!, c[1]!, c[2]!, k);
   }
   gpu.spill.setShader(
@@ -162,6 +168,7 @@ export function drawMotes(
       const q = b && holes[b.pocket];
       if (!b || !q || b.sunk < 0 || b.sunk >= ends) continue;
       const c = COLORS[place.ball]!;
+      const w = weightOf(b);
       const s = scaleAt(box, q.z) * v.ppu;
       const from = [q.x * s * 0.94, q.y * s * 0.97];
       // Its place as drawn now, so a mote follows a group moving under its owner.
@@ -174,7 +181,9 @@ export function drawMotes(
         const thin = 1 - n / mote.tail;
         // Comes out of the pocket and sinks into its place, rather than starting and stopping.
         const seen = Math.min(1, k * 6);
-        gpu.glow.setShader(glowEffect.makeShader([...c, mote.strength * seen * thin * thin, 0]));
+        gpu.glow.setShader(
+          glowEffect.makeShader([...c, mote.strength * w * seen * thin * thin, 0]),
+        );
         square(
           canvas,
           gpu.glow,
@@ -188,8 +197,9 @@ export function drawMotes(
       const out = 1 - (1 - k) ** 2;
       const x = v.cx + at.x;
       const y = POOL.row.top + at.y;
-      gpu.glow.setShader(glowEffect.makeShader([...c, 1.4 * (1 - k) ** 2, 1]));
-      square(canvas, gpu.glow, x, y, row.radius * (1.4 + 2.2 * out));
+      // A pot that means more blooms wider.
+      gpu.glow.setShader(glowEffect.makeShader([...c, 1.4 * Math.min(1.5, w) * (1 - k) ** 2, 1]));
+      square(canvas, gpu.glow, x, y, row.radius * (1.4 + 2.2 * Math.sqrt(w) * out));
       gpu.glow.setShader(glowEffect.makeShader([...c, (1 - k) ** 2, 0]));
       square(canvas, gpu.glow, x, y, row.radius * mote.size);
     }

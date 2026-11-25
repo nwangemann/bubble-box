@@ -2,6 +2,7 @@ import { POOL } from '../config/pool';
 import { createGame } from './poolGame';
 import {
   createRowTurn,
+  crownAt,
   filled,
   followGame,
   landsAt,
@@ -110,12 +111,37 @@ test('the row follows the game: whose turn, whose groups, and a second shot, eas
   expect(t.side).toBeLessThan(1);
   expect(t.swap).toBeLessThan(t.side);
   for (let i = 0; i < 120; i++) followGame(t, game, 1 / 60, false);
-  expect(t).toEqual({ side: 1, swap: 1, second: 1 });
+  expect(t).toMatchObject({ side: 1, swap: 1, second: 1, won: 0 });
   expect(followGame(t, game, 1 / 60, false)).toBe(false);
   // A new rack opens the table: back where they began. With Reduce Motion, at once.
   game.groups = null;
   game.shots = 1;
   game.turn = 0;
   expect(followGame(t, game, 1 / 60, true)).toBe(true);
-  expect(t).toEqual({ side: 0, swap: 0, second: 0 });
+  expect(t).toMatchObject({ side: 0, swap: 0, second: 0 });
+});
+
+test('a game won: the line goes to the winner, their places light from the 8 out, then clear', () => {
+  const game = createGame();
+  const t = createRowTurn();
+  game.groups = ['solid', 'stripe'];
+  game.turn = 0;
+  // Player 1 lost on the 8: the line crosses to player 2, and their second shot goes.
+  game.shots = 2;
+  game.winner = 1;
+  for (let i = 0; i < 30; i++) followGame(t, game, 1 / 60, false);
+  expect(t.won).toBeGreaterThan(0);
+  expect(t.won).toBeLessThan(1);
+  expect(t.crown).toBe('stripe');
+  expect(crownAt(t.won, 0)).toBeGreaterThan(crownAt(t.won, 1));
+  for (let i = 0; i < 240; i++) followGame(t, game, 1 / 60, false);
+  expect(t).toMatchObject({ side: 1, second: 0, won: 1 });
+  expect([crownAt(1, 0), crownAt(1, 1)]).toEqual([1, 1]);
+  expect(crownAt(0, 0)).toBe(0);
+  // The next game: it fades, then the group is forgotten.
+  game.winner = null;
+  game.groups = null;
+  game.shots = 1;
+  expect(followGame(t, game, 1 / 60, true)).toBe(true);
+  expect(t).toMatchObject({ won: 0, crown: null });
 });

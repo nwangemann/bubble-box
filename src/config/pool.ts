@@ -30,7 +30,16 @@ export const POOL = {
    * steers. After, the finger is placing the shot: the line stays, shown over `ease` seconds, and
    * lifting sends the ball along it however the finger moves.
    */
-  aim: { opacity: 0.5, swipe: 1, place: 0.35, ease: 0.15 },
+  aim: {
+    opacity: 0.5,
+    swipe: 1,
+    place: 0.35,
+    ease: 0.15,
+    /** The pocket the line calls for the 8: a ring this many radii round where it would sit. */
+    call: { size: 1.6, opacity: 0.7, width: 1.6 },
+  },
+  /** The 8 set back on its spot: seconds it takes to ease in, and steps along the line to find room. */
+  spot: { ease: 0.6, step: 0.01 },
   /**
    * A slight draw towards each pocket: acceleration where a ball sits snug, fading to none at `reach`. Where
    * it is stronger than `drag` even a resting ball drifts in.
@@ -53,6 +62,8 @@ export const POOL = {
     leaves: 0.3,
     lands: 0.95,
     blooms: 0.5,
+    /** How bright a pot is by what it means: muted for a foul, more for the last of a group, most for the 8. */
+    meaning: { foul: 0.4, last: 1.5, eight: 2.2 },
     /** The mote's size in the row's radii, how far its path bows, and its tail: how many, how far behind. */
     mote: { size: 2, bow: 0.22, tail: 18, lag: 0.007, strength: 0.55 },
     most: 4,
@@ -114,6 +125,13 @@ export const POOL = {
      * while they have two shots.
      */
     turn: { below: 16, width: 2, opacity: 0.6, inner: 1.7, seconds: 0.45, second: 5, short: 0.45 },
+    /**
+     * A game won: over `seconds` a ring of the room's ink lights round each of the winner's places
+     * and the 8's, `out` pixels beyond them, from the 8 outwards (`spread` of the time between the
+     * first and the last), and their line brightens to `line`. Play again shows after `after`
+     * seconds.
+     */
+    win: { seconds: 1.4, spread: 0.5, out: 3, opacity: 0.75, width: 1.4, line: 1, after: 1.6 },
   },
   /** How balls look with distance, at the far wall: haze into the air, dimming, and duller shine. */
   far: { haze: 0.35, dim: 0.2, dull: 0.8 },

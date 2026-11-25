@@ -2,6 +2,7 @@ import { FEELS } from '../config/feels';
 import { POOL } from '../config/pool';
 import {
   advancePool,
+  clearTable,
   createPool,
   enter,
   pockets,
@@ -156,6 +157,37 @@ test('a cleared table is set again', () => {
   for (const b of pool.balls) b.sunk = 9;
   until(pool, () => pool.balls[1]!.sunk < 0);
   expect(pool.balls.filter((b) => b.sunk < 0)).toHaveLength(15);
+  // Swelling in as its place in the row empties.
+  expect(pool.balls[1]!.back).toBeGreaterThanOrEqual(0);
+});
+
+test('once over, a table waits as it ended; cleared for the next game, it is set again', () => {
+  const pool = createPool(box);
+  pool.racked = false;
+  pool.over = true;
+  pool.balls.forEach((b, i) => {
+    b.sunk = i === 3 ? -1 : 9;
+    b.pocket = i === 3 ? -1 : 2;
+  });
+  for (let n = 0; n < 600; n++) advancePool(pool, box, 1 / 60);
+  expect(pool.racked).toBe(false);
+  expect(pool.balls[3]!.sunk).toBe(-1);
+  // A ball left fades where it rests, and never counts as landing in the row.
+  const left = { ...pool.balls[3]!.p };
+  clearTable(pool);
+  expect(pool.over).toBe(false);
+  expect(pool.balls[3]).toMatchObject({ sunk: 0, pocket: -1, p: left });
+  let landed = 0;
+  for (let n = 0; n < 600 && !pool.racked; n++) {
+    advancePool(pool, box, 1 / 60);
+    landed += pool.landed;
+    pool.landed = 0;
+  }
+  expect(landed).toBe(0);
+  expect(pool.racked).toBe(true);
+  expect(pool.balls.filter((b) => b.sunk < 0)).toHaveLength(15);
+  // Only a potted ball's place empties as it swells in; the one left had none filled.
+  expect(pool.balls.map((b) => b.emptying)).toEqual(pool.balls.map((_, i) => i > 0 && i !== 3));
 });
 
 test('what shows straight ahead is what happens', () =>
@@ -178,8 +210,11 @@ test('it knows when the target would drop', () => {
   const pool = table([0, 0, 1], [0, 0, 0], [[ball.x, ball.y, ball.z]]);
   const x = ball.x + (d.x / l) * 2 * r;
   const y = ball.y + (d.y / l) * 2 * r;
-  expect(traceAhead(pool, box, at([x, y, r]), r).drops).toBe(true);
-  expect(traceAhead(pool, box, at([ball.x, ball.y, r]), r).drops).toBe(false);
+  expect(traceAhead(pool, box, at([x, y, r]), r)).toMatchObject({ drops: true, pocket: 5 });
+  expect(traceAhead(pool, box, at([ball.x, ball.y, r]), r)).toMatchObject({
+    drops: false,
+    pocket: -1,
+  });
 });
 
 test('the rack is a pyramid of 15 touching balls, its tip to the viewer', () => {
