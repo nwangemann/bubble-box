@@ -2,7 +2,7 @@ import { trailPool } from '../config/defaults';
 import { FEELS } from '../config/feels';
 import { TRAILS } from '../config/trails';
 import { TUNING } from '../config/tuning';
-import { sideOf } from './trail';
+import { imagesOf, sideOf } from './trail';
 import type { Box } from './types';
 import { advance, createWorld, newBubble, popAll } from './world';
 
@@ -34,7 +34,9 @@ test('a trail stays short and recent, however fast the bubble', () => {
   expect(w.trails).toHaveLength(1);
   expect(trail!.points.length).toBeGreaterThan(10);
   expect(trail!.points.length).toBeLessThanOrEqual(TUNING.trail.maxPoints);
-  for (const p of trail!.points) expect(w.time - p.t).toBeLessThan(TRAILS.ribbon.seconds + 0.02);
+  // The oldest may linger so the end can fade.
+  for (const p of trail!.points.slice(1))
+    expect(w.time - p.t).toBeLessThan(TRAILS.ribbon.seconds + 0.02);
 });
 
 test('a trail outlives its bubble, then goes', () => {
@@ -75,4 +77,19 @@ test('a trail lies across the line of sight and never flips', () => {
   // Straight away from the eye it keeps the way it lay.
   const away = sideOf(p, { x: 0.3, y: -0.4, z: 4.2 }, a, box.focal);
   expect(a.x * away.x + a.y * away.y + a.z * away.z).toBeCloseTo(1);
+});
+
+test('images are evenly spaced and stay put as the path goes on', () => {
+  const { w } = moving();
+  run(w, 1);
+  const [trail] = w.trails;
+  const before = imagesOf(trail!.points, 0.8);
+  expect(before.length).toBeGreaterThan(2);
+  before.forEach((o, i) => {
+    if (i > 0) expect(o.along - before[i - 1]!.along).toBeCloseTo(0.8);
+  });
+  run(w, 0.5);
+  const after = imagesOf(trail!.points, 0.8);
+  expect(after.length).toBeGreaterThan(before.length);
+  for (const o of before) expect(after).toContainEqual(o);
 });

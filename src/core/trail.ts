@@ -39,6 +39,46 @@ export function sideOf(p: Vec3, v: Vec3, before: Vec3 | null, focal: number): Ve
   return { x: x / l, y: y / l, z: z / l };
 }
 
+/** Where a bubble is now, as the next point of its trail. */
+export function pointAt(b: Bubble, last: TrailPoint | undefined, focal: number, t: number) {
+  'worklet';
+  const moved = last ? Math.hypot(b.p.x - last.p.x, b.p.y - last.p.y, b.p.z - last.p.z) : 0;
+  const point: TrailPoint = {
+    p: { x: b.p.x, y: b.p.y, z: b.p.z },
+    v: { x: b.v.x, y: b.v.y, z: b.v.z },
+    side: sideOf(b.p, b.v, last ? last.side : null, focal),
+    r: b.r,
+    t,
+    along: (last ? last.along : 0) + moved / Math.max(T.small, b.r),
+  };
+  return point;
+}
+
+/** Images every `gap` along a path, always in the same places as the path goes on. */
+export function imagesOf(points: TrailPoint[], gap: number): TrailPoint[] {
+  'worklet';
+  const out: TrailPoint[] = [];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1]!;
+    const b = points[i]!;
+    for (let n = Math.floor(a.along / gap) + 1; n * gap <= b.along; n++) {
+      const k = (n * gap - a.along) / (b.along - a.along);
+      out.push({
+        ...b,
+        p: {
+          x: a.p.x + (b.p.x - a.p.x) * k,
+          y: a.p.y + (b.p.y - a.p.y) * k,
+          z: a.p.z + (b.p.z - a.p.z) * k,
+        },
+        r: a.r + (b.r - a.r) * k,
+        t: a.t + (b.t - a.t) * k,
+        along: n * gap,
+      });
+    }
+  }
+  return out;
+}
+
 function lay(world: World, trail: Trail, b: Bubble, focal: number) {
   'worklet';
   const last: TrailPoint | undefined = trail.points[trail.points.length - 1];
@@ -52,13 +92,7 @@ function lay(world: World, trail: Trail, b: Bubble, focal: number) {
     // Corners are kept exactly; straights need fewer points.
     if (!turned && (moved < T.spacing || world.time - last.t < T.interval)) return;
   }
-  trail.points.push({
-    p: { x: b.p.x, y: b.p.y, z: b.p.z },
-    v: { x: b.v.x, y: b.v.y, z: b.v.z },
-    side: sideOf(b.p, b.v, last ? last.side : null, focal),
-    r: b.r,
-    t: world.time,
-  });
+  trail.points.push(pointAt(b, last, focal, world.time));
   if (trail.points.length > T.maxPoints) trail.points.shift();
 }
 
@@ -68,7 +102,11 @@ export function layTrails(world: World, focal: number) {
   const { trailLooks, time } = world;
   if (trailLooks.length === 0 && world.trails.length === 0) return;
   for (const trail of world.trails) {
-    while (trail.points.length > 0 && time - trail.points[0]!.t > trail.look.seconds)
+    // The last to go stays until the next has gone too, so the end fades rather than snaps.
+    while (
+      trail.points.length > 0 &&
+      time - (trail.points[1] ?? trail.points[0]!).t > trail.look.seconds
+    )
       trail.points.shift();
   }
   const laid: Trail[] = [];

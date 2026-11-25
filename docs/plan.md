@@ -2,22 +2,23 @@
 
 For iOS. Each numbered box is one small session: do the first open one in **Order**, tick it, and move **Next**. Sections group steps by theme; their order is not priority. For anything that draws, check frame time on the simulator in the same session; device numbers come in 8.
 
-**Next: 8.1 and 8.2 on a phone. If no phone is to hand, 2.2, trails of light and afterimages.**
+**Next: 8.1 and 8.2 on a phone. If no phone is to hand, 4.3, pops that push nearby bubbles.**
 
 Section 8 needs a person, mostly with a phone. Its steps sit among the others so that feel and frame time are known before more is built.
 
 ## Order
 
 1. 8.1, 8.2: first install, and frame time before trails
-2. 2.1, 2.2: trail system, then light and afterimages; repeat 8.2's frame time
+2. 2.1, 2.2 (built): trail system, light and afterimages; repeat 8.2's frame time
 3. 4.3, 4.5: pop push and haptic, first-time hint
 4. 8.3, 8.4: tune the core and gestures
 5. 5.1, 5.2, 5.4: arena apart from cast, mixed casts, predict the winner
 6. 7.1, 7.2: audio foundation, soft tones
 7. 2.5, 2.6: themed trails, trails that tell the story
 8. 3.1, 3.2: liquids as a trial. Unpark 3.3 to 3.9 only if they look good and hold 60 fps on the phone
-9. 8.5 to 8.8: judge, then reduce
-10. 8.9: store listing
+9. 9.1, 9.2: 8-ball in space as a trial. On to 9.3 to 9.5 only if a shot is fun
+10. 8.5 to 8.8: judge, then reduce
+11. 8.9: store listing
 
 Without a phone, skip the section 8 steps and go on, but start no liquids (3) before 8.2.
 
@@ -41,7 +42,7 @@ Make it plain where each entrant is, where it is going, and why two met or misse
 Behind moving bubbles, narrowing and fading with perspective. Explore, then reduce.
 
 - [x] 2.1 The Trail option (None, Ribbon, Random; None by default and under Reduce Motion; `config/trails`), in the calm room and previews; showdowns come with 2.5. Simulator, development build, 10 Lively bubbles: 60 fps, 3.9 ms a frame with Ribbon, 1.5 ms without; check on the phone in 8.2
-- [ ] 2.2 Light and afterimages: a soft thread of light; faint afterimages
+- [x] 2.2 Light, a soft thread of light, and Echo, faint afterimages (`config/trails`), also in Random. Simulator, development build, 10 Lively bubbles: 60 fps; about 5 ms a frame with either, 4.2 with Ribbon, 2.3 without; check on the phone in 8.2
 - [ ] 2.3 Matter: mist or micro-bubbles that drift and sink; the bubble's own dye as ink in water
 - [ ] 2.4 A wake that bends the background like heat
 - [ ] 2.5 A themed trail per arena: embers, dust, stardust, sea foam, wisps, steam
@@ -116,6 +117,16 @@ One audio decision for the whole app. Off with the silent switch. Synthesised, u
 - [ ] 8.8 Reduce: keep 5 or 6 styles, the loved effects, trails and liquids; choose defaults
 - [ ] 8.9 Store listing
 - [ ] 8.10 (blocked) Finger pressure and size shape the growing bubble. Gesture Handler reports only positions, so this needs a small native module, an ADR and a phone; recent iPhones report size but not pressure
+
+## 9. 8-ball in space
+
+A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in a weightless box. The aim is that it feels fun and engaging; if it does not, drop it.
+
+- [ ] 9.1 Explore on paper: where pockets go in a box (corners, edges, faces), how the rack forms in space, what cushions and cloth become, how a ball comes to rest, and how to aim and judge depth through a flat screen. Settle the rules to keep, and how a game with scores and turns fits [vision](vision.md)
+- [ ] 9.2 Trial: cue ball, a few balls and pockets; aim, set power, shoot. True collisions, spin and rails, our own physics (ADR 1). Find the aim and camera that make a shot readable and satisfying, then judge on a phone
+- [ ] 9.3 The full game: rack and break, solids and stripes, calling the 8, scratches and fouls, ball in hand, two players passing the phone
+- [ ] 9.4 English, draw and follow, chosen by where the cue strikes
+- [ ] 9.5 The mode itself: a third side to the mode switch, looks for table and balls, an opponent to play alone
 
 MVP is done when a stranger understands it without words, and it holds 60 fps with 10 bubbles.
 

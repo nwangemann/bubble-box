@@ -12,11 +12,11 @@ The menu opens from the dot: a tile for each setting, with its name and what is 
 | Tap     | New bubble | Pop                                                                                         | Each touch                                      |
 | Contact | Bounce     | Merge                                                                                       | Each pair, every time they touch                |
 | Pull    | Near       | None, Far, Heavy                                                                            | Each pair, for life                             |
-| Trail   | None       | Ribbon                                                                                      | Each bubble, for life                           |
+| Trail   | None       | Ribbon, Light, Echo                                                                         | Each bubble, for life                           |
 | Meet    | None       | Sparks, Chiral, Sunflower, Frost, Kali, Julia, Chord, Apollo                                | Each meeting                                    |
 | Pop     | None       | Film, Droplets, Mist, Shatter, Starlight, Implode, Brood, Chiral, Sunflower, Julia          | Each pop                                        |
 
-Pull draws bubbles towards each other: Near is strong but short, Far is soft and long, Heavy grows with size. Trail leaves a film ribbon where a bubble has been. Random never picks None for either. Pop None fades the bubble away quickly with no effect. Two-finger swipe always clears bubbles.
+Pull draws bubbles towards each other: Near is strong but short, Far is soft and long, Heavy grows with size. Trail shows where a bubble has been: Ribbon is a sliver of film, Light a glowing thread in the bubble's colour, Echo faint images of the bubble that thin to rings. Random never picks None for either. Pop None fades the bubble away quickly with no effect. Two-finger swipe always clears bubbles.
 
 ## Previews
 

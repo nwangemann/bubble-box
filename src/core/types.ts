@@ -33,8 +33,11 @@ export type Bubble = {
   shy: number;
 };
 
-/** Where a bubble was, which way it was going, and which way its trail lies across its path. */
-export type TrailPoint = { p: Vec3; v: Vec3; side: Vec3; r: number; t: number };
+/**
+ * Where a bubble was, which way it was going, and which way its trail lies across its path. `along`
+ * is how far it had come, in radii.
+ */
+export type TrailPoint = { p: Vec3; v: Vec3; side: Vec3; r: number; t: number; along: number };
 
 /** What a bubble has left behind it, oldest first. It outlives its bubble. */
 export type Trail = {

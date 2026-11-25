@@ -5,10 +5,10 @@ import {
   type SkCanvas,
   type SkRuntimeEffect,
 } from '@shopify/react-native-skia';
-import type { TrailId } from '@/config/trails';
+import { TRAILS, type TrailId, type TrailLook } from '@/config/trails';
 import { TUNING } from '@/config/tuning';
 import { scaleAt } from '@/core/projection';
-import { sideOf } from '@/core/trail';
+import { imagesOf, pointAt } from '@/core/trail';
 import type { Box, Bubble, Trail, TrailPoint, World } from '@/core/types';
 import { LIB } from '@/styles/prelude';
 import type { View } from './drawScene';
@@ -16,8 +16,10 @@ import type { View } from './drawScene';
 const T = TUNING.trail;
 
 /**
- * A trail supplies `vec3 trail(float v, float k, float born)`: light at `v`, -1 to 1 across, when it
+ * A strip supplies `vec3 trail(float v, float k, float born)`: light at `v`, -1 to 1 across, when it
  * is `k` of the way through its life. `born` is when it was laid, so what uses it stays in place.
+ * Images supply `vec3 image(vec2 p, float rim, float k, float born)`: light at `p`, -1 to 1 across,
+ * with `rim` 0 at the middle and 1 at the edge.
  * Uniform order must match `drawPiece`.
  */
 const HEAD = `
@@ -31,16 +33,31 @@ uniform float2 fog;
 uniform float3 tint;
 `;
 
-const MAIN = `
-half4 main(vec2 q) {
-  float k = clamp(q.x / life, 0.0, 1.0);
-  vec3 c = max(trail(q.y, k, now - q.x), 0.0);
-  c *= smoothstep(1.0, 0.55, abs(q.y));
+const FADE = `
+half4 faded(vec3 c, float age) {
+  float k = clamp(age / life, 0.0, 1.0);
   // Gone by the end of its life, and hidden where it would show inside its bubble.
-  c *= strength * (1.0 - k) * (1.0 - k * 0.4) * smoothstep(clear.x, clear.y, q.x);
-  float far = mix(fog.x, fog.y, clamp((q.x - span.x) / max(span.y - span.x, 0.0001), 0.0, 1.0));
+  c *= strength * (1.0 - k) * (1.0 - k * 0.4) * smoothstep(clear.x, clear.y, age);
+  float far = mix(fog.x, fog.y, clamp((age - span.x) / max(span.y - span.x, 0.0001), 0.0, 1.0));
   c = min(c * (1.0 - 0.6 * far), 1.0);
   return half4(c, max(c.r, max(c.g, c.b)));
+}
+`;
+
+const STRIP = `
+half4 main(vec2 q) {
+  vec3 c = max(trail(q.y, clamp(q.x / life, 0.0, 1.0), now - q.x), 0.0);
+  return faded(c * smoothstep(1.0, 0.55, abs(q.y)), q.x);
+}
+`;
+
+const IMAGE = `
+half4 main(vec2 p) {
+  float d = length(p);
+  if (d >= 1.0) return half4(0.0);
+  float rim = 1.0 - sqrt(1.0 - d * d);
+  vec3 c = max(image(p, rim, clamp(span.x / life, 0.0, 1.0), now - span.x), 0.0);
+  return faded(c * smoothstep(1.0, 0.94, d), span.x);
 }
 `;
 
@@ -54,13 +71,31 @@ vec3 trail(float v, float k, float born) {
   float edge = pow(abs(v), 3.0);
   return c * (0.36 + 1.3 * edge + 0.22 * flow);
 }`,
+  // A fine bright thread in a soft glow, with light that gathers here and there.
+  light: `
+vec3 trail(float v, float k, float born) {
+  float pulse = 0.72 + 0.4 * noise(vec2(born * 3.1 + seed * 30.0, now * 0.35));
+  float core = exp(-v * v * 110.0);
+  float glow = exp(-abs(v) * 4.5);
+  vec3 hot = mix(tint, vec3(1.0), 0.65);
+  return (hot * core * (1.0 - 0.45 * k) + tint * glow * 0.42) * pulse;
+}`,
+  // What the eye keeps of a bubble: its rim, thinning to a ring as it goes.
+  echo: `
+vec3 image(vec2 p, float rim, float k, float born) {
+  vec3 c = mix(film(0.7 + 0.6 * rim + 0.12 * born + seed), tint, 0.75);
+  float ring = pow(rim, mix(1.6, 3.2, k));
+  float lit = 0.25 * exp(-dot(p - vec2(-0.4, -0.48), p - vec2(-0.4, -0.48)) * 22.0);
+  return c * (ring + 0.07 * (1.0 - k)) + lit * (1.0 - k);
+}`,
 };
 
 /** Compiles every trail once. One that fails is reported and skipped. */
 export function compileTrails() {
   const effects: Record<string, SkRuntimeEffect> = {};
   for (const [id, sksl] of Object.entries(SOURCES)) {
-    const effect = Skia.RuntimeEffect.Make(HEAD + LIB + sksl + MAIN);
+    const look: TrailLook = TRAILS[id as TrailId];
+    const effect = Skia.RuntimeEffect.Make(HEAD + LIB + FADE + sksl + (look.gap ? IMAGE : STRIP));
     if (effect) effects[id] = effect;
     else console.error(`${id} trail failed to compile`);
   }
@@ -71,7 +106,7 @@ export function compileTrails() {
 
 export type TrailGpu = ReturnType<typeof compileTrails>;
 
-/** Part of a trail, short enough to be drawn in order of depth. */
+/** Part of a trail, short enough to be drawn in order of depth. An image is a single point. */
 export type Piece = { trail: Trail; points: TrailPoint[]; clear: number[]; z: number };
 
 /** Cuts trails into pieces, each sharing its end with the next. */
@@ -88,13 +123,7 @@ export function trailPieces(w: World, box: Box): Piece[] {
     const clear = [-1, 0];
     const leads = b && w.trailLooks.some((l) => l.id === trail.look.id);
     if (leads) {
-      points.push({
-        p: b.p,
-        v: b.v,
-        side: sideOf(b.p, b.v, last.side, box.focal),
-        r: b.r,
-        t: w.time,
-      });
+      points.push(pointAt(b, last, box.focal, w.time));
       // How long ago it was last behind or before the bubble.
       let inner = 0;
       let outer = 0;
@@ -118,6 +147,15 @@ export function trailPieces(w: World, box: Box): Piece[] {
       }
       clear[0] = inner;
       clear[1] = Math.max(outer, inner + 0.01);
+    }
+    if (trail.look.gap) {
+      for (const o of imagesOf(points, trail.look.gap)) {
+        // Ones not yet showing, or already gone, cost nothing.
+        const age = w.time - o.t;
+        if (age > clear[0]! && age < trail.look.seconds)
+          out.push({ trail, points: [o], clear, z: o.p.z });
+      }
+      continue;
     }
     for (let from = 0; from < points.length - 1; from += T.piece) {
       const part = points.slice(from, from + T.piece + 1);
@@ -148,6 +186,16 @@ export function drawPiece(
   for (const o of points) {
     const age = w.time - o.t;
     const s = scaleAt(box, o.p.z) * v.ppu;
+    if (look.gap) {
+      const half = o.r * look.width * (1 - (T.shrink * age) / look.seconds) * s;
+      for (let i = 0; i < 4; i++) {
+        const x = i % 2 === 0 ? -1 : 1;
+        const y = i < 2 ? -1 : 1;
+        at.push({ x: v.cx + o.p.x * s + x * half, y: v.cy + o.p.y * s + y * half });
+        on.push({ x, y });
+      }
+      continue;
+    }
     const left = Math.max(0, 1 - age / look.seconds);
     // Never thinner than can be drawn smoothly.
     const open = Math.sqrt(Math.min(1, (o.t - trail.born) / T.open));

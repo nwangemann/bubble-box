@@ -95,7 +95,8 @@ export const TUNING = {
    * turn sharper than cosine `corner` once `least` has passed. `hold` is how firmly a trail keeps
    * the way it lies. It is drawn in pieces of `piece` points, narrowing by the power `taper` to
    * `thinnest` pixels, hidden within `hidden` radii of its bubble and full from `shown`.
-   * Its first end comes to a point over `open` seconds.
+   * Its first end comes to a point over `open` seconds. Images shrink by the share `shrink` over
+   * their life; bubbles under radius `small` space theirs as if that large.
    */
   trail: {
     spacing: 0.12,
@@ -110,6 +111,8 @@ export const TUNING = {
     hidden: 0.95,
     shown: 1.7,
     open: 0.45,
+    shrink: 0.22,
+    small: 0.2,
   },
   /** Popping into pieces. */
   brood: { minRadius: 0.16, size: 0.42, speed: 0.9 },

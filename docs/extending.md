@@ -41,7 +41,7 @@ Add to `src/config/pulls.ts`. How it acts, and tires, is `attract` in `core/pull
 
 ## Trail
 
-Add to `src/config/trails.ts`, then write `vec3 trail(float v, float k, float born)` for it in `src/scene/trails.ts`. Spacing and tapering are `TUNING.trail`.
+Add to `src/config/trails.ts`, then write `vec3 trail(float v, float k, float born)` for it in `src/scene/trails.ts`. With a `gap` it is images along the path instead of a strip: write `vec3 image(vec2 p, float rim, float k, float born)`. Spacing and tapering are `TUNING.trail`.
 
 ## Showdown theme
 
