@@ -62,7 +62,7 @@ Each preview is a small `World` in its own box, driven by `preview/scripts` and 
 
 ## Mode switch
 
-`ui/ModeSwitch` shows the calm room and a showdown as two static pictures, drawn by the real bubble shaders and kept for a width. It sits at the same place in the tray and the chooser, so it reads as one switch.
+`ui/ModeSwitch` shows the calm room, a showdown and 8-ball as three static pictures, drawn by the real bubble shaders and kept for a width. It sits at the same place in the tray and the chooser, so it reads as one switch.
 
 ## Maker
 

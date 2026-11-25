@@ -21,6 +21,7 @@ import {
 } from '@/config/defaults';
 import { CUSTOM, customLook, type Custom } from '@/config/custom';
 import { dress, type Walls } from '@/config/environments';
+import type { Mode } from '@/config/modes';
 import { RULES, type RuleId } from '@/config/rules';
 import { Scene } from '@/scene/Scene';
 import { loadSettings, saveSettings } from '@/services/savedSettings';
@@ -99,6 +100,12 @@ export default function App() {
     const others = THEME_IDS.filter((id) => id !== not);
     fight(others[Math.floor(Math.random() * others.length)]!);
   };
+  const switchTo = (mode: Mode) => {
+    setLobby(mode === 'showdown');
+    setPool(mode === 'pool');
+    // The chooser waits over the menu; 8-ball is left for the room, as a showdown is.
+    setOpen(mode !== 'pool');
+  };
   const covered = preview !== null || making || lobby || bout !== null || pool;
 
   return (
@@ -126,11 +133,7 @@ export default function App() {
       <Tray
         open={open && !covered}
         onToggle={() => setOpen((o) => !o)}
-        onHold={() => {
-          setOpen(false);
-          setPool(true);
-        }}
-        onLobby={() => setLobby(true)}
+        onMode={switchTo}
         onPopAll={() => setPopSignal((n) => n + 1)}
         onTile={setPreview}
         tiles={ROWS.map(({ key, label, options }) => ({
@@ -177,10 +180,7 @@ export default function App() {
           onCast={setCast}
           onPick={(arena) => fight(arena)}
           onRandom={() => anotherArena()}
-          onCalm={() => {
-            setLobby(false);
-            setOpen(true);
-          }}
+          onMode={switchTo}
           onClose={() => setLobby(false)}
         />
       )}

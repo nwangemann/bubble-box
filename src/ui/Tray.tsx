@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import type { Setting } from '@/config/defaults';
-import { MODE_SWITCH } from '@/config/modes';
+import { MODE_SWITCH, type Mode } from '@/config/modes';
 import { TUNING } from '@/config/tuning';
 import { ModeSwitch } from './ModeSwitch';
 
@@ -11,16 +11,14 @@ type Tile = { key: Setting; label: string; value: string };
 type Props = {
   open: boolean;
   onToggle: () => void;
-  /** Temporary way in to the 8-ball trial. */
-  onHold: () => void;
   tiles: Tile[];
   onTile: (key: Setting) => void;
   onPopAll: () => void;
-  onLobby: () => void;
+  onMode: (mode: Mode) => void;
 };
 
 /** One small dot that opens a tile for each setting, showing what is chosen. */
-export function Tray({ open, onToggle, onHold, tiles, onTile, onPopAll, onLobby }: Props) {
+export function Tray({ open, onToggle, tiles, onTile, onPopAll, onMode }: Props) {
   const { width, height } = useWindowDimensions();
   const grid = Math.min(width - M.side * 2, M.widest);
   const tile = {
@@ -69,12 +67,11 @@ export function Tray({ open, onToggle, onHold, tiles, onTile, onPopAll, onLobby 
               </Text>
             </Pressable>
           </ScrollView>
-          <ModeSwitch mode="calm" onMode={onLobby} />
+          <ModeSwitch mode="calm" onMode={onMode} />
         </Animated.View>
       )}
       <Pressable
         onPress={onToggle}
-        onLongPress={onHold}
         accessibilityRole="button"
         accessibilityLabel={open ? 'Close options' : 'Open options'}
         style={styles.handle}

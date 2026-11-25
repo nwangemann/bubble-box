@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { ENTRANTS, RULES, type RuleId } from '@/config/rules';
-import { MODE_SWITCH } from '@/config/modes';
+import { MODE_SWITCH, type Mode } from '@/config/modes';
 import { SHOWDOWN_UI as U } from '@/config/showdownUi';
 import { TUNING } from '@/config/tuning';
 import { drawFigure, drawLiquid, showdownLook } from '@/scene/drawShowdown';
@@ -26,8 +26,8 @@ type Props = {
   onCast: (cast: CastChoice) => void;
   onPick: (arena: ThemeId) => void;
   onRandom: () => void;
-  /** Back to the calm room's menu. */
-  onCalm: () => void;
+  /** To the calm room's menu, or to 8-ball. */
+  onMode: (mode: Mode) => void;
   onClose: () => void;
 };
 
@@ -41,7 +41,7 @@ export function Lobby({
   onCast,
   onPick,
   onRandom,
-  onCalm,
+  onMode,
   onClose,
 }: Props) {
   const { width, height } = useWindowDimensions();
@@ -221,7 +221,7 @@ export function Lobby({
         <View style={styles.dot} />
       </Pressable>
       <View style={styles.modes} pointerEvents="box-none">
-        <ModeSwitch mode="showdown" onMode={onCalm} />
+        <ModeSwitch mode="showdown" onMode={onMode} />
       </View>
     </Animated.View>
   );

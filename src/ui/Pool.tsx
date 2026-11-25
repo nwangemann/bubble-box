@@ -28,7 +28,7 @@ const cheer = () => {
 
 const HANDS = [FEELS.weightless];
 
-/** The 8-ball trial (docs/pool.md). Temporary: opened by holding the dot. */
+/** The 8-ball trial (docs/pool.md). Opened with the mode switch. */
 export function Pool({ onLeave }: { onLeave: () => void }) {
   const { width, height } = useWindowDimensions();
   // The calm room's own box and view.

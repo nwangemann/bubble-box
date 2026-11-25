@@ -15,6 +15,7 @@ import { MODE_SWITCH as M, type Mode } from '@/config/modes';
 import { TUNING } from '@/config/tuning';
 import { createWorld, newBubble } from '@/core/world';
 import { drawFigure, drawLiquid, showdownLook } from '@/scene/drawShowdown';
+import { drawDisc, getPoolGpu } from '@/scene/drawPool';
 import { drawScene } from '@/scene/drawScene';
 import { getGpu } from '@/scene/gpu';
 import { pictureShader } from '@/scene/showdownPictures';
@@ -137,42 +138,72 @@ function showdownPicture(w: number, h: number) {
   });
 }
 
-let drawn: { w: number; calm: SkPicture; showdown: SkPicture } | null = null;
+/** The 8 among balls of the rack, drawn by the table's own shader. */
+function poolPicture(w: number, h: number) {
+  const { ball, effect } = getPoolGpu();
+  return createPicture((canvas) => {
+    const sky = Skia.Paint();
+    sky.setDither(true);
+    sky.setShader(
+      Skia.Shader.MakeRadialGradient(
+        { x: w / 2, y: h * 0.36 },
+        w * 0.7,
+        M.pool.sky.map((c) => Skia.Color(c)),
+        null,
+        TileMode.Clamp,
+      ),
+    );
+    canvas.drawRect(Skia.XYWHRect(0, 0, w, h), sky);
+    if (!effect) return;
+    for (const b of M.pool.balls) {
+      const r = b.r * h;
+      drawDisc(canvas, ball, effect, b.ball, b.x * w, b.y * h, r, r, 1, 0, 0);
+    }
+  });
+}
+
+let drawn: { w: number; calm: SkPicture; showdown: SkPicture; pool: SkPicture } | null = null;
 const SIDE_HEIGHT = M.height - M.inset * 2;
 
 /** Painted once for a width; opening the menu again costs nothing. */
 function pictures(w: number) {
   if (drawn?.w !== w)
-    drawn = { w, calm: calmPicture(w, SIDE_HEIGHT), showdown: showdownPicture(w, SIDE_HEIGHT) };
+    drawn = {
+      w,
+      calm: calmPicture(w, SIDE_HEIGHT),
+      showdown: showdownPicture(w, SIDE_HEIGHT),
+      pool: poolPicture(w, SIDE_HEIGHT),
+    };
   return drawn;
 }
 type Props = { mode: Mode; onMode: (mode: Mode) => void };
 
-/** Switches between the calm room and showdowns. Each side is a small window onto its own. */
+/** Switches between the calm room, showdowns and 8-ball. Each side is a small window onto its own. */
 export function ModeSwitch({ mode, onMode }: Props) {
   const { width } = useWindowDimensions();
-  const w = (Math.min(M.width, width - MARGIN * 2) - M.inset * 3) / 2;
-  const { calm, showdown } = useMemo(() => pictures(w), [w]);
+  const w = (Math.min(M.width, width - MARGIN * 2) - M.inset * 4) / 3;
+  const { calm, showdown, pool } = useMemo(() => pictures(w), [w]);
   return (
     <View style={styles.track} accessibilityRole="tablist" accessibilityLabel="Mode">
       {(
         [
-          ['calm', 'calm', calm],
-          ['showdown', 'SHOWDOWN', showdown],
+          ['calm', 'Calm', 'calm', calm],
+          ['showdown', 'Showdown', 'SHOWDOWN', showdown],
+          ['pool', '8-ball', '8-ball', pool],
         ] as const
-      ).map(([id, label, picture]) => {
+      ).map(([id, name, label, picture]) => {
         const on = id === mode;
         return (
           <Pressable
             key={id}
             onPress={() => !on && onMode(id)}
             accessibilityRole="tab"
-            accessibilityLabel={id === 'calm' ? 'Calm' : 'Showdown'}
+            accessibilityLabel={name}
             accessibilityState={{ selected: on }}
             style={({ pressed }) => [
               styles.side,
               { width: w },
-              on && (id === 'calm' ? styles.calmOn : styles.showdownOn),
+              on && ON[id],
               pressed && styles.pressed,
             ]}
           >
@@ -180,10 +211,7 @@ export function ModeSwitch({ mode, onMode }: Props) {
               <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
                 <Picture picture={picture} />
               </Canvas>
-              <Text
-                allowFontScaling={false}
-                style={id === 'calm' ? styles.calmName : styles.showdownName}
-              >
+              <Text allowFontScaling={false} style={NAME[id]}>
                 {label}
               </Text>
             </View>
@@ -212,13 +240,14 @@ const styles = StyleSheet.create({
   },
   calmOn: { boxShadow: '0 0 0 2px #cfe4ff, 0 0 14px rgba(140,190,255,0.6)' },
   showdownOn: { boxShadow: '0 0 0 2px #ffd35c, 0 0 14px rgba(255,110,50,0.8)' },
+  poolOn: { boxShadow: '0 0 0 2px #96cdf0, 0 0 14px rgba(70,170,220,0.7)' },
   pressed: { transform: [{ scale: 0.96 }] },
   calmName: {
     position: 'absolute',
-    left: 22,
-    bottom: 12,
+    left: 18,
+    bottom: 10,
     color: '#fff',
-    fontSize: 21,
+    fontSize: 19,
     fontWeight: '200',
     letterSpacing: 3,
   },
@@ -230,10 +259,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#fff3c4',
     fontFamily: 'Futura-CondensedExtraBold',
-    fontSize: 20,
-    letterSpacing: 1.2,
+    fontSize: 17,
+    letterSpacing: 0.6,
     textShadowColor: '#4a0a20',
     textShadowRadius: 3,
     textShadowOffset: { width: 0, height: 2 },
   },
+  poolName: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 5,
+    textAlign: 'center',
+    color: '#e2f4ff',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textShadowColor: '#04080f',
+    textShadowRadius: 3,
+  },
 });
+
+const ON = { calm: styles.calmOn, showdown: styles.showdownOn, pool: styles.poolOn };
+const NAME = { calm: styles.calmName, showdown: styles.showdownName, pool: styles.poolName };

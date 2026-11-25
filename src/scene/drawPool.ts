@@ -106,7 +106,7 @@ export function poolRoom(box: Box, view: View): SkPicture {
 
 const AIR = [0.05, 0.14, 0.22];
 
-function drawDisc(
+export function drawDisc(
   canvas: SkCanvas,
   paint: SkPaint,
   effect: SkRuntimeEffect,

@@ -13,7 +13,7 @@ A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than wat
 - [ ] 1.2 Judge the trial on a phone, by the questions at the end of [pool](pool.md). Built and played on a simulator only
 - [ ] 1.3 The full game: settle rules that suit a cue ball always to hand, then the rack, solids and stripes, the 8, perhaps two players
 - [ ] 1.4 More from spin: draw and follow, if a swipe can say them
-- [ ] 1.5 The mode itself: a third side to the mode switch, looks for table and balls, an opponent to play alone
+- [ ] 1.5 The mode itself: looks for table and balls, an opponent to play alone
 
 ## 2. First time on a phone
 
@@ -136,7 +136,7 @@ Selectable, with Random available and None as the default.
 ### 8-ball in space
 
 - 1.1 on paper, then rebuilt to a new structure: the calm room and camera, six pockets on the far wall, a cue ball from the calm hold at any moment ([pool](pool.md))
-- The trial of 1.2: exact contacts (`core/pool`), a pyramid of 15 whose break moves them all, a faint draw near pockets, a line straight ahead, opened by holding the dot. Simulator, release build, 15 balls: 60 fps, 1.4 ms a frame
+- The trial of 1.2: exact contacts (`core/pool`), a pyramid of 15 whose break moves them all, a faint draw near pockets, a line straight ahead, opened with a third side of the mode switch. Simulator, release build, 15 balls: 60 fps, 1.4 ms a frame
 
 ### Trails
 
