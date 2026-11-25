@@ -19,6 +19,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Screen-side ripple shader                | `src/scene/glassFilter.ts`   |
 | What a tap on a bubble does              | `src/config/taps.ts`         |
 | Meet and pop effects                     | `src/fx/`                    |
+| Default settings, tray rows, Random      | `src/config/defaults.ts`     |
 | Options tray                             | `src/ui/Tray.tsx`            |
 
 ## Read before working
@@ -28,6 +29,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 3. [docs/extending.md](docs/extending.md): when adding a style, box or feel.
 4. [docs/vision.md](docs/vision.md): for any visible change.
 5. [docs/running.md](docs/running.md): before running npm, pod or simulator commands.
+6. [docs/settings.md](docs/settings.md): when touching options or defaults.
 
 ## Rules
 

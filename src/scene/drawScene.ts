@@ -4,7 +4,7 @@ import {
   type SkPaint,
   type SkRuntimeEffect,
 } from '@shopify/react-native-skia';
-import { FX, type Fx } from '@/fx';
+import { FX, QUIET, type Fx } from '@/fx';
 import { TUNING } from '@/config/tuning';
 import type { Environment } from '@/config/environments';
 import { STYLES, type StyleId } from '@/styles';
@@ -44,7 +44,7 @@ function drawBubble(
   if (!effect) return;
   const s = scaleAt(box, b.p.z) * v.ppu;
   const pop = b.popping < 0 ? 0 : b.popping / TUNING.popSeconds;
-  const body = FX_LOOK[b.popFx]?.body ?? PLAIN;
+  const body = FX_LOOK[b.popFx]?.body ?? QUIET;
   // Falls inwards gathering speed, or swells steadily.
   const swell = Math.max(0.01, 1 + body.swell * (body.swell < 0 ? pop * pop : pop));
   const gone = Math.min(1, pop * body.haste);
@@ -153,12 +153,13 @@ export function drawScene(
   box: Box,
   view: View,
   env: Environment,
-  glassOn: boolean,
+  /** For each glass in play, whether it bends. */
+  bends: boolean[],
 ) {
   'worklet';
   for (const r of world.ripples) {
     // Bending glass replaces the drawn ring on the screen side.
-    if (glassOn && r.axis === 'z' && r.p.z === 0) continue;
+    if (bends[Math.floor(r.variant * bends.length)] && r.axis === 'z' && r.p.z === 0) continue;
     drawRipple(canvas, ripplePaint, r, box, view, env);
   }
   const all =

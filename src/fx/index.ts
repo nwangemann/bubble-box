@@ -26,6 +26,9 @@ export type Fx = {
   pieces?: number;
 };
 
+/** A pop with no effect: the bubble is simply gone. */
+export const QUIET: PopBody = { swell: 0, tear: false, haste: 4 };
+
 const QUICK: PopBody = { swell: 0.1, tear: true, haste: 2.6 };
 
 /** Add an entry and it appears in the tray rows named by `on`. */
@@ -132,7 +135,3 @@ export type FxId = keyof typeof FX;
 
 export const fxFor = (event: 'meet' | 'pop') =>
   (Object.entries(FX) as [FxId, Fx][]).filter(([, f]) => f.on.includes(event)).map(([id]) => id);
-
-/** Ids an option stands for. Surprise draws from all of them. */
-export const fxPool = (event: 'meet' | 'pop', choice: string): string[] =>
-  choice === 'none' ? [] : choice === 'surprise' ? fxFor(event) : [choice];

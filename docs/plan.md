@@ -13,6 +13,7 @@ Each box is one small session. Tick it when done and move **Next**.
 - [x] 12 bubble styles, 4 environments, 5 feels, tray
 - [x] Glass ripple on the screen side, with a toggle
 - [x] Tap a bubble to pop it, as an option
+- [x] Chosen defaults, and Random for every setting ([settings](settings.md))
 
 ## Phase 1: finish the MVP on a phone
 
@@ -49,11 +50,11 @@ Two-finger swipe is the way to clear bubbles; a single tap makes one. Tap to pop
 
 ## Phase 2b: pop and meeting effects
 
-Exploration. Everything below is selectable, with Surprise as the default; reduce at the end.
+Exploration. Everything below is selectable, with Random available and None as the default; reduce at the end.
 
 - [x] Pop as a selectable option: film, droplets, mist, shatter, starlight, implode, brood, plus three fractal ones
 - [x] Bubble-to-bubble effects: sparks, chiral, sunflower, frost, Kali, Julia, chord, Apollo
-- [ ] Live with Surprise on a phone; note loved and unloved effects
+- [ ] Live with Meet and Pop on Random on a phone; note loved and unloved effects
 - [ ] Second round of weird: reaction-diffusion bloom, strange attractor threads, cymatics, smoke knots, a fractal that zooms as it fades
 - [ ] Wall-hit effects from the same system
 - [ ] Style-specific pop and meeting effects
@@ -72,7 +73,7 @@ Explore. Tapping a category title in the tray (such as Bubble) opens a modal sho
 - [ ] Meet and Pop: the effect looping, with a pause between plays
 - [ ] Glass: a looping ripple
 - [ ] Feel: a bubble moving in a small box with that physics
-- [ ] Decide whether Tap needs previews, and what Surprise and None show
+- [ ] Decide whether Tap needs previews, and what Random and None show
 - [ ] Make titles look tappable without adding clutter; Reduce Motion shows stills
 
 ## Phase 3: box

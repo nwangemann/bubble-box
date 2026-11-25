@@ -24,6 +24,8 @@ A second finger starts a sweep: the first finger's new bubble is taken back, and
 
 Meetings and pops add a `Burst`: contact normal, sideways rub (`spin`), strength and both styles. `drawBurst` draws it as one additive shader rect aimed along the normal.
 
+Options reach the scene as lists: one entry, or all for Random. `feelOf` gives each bubble a feel from its id; `variant` on a wave and its ring picks the glass.
+
 Past `maxBubbles`, the oldest pops.
 
 ## Scene

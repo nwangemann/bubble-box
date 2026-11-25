@@ -13,6 +13,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import type { Environment } from '@/config/environments';
 import type { Feel } from '@/config/feels';
 import type { Glass } from '@/config/glass';
+import type { Tap } from '@/config/taps';
 import { TUNING } from '@/config/tuning';
 import type { Box, FxPools } from '@/core/types';
 import {
@@ -21,6 +22,7 @@ import {
   beginSweep,
   createWorld,
   endSweep,
+  feelOf,
   finishTap,
   moveHold,
   popAll,
@@ -33,12 +35,12 @@ import { compileGlass, throughGlass } from './glassFilter';
 import { roomPicture } from './roomPicture';
 
 type Props = {
-  style: string;
-  feel: Feel;
+  /** Each list holds one entry, or every entry for Random. */
+  styles: string[];
+  feels: Feel[];
   env: Environment;
-  glass: Glass;
-  /** Whether a quick tap on a bubble pops it. */
-  tapPops: boolean;
+  glasses: Glass[];
+  taps: Tap[];
   fx: FxPools;
   /** Increment to pop everything. */
   popSignal: number;
@@ -50,7 +52,7 @@ const buzz = (strength: number) => {
   Haptics.impactAsync(strength > 2 ? s.Medium : strength > 1 ? s.Light : s.Soft).catch(() => {});
 };
 
-export function Scene({ style, feel, env, glass, tapPops, fx, popSignal, onTouch }: Props) {
+export function Scene({ styles, feels, env, glasses, taps, fx, popSignal, onTouch }: Props) {
   const { width, height } = useWindowDimensions();
   const view = useMemo(() => ({ cx: width / 2, cy: height / 2, ppu: width / 2 }), [width, height]);
   const box = useMemo<Box>(() => ({ hw: 1, hh: height / width, ...TUNING.box }), [width, height]);
@@ -72,6 +74,8 @@ export function Scene({ style, feel, env, glass, tapPops, fx, popSignal, onTouch
   });
   const room = useMemo(() => roomPicture(box, view, env), [box, view, env]);
   const density = PixelRatio.get();
+  const bends = useMemo(() => glasses.map((g) => g.bend > 0), [glasses]);
+  const bending = glasses.find((g) => g.bend > 0);
 
   const world = useSharedValue(createWorld(fx));
   const picture = useSharedValue(createPicture(() => {}));
@@ -91,14 +95,15 @@ export function Scene({ style, feel, env, glass, tapPops, fx, popSignal, onTouch
     if (empty && quiet.value) return;
     quiet.value = empty;
     w.fx = fx;
-    advance(w, box, feel, env.bounce, dt);
+    advance(w, box, feels, env.bounce, dt);
     if (w.impact > TUNING.hapticMinImpact && w.time - lastBuzz.value > 0.06) {
       lastBuzz.value = w.time;
       scheduleOnRN(buzz, w.impact);
     }
     picture.value = createPicture((canvas) => {
       'worklet';
-      const effect = glass.bend > 0 ? gpu.glassEffect : null;
+      const effect = bending ? gpu.glassEffect : null;
+      const waves = w.waves.filter((v) => bends[Math.floor(v.variant * bends.length)]);
       const scene = () => {
         'worklet';
         drawScene(
@@ -112,12 +117,12 @@ export function Scene({ style, feel, env, glass, tapPops, fx, popSignal, onTouch
           box,
           view,
           env,
-          !!effect,
+          bends,
         );
       };
       // The full-screen pass runs only while a wave is alive, and bends the room too.
-      if (effect && w.waves.length > 0) {
-        throughGlass(canvas, gpu.glassPaint, effect, w.waves, glass, view, density, () => {
+      if (effect && bending && waves.length > 0) {
+        throughGlass(canvas, gpu.glassPaint, effect, waves, bending, view, density, () => {
           'worklet';
           canvas.drawPicture(room);
           scene();
@@ -147,8 +152,8 @@ export function Scene({ style, feel, env, glass, tapPops, fx, popSignal, onTouch
         box,
         (e.x - view.cx) / view.ppu,
         (e.y - view.cy) / view.ppu,
-        style,
-        tapPops,
+        styles[Math.floor(Math.random() * styles.length)]!,
+        taps[Math.floor(Math.random() * taps.length)]!.pops,
       );
       scheduleOnRN(onTouch);
     },
@@ -159,13 +164,21 @@ export function Scene({ style, feel, env, glass, tapPops, fx, popSignal, onTouch
     onDeactivate: (e) => {
       'worklet';
       if (finishTap(world.value)) return;
-      release(world.value, e.velocityX / view.ppu, e.velocityY / view.ppu, feel.speed);
+      const h = world.value.held;
+      if (h)
+        release(
+          world.value,
+          e.velocityX / view.ppu,
+          e.velocityY / view.ppu,
+          feelOf(h.bubble, feels).speed,
+        );
     },
     // A touch the system cancels still lets its bubble go, straight ahead.
     onFinalize: () => {
       'worklet';
       if (finishTap(world.value)) return;
-      release(world.value, 0, 0, feel.speed);
+      const h = world.value.held;
+      if (h) release(world.value, 0, 0, feelOf(h.bubble, feels).speed);
     },
   });
 

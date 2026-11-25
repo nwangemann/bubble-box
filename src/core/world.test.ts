@@ -1,10 +1,11 @@
-import { FEELS } from '../config/feels';
+import { FEELS, type Feel } from '../config/feels';
 import { TUNING } from '../config/tuning';
 import type { Box } from './types';
 import {
   advance,
   beginHold,
   createWorld,
+  feelOf,
   finishTap,
   radiusAt,
   release,
@@ -14,8 +15,8 @@ import {
 } from './world';
 
 const box: Box = { hw: 1, hh: 2.17, depth: 5, focal: 3.2 };
-const run = (w: ReturnType<typeof createWorld>, s: number, feel = FEELS.drift) => {
-  for (let i = 0; i < s * 60; i++) advance(w, box, feel, 1, 1 / 60);
+const run = (w: ReturnType<typeof createWorld>, s: number, feel: Feel = FEELS.drift) => {
+  for (let i = 0; i < s * 60; i++) advance(w, box, [feel], 1, 1 / 60);
 };
 const launch = (hold: number, sx = 0, sy = 0) => {
   const w = createWorld();
@@ -37,7 +38,7 @@ test('flies away, hits the back wall and returns to the glass', () => {
   let far = 0;
   let returned = false;
   for (let i = 0; i < 1200; i++) {
-    advance(w, box, FEELS.weightless, 1, 1 / 60);
+    advance(w, box, [FEELS.weightless], 1, 1 / 60);
     far = Math.max(far, b.p.z);
     if (far > 4 && b.p.z < b.r + 0.02) returned = true;
   }
@@ -76,7 +77,7 @@ test('only a hit on the glass starts a wave, which then fades', () => {
   let sawBack = false;
   let sawGlass = false;
   for (let i = 0; i < 1200 && !sawGlass; i++) {
-    advance(w, box, FEELS.weightless, 1, 1 / 60);
+    advance(w, box, [FEELS.weightless], 1, 1 / 60);
     if (w.ripples.some((r) => r.p.z === box.depth)) sawBack = true;
     sawGlass = w.waves.length > 0;
     if (!sawGlass) continue;
@@ -124,7 +125,7 @@ test('bubbles that meet throw one burst per contact', () => {
   release(w, 0, 0, 1);
   let seen = 0;
   for (let i = 0; i < 600 && seen === 0; i++) {
-    advance(w, box, FEELS.weightless, 1, 1 / 60);
+    advance(w, box, [FEELS.weightless], 1, 1 / 60);
     seen = w.bursts.length;
   }
   expect(seen).toBe(1);
@@ -169,4 +170,17 @@ test('a two-finger swipe pops what it crosses and takes back the first finger', 
   expect(sweepAlong(w, box, 0.9, 0, -0.9, 0)).toBe(0);
   endSweep(w);
   expect(w.bubbles.filter((b) => b.popping < 0)).toHaveLength(5);
+});
+
+test('with several feels, bubbles differ and each keeps its own', () => {
+  const feels = Object.values(FEELS);
+  const w = createWorld();
+  for (let i = 0; i < 8; i++) {
+    beginHold(w, box, 0, 0, 'soap');
+    release(w, 0, 0, 1);
+  }
+  const first = w.bubbles.map((b) => feelOf(b, feels));
+  expect(new Set(first).size).toBeGreaterThan(2);
+  for (let i = 0; i < 60; i++) advance(w, box, feels, 1, 1 / 60);
+  expect(w.bubbles.map((b) => feelOf(b, feels))).toEqual(first);
 });

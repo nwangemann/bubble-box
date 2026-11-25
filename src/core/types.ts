@@ -20,10 +20,10 @@ export type Bubble = {
 };
 
 export type Axis = 'x' | 'y' | 'z';
-export type Ripple = { p: Vec3; axis: Axis; age: number; strength: number };
+export type Ripple = { p: Vec3; axis: Axis; age: number; strength: number; variant: number };
 
 /** A hit on the glass, in screen-plane coordinates. */
-export type Wave = { x: number; y: number; age: number; strength: number };
+export type Wave = { x: number; y: number; age: number; strength: number; variant: number };
 
 /** Light thrown off where bubbles meet or pop. Drawn by `src/fx`. */
 export type Burst = {
@@ -44,7 +44,7 @@ export type Burst = {
   pair: number;
 };
 
-/** Effects to choose from; more than one means a surprise, none means no effect. */
+/** Effects to choose from; more than one means Random, none means no effect. */
 export type FxPools = {
   meet: string[];
   pop: string[];

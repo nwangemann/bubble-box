@@ -99,6 +99,12 @@ function popApart(world: World, b: Bubble) {
   if (pieces > 0) trim(world);
 }
 
+/** A bubble's feel. With several in play each bubble keeps one for life. */
+export function feelOf(b: Bubble, feels: Feel[]) {
+  'worklet';
+  return feels[Math.floor(((b.id * 0.75488) % 1) * feels.length)]!;
+}
+
 /** 0 at touch, approaching 1 for a long hold. */
 export function chargeAt(seconds: number) {
   'worklet';
@@ -281,6 +287,8 @@ function bounce(
   b.v[axis] = -into * e * side;
   squash(b, axis, into, feel.wobble);
   world.impact = Math.max(world.impact, into);
+  // Chooses the glass when several are in play; the wave and the ring must agree.
+  const variant = Math.random();
   if (axis === 'z' && side < 0 && into > T.glass.minImpact) {
     // The contact point lies on the glass, so it needs no projection.
     world.waves.push({
@@ -288,13 +296,14 @@ function bounce(
       y: b.p.y,
       age: 0,
       strength: Math.min(1, (0.4 + into / 2.5) * (0.65 + b.r)),
+      variant,
     });
     if (world.waves.length > T.glass.maxWaves) world.waves.shift();
   }
   if (into < 0.12) return;
   const p = { x: b.p.x, y: b.p.y, z: b.p.z };
   p[axis] = side < 0 ? lo : hi;
-  world.ripples.push({ p, axis, age: 0, strength: Math.min(1, into / 3) * (0.4 + b.r) });
+  world.ripples.push({ p, axis, age: 0, strength: Math.min(1, into / 3) * (0.4 + b.r), variant });
   if (world.ripples.length > T.maxRipples) world.ripples.shift();
 }
 
@@ -345,7 +354,14 @@ function meet(
 }
 
 /** Equal-density collision. A held bubble has infinite mass. */
-function collide(world: World, a: Bubble, b: Bubble, aHeld: boolean, e: number, feel: Feel) {
+function collide(
+  world: World,
+  a: Bubble,
+  b: Bubble,
+  aHeld: boolean,
+  bounceScale: number,
+  feels: Feel[],
+) {
   'worklet';
   const dx = b.p.x - a.p.x;
   const dy = b.p.y - a.p.y;
@@ -369,6 +385,9 @@ function collide(world: World, a: Bubble, b: Bubble, aHeld: boolean, e: number, 
   const closing = (a.v.x - b.v.x) * nx + (a.v.y - b.v.y) * ny + (a.v.z - b.v.z) * nz;
   if (closing <= 0) return;
   meet(world, a, b, nx, ny, nz, closing);
+  const fa = feelOf(a, feels);
+  const fb = feelOf(b, feels);
+  const e = Math.min(1, ((fa.restitution + fb.restitution) / 2) * bounceScale);
   const j = ((1 + e) * closing) / (ia + ib);
   a.v.x -= j * ia * nx;
   a.v.y -= j * ia * ny;
@@ -380,15 +399,14 @@ function collide(world: World, a: Bubble, b: Bubble, aHeld: boolean, e: number, 
   const ay = Math.abs(ny);
   const az = Math.abs(nz);
   const axis: Axis = ax > ay && ax > az ? 'x' : ay > az ? 'y' : 'z';
-  squash(a, axis, closing * 0.6, feel.wobble);
-  squash(b, axis, closing * 0.6, feel.wobble);
+  squash(a, axis, closing * 0.6, fa.wobble);
+  squash(b, axis, closing * 0.6, fb.wobble);
 }
 
-function step(world: World, box: Box, feel: Feel, bounceScale: number, dt: number) {
+function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: number) {
   'worklet';
   world.time += dt;
   const t = world.time;
-  const e = Math.min(1, feel.restitution * bounceScale);
   const held = world.held;
   if (held) {
     const b = held.bubble;
@@ -405,8 +423,9 @@ function step(world: World, box: Box, feel: Feel, bounceScale: number, dt: numbe
     b.dv.y += Math.sin(t * 3.1 + 2.2) * 0.35 * dt * 10;
     relaxShape(b, dt);
   }
-  const fade = Math.exp(-feel.drag * dt);
   for (const b of world.bubbles) {
+    const feel = feelOf(b, feels);
+    const fade = Math.exp(-feel.drag * dt);
     if (b.popping >= 0) b.popping += dt;
     const ph = b.seed * 40;
     b.v.x += Math.sin(t * 0.43 + ph) * feel.wander * dt;
@@ -429,10 +448,10 @@ function step(world: World, box: Box, feel: Feel, bounceScale: number, dt: numbe
   for (let i = 0; i < n; i++) {
     const a = world.bubbles[i]!;
     if (a.popping >= 0) continue;
-    if (solid) collide(world, solid.bubble, a, true, e, feel);
+    if (solid) collide(world, solid.bubble, a, true, bounceScale, feels);
     for (let j = i + 1; j < n; j++) {
       const b = world.bubbles[j]!;
-      if (b.popping < 0) collide(world, a, b, false, e, feel);
+      if (b.popping < 0) collide(world, a, b, false, bounceScale, feels);
     }
   }
   if (held) {
@@ -440,6 +459,8 @@ function step(world: World, box: Box, feel: Feel, bounceScale: number, dt: numbe
   }
   // Walls last, so nothing ends a step outside.
   for (const b of world.bubbles) {
+    const feel = feelOf(b, feels);
+    const e = Math.min(1, feel.restitution * bounceScale);
     bounce(world, b, 'x', -box.hw, box.hw, e, feel);
     bounce(world, b, 'y', -box.hh, box.hh, e, feel);
     bounce(world, b, 'z', 0, box.depth, e, feel);
@@ -447,7 +468,13 @@ function step(world: World, box: Box, feel: Feel, bounceScale: number, dt: numbe
 }
 
 /** Advances by real elapsed seconds using fixed steps. */
-export function advance(world: World, box: Box, feel: Feel, bounceScale: number, seconds: number) {
+export function advance(
+  world: World,
+  box: Box,
+  feels: Feel[],
+  bounceScale: number,
+  seconds: number,
+) {
   'worklet';
   world.impact = 0;
   const dt = Math.min(seconds, T.maxFrame);
@@ -464,7 +491,7 @@ export function advance(world: World, box: Box, feel: Feel, bounceScale: number,
   world.waves = world.waves.filter((w) => w.age < T.glass.seconds);
   world.leftover += dt;
   while (world.leftover >= T.step) {
-    step(world, box, feel, bounceScale, T.step);
+    step(world, box, feels, bounceScale, T.step);
     world.leftover -= T.step;
   }
   world.bubbles = world.bubbles.filter((b) => b.popping < T.popSeconds);
