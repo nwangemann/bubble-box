@@ -32,6 +32,10 @@ With Contact on Merge, two free bubbles that touch become one over `TUNING.merge
 
 With a Trail chosen, `layTrails` in `core/trail` ends each step by laying points behind free bubbles: every so often on straights, exactly at turns. Each point keeps the way a ribbon lies there, which faces the eye, never flips, and holds when flying straight away. A trail outlives its bubble and fades where it hangs. `scene/trails` draws it as triangle strips cut into short pieces, sorted among the bubbles by depth. A strip's texture coordinates are age and place across, so colours stay where they were laid; it is hidden where it would cross its own bubble's disc. A look with a `gap` is drawn as separate discs instead (`imagesOf`), placed by distance travelled in radii (`along`), so they stay where they were set down.
 
+A pop leaves a `Puff` where it was. Its front spreads, and `feelPuffs` in `core/puff` gives each bubble it reaches a push that swells and passes, less when far or large, speeding nothing past `TUNING.puff.fastest`. Bubbles born after the pop, its own pieces among them, feel nothing; held ones only shiver; showdowns have none. `popped` keeps the largest pop until the scene takes it for the haptic, which outranks a wall's.
+
+`Hint` in `core/hint` is its own shared value beside the world: it waits, plays and fades, and reports once when told, so React can save it. `scene/hint` draws it last, unbent by glass, as one shader rect in the box's ink, only while it plays.
+
 Meetings and pops add a `Burst`: contact normal, sideways rub (`spin`), strength and both styles. `drawBurst` draws it as one additive shader rect aimed along the normal.
 
 Options reach the scene as lists: one entry, or all for Random. `feelOf` and `trailOf` give each bubble a feel and a trail from its id; `variant` on a wave and its ring picks the glass.

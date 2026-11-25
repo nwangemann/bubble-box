@@ -1,6 +1,7 @@
 import { BlendMode, Skia } from '@shopify/react-native-skia';
 import { compileFx, compileStyles } from './effects';
 import { compileGlass } from './glassFilter';
+import { compileHint } from './hint';
 import { compileLiquid } from './liquid';
 import { compileRoomContact } from './roomContact';
 import { compileTrails } from './trails';
@@ -17,6 +18,8 @@ function make() {
     burstPaint,
     glassEffect: compileGlass(),
     glassPaint: Skia.Paint(),
+    hintEffect: compileHint(),
+    hintPaint: Skia.Paint(),
     bubblePaint: Skia.Paint(),
     ripplePaint,
     liquid: compileLiquid(),

@@ -22,6 +22,8 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | What a tap on a bubble does              | `src/config/taps.ts`                                               |
 | Whether touching bubbles merge           | `src/config/contacts.ts`                                           |
 | How bubbles draw each other              | `src/config/pulls.ts`, `src/core/pull.ts`                          |
+| How a pop pushes its neighbours          | `src/core/puff.ts`                                                 |
+| First-time hint of the two-finger swipe  | `src/core/hint.ts`, `src/scene/hint.ts`                            |
 | Trails bubbles leave                     | `src/config/trails.ts`, `src/core/trail.ts`, `src/scene/trails.ts` |
 | Meet and pop effects                     | `src/fx/`                                                          |
 | Default settings, menu tiles, Random     | `src/config/defaults.ts`                                           |

@@ -114,6 +114,22 @@ export const TUNING = {
     shrink: 0.22,
     small: 0.2,
   },
+  /**
+   * The air a pop lets go, pushing what is near. It reaches `reach` past the bubble at `speed`, and
+   * each push swells and passes in `seconds`. `strength` is the speed it gives, for a pop of radius
+   * `usual`; `heaviness` is how much a large bubble resists, `wobble` how much it gives. It speeds
+   * nothing past `fastest`.
+   */
+  puff: {
+    reach: 0.9,
+    speed: 4,
+    seconds: 0.2,
+    strength: 1.1,
+    usual: 0.3,
+    heaviness: 2,
+    wobble: 1.6,
+    fastest: 1.2,
+  },
   /** Popping into pieces. */
   brood: { minRadius: 0.16, size: 0.42, speed: 0.9 },
   /**
@@ -121,11 +137,31 @@ export const TUNING = {
    * that linger longer grow bubbles instead.
    */
   sweep: { slop: 0.1, reach: 0.16, fresh: 0.4 },
+  /**
+   * The first-time hint. After `wait` seconds untouched, two fingertips `gap` apart fade in over
+   * `land`, travel `travel` in `stroke` seconds and fade over `lift`. Their wakes follow `wake`
+   * seconds behind. A touch sends it away in `leave` seconds. `margin` keeps it off the edges.
+   */
+  hint: {
+    wait: 3,
+    land: 0.8,
+    stroke: 1.1,
+    lift: 1,
+    wake: 0.6,
+    leave: 0.3,
+    gap: 0.36,
+    travel: 1.2,
+    radius: 0.13,
+    margin: 0.3,
+    opacity: 0.75,
+  },
   /** Swipe speed is measured over the last `window` seconds, and never over less than `least`. */
   swipe: { window: 0.08, least: 0.016 },
   /** How firmly bubbles held by different fingers press apart each step, 0 to 1. */
   heldPush: 0.2,
   hapticMinImpact: 0.35,
+  /** Haptics closer than `gap` seconds run together. A pop under radius `faint` is only a tick. */
+  haptic: { gap: 0.06, faint: 0.16 },
   /** Light from glowing bubbles; seconds for water to settle in an empty room. */
   walls: { glow: 0.9, settle: 1.2 },
   /**

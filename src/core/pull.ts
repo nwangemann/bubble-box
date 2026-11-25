@@ -7,10 +7,10 @@ export function pairOf(a: Bubble, b: Bubble) {
   return Math.min(a.id, b.id) * 4096 + Math.max(a.id, b.id);
 }
 
-/** Adds to a bubble's velocity. It may bend a fast one, but never makes it faster. */
-function nudge(b: Bubble, x: number, y: number, z: number) {
+/** Adds to a bubble's velocity. One already past `fastest` may bend, but is never made faster. */
+export function nudge(b: Bubble, x: number, y: number, z: number, fastest: number) {
   'worklet';
-  const most = Math.max(TUNING.pull.fastest, Math.hypot(b.v.x, b.v.y, b.v.z));
+  const most = Math.max(fastest, Math.hypot(b.v.x, b.v.y, b.v.z));
   b.v.x += x;
   b.v.y += y;
   b.v.z += z;
@@ -53,8 +53,8 @@ export function attract(world: World, dt: number) {
       const ma = a.r ** 3;
       const mb = b.r ** 3;
       const k = (2 * pull.strength * size * near * near * (1 - tired) * dt) / (dist * (ma + mb));
-      nudge(a, dx * k * mb, dy * k * mb, dz * k * mb);
-      nudge(b, -dx * k * ma, -dy * k * ma, -dz * k * ma);
+      nudge(a, dx * k * mb, dy * k * mb, dz * k * mb, P.fastest);
+      nudge(b, -dx * k * ma, -dy * k * ma, -dz * k * ma, P.fastest);
     }
   }
 }

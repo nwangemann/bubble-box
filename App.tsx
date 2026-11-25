@@ -47,16 +47,21 @@ export default function App() {
   const [lobby, setLobby] = useState(false);
   const [rule, setRule] = useState<RuleId>(saved.rule);
   const [count, setCount] = useState(saved.count);
+  const [hinted, setHinted] = useState(saved.hinted);
   const [bout, setBout] = useState<{ theme: ThemeId; round: number } | null>(null);
   const [popSignal, setPopSignal] = useState(0);
   const close = useCallback(() => setOpen(false), []);
+  const learned = useCallback(() => setHinted(true), []);
 
   const calm = useReduceMotion();
   useEffect(() => {
     // A slider moves many times a second; one write at the end is enough.
-    const timer = setTimeout(() => saveSettings({ settings, walls, custom, rule, count }), 300);
+    const timer = setTimeout(
+      () => saveSettings({ settings, walls, custom, rule, count, hinted }),
+      300,
+    );
     return () => clearTimeout(timer);
-  }, [settings, walls, custom, rule, count]);
+  }, [settings, walls, custom, rule, count, hinted]);
 
   const { bubble, feel, glass, tap, contact, pull, trail, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
@@ -104,6 +109,10 @@ export default function App() {
         trails={trails}
         popSignal={popSignal}
         paused={covered}
+        calm={calm}
+        hints={!hinted}
+        hush={open}
+        onHinted={learned}
         onTouch={close}
       />
       <Tray

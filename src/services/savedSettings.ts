@@ -4,7 +4,15 @@ import { cleanCount, cleanRule, type RuleId } from '@/config/rules';
 import { cleanSettings, cleanWalls, type Settings } from '@/config/defaults';
 import type { Walls } from '@/config/environments';
 
-type Saved = { settings: Settings; walls: Walls; custom: Custom; rule: RuleId; count: number };
+type Saved = {
+  settings: Settings;
+  walls: Walls;
+  custom: Custom;
+  rule: RuleId;
+  count: number;
+  /** The first-time hint is no longer needed. */
+  hinted: boolean;
+};
 
 const clean = (data: unknown): Saved => ({
   settings: cleanSettings(data),
@@ -12,6 +20,7 @@ const clean = (data: unknown): Saved => ({
   custom: cleanCustom((data as { custom?: unknown } | null)?.custom),
   rule: cleanRule((data as { rule?: unknown } | null)?.rule),
   count: cleanCount((data as { count?: unknown } | null)?.count),
+  hinted: (data as { hinted?: unknown } | null)?.hinted === true,
 });
 
 const file = () => new File(Paths.document, 'settings.json');
@@ -26,11 +35,11 @@ export function loadSettings(): Saved {
   }
 }
 
-export function saveSettings({ settings, walls, custom, rule, count }: Saved) {
+export function saveSettings({ settings, walls, custom, rule, count, hinted }: Saved) {
   try {
     const f = file();
     if (!f.exists) f.create();
-    f.write(JSON.stringify({ ...settings, walls, custom, rule, count }));
+    f.write(JSON.stringify({ ...settings, walls, custom, rule, count, hinted }));
   } catch (e) {
     // Losing a preference should never interrupt play.
     console.warn('Settings were not saved', e);

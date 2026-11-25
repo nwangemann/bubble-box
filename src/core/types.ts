@@ -83,6 +83,12 @@ export type FxPools = {
   pieces: Record<string, number>;
 };
 
+/**
+ * The air let go by a pop, spreading from where it was. Bubbles from id `firstSpared` on, its own
+ * pieces among them, came after it.
+ */
+export type Puff = { p: Vec3; r: number; age: number; firstSpared: number };
+
 export type Held = {
   /** Touch id. */
   finger: number;
@@ -153,6 +159,7 @@ export type World = {
   ripples: Ripple[];
   waves: Wave[];
   bursts: Burst[];
+  puffs: Puff[];
   fx: FxPools;
   /** Whether touching bubbles merge; each pair keeps to one entry. */
   merges: boolean[];
@@ -176,4 +183,6 @@ export type World = {
   duel: Duel | null;
   /** Strongest impact in the latest advance, for haptics. */
   impact: number;
+  /** Radius of the largest bubble popped since last asked, for haptics; 0 for none. */
+  popped: number;
 };

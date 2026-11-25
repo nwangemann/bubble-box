@@ -16,7 +16,7 @@ The menu opens from the dot: a tile for each setting, with its name and what is 
 | Meet    | None       | Sparks, Chiral, Sunflower, Frost, Kali, Julia, Chord, Apollo                                | Each meeting                                    |
 | Pop     | None       | Film, Droplets, Mist, Shatter, Starlight, Implode, Brood, Chiral, Sunflower, Julia          | Each pop                                        |
 
-Pull draws bubbles towards each other: Near is strong but short, Far is soft and long, Heavy grows with size. Trail shows where a bubble has been: Ribbon is a sliver of film, Light a glowing thread in the bubble's colour, Echo faint images of the bubble that thin to rings. Random never picks None for either. Pop None fades the bubble away quickly with no effect. Two-finger swipe always clears bubbles.
+Pull draws bubbles towards each other: Near is strong but short, Far is soft and long, Heavy grows with size. Trail shows where a bubble has been: Ribbon is a sliver of film, Light a glowing thread in the bubble's colour, Echo faint images of the bubble that thin to rings. Random never picks None for either. Pop None fades the bubble away quickly with no effect. Every pop, even None, gently pushes bubbles near it. Two-finger swipe always clears bubbles.
 
 ## Previews
 
@@ -47,6 +47,10 @@ Two sliders under Box's options, whose previews follow them. Opacity fades lines
 
 Choices are saved as they change and restored at launch (`src/services/savedSettings.ts`). An option that no longer exists falls back to its default. A default only affects people who have no saved choice, so clear the app's data to see a new one.
 
+## First-time hint
+
+With a bubble loose and the screen untouched a few seconds, the two-finger swipe is acted out once. A touch or the menu sends it away, and cut short it tries again later. It never shows to someone who has already popped with two fingers. `hinted` is saved with the settings; clear the app's data to see it again.
+
 ## Reduce Motion
 
-While the system setting is on, bubbles move slower and wobble less, tilting does nothing, Glass acts as Still, and Pull, Trail, Meet and Pop act as None. Saved choices are untouched. The amounts are in `calmFeel` in `src/config/defaults.ts`.
+While the system setting is on, bubbles move slower and wobble less, tilting does nothing, Glass acts as Still, and Pull, Trail, Meet and Pop act as None. The first-time hint stands still. Saved choices are untouched. The amounts are in `calmFeel` in `src/config/defaults.ts`.

@@ -2,6 +2,7 @@ import { TUNING as T } from '../config/tuning';
 import type { Feel } from '../config/feels';
 import { direct, grown, oddsOf, sizeOf, strike } from './duel';
 import { scaleAt, unproject } from './projection';
+import { agePuffs, feelPuffs, startPuff } from './puff';
 import { attract, pairOf, refresh } from './pull';
 import { layTrails } from './trail';
 import type { Axis, Box, Bubble, Burst, FxPools, Held, Vec3, World } from './types';
@@ -13,6 +14,7 @@ export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces
     ripples: [],
     waves: [],
     bursts: [],
+    puffs: [],
     fx,
     merges: [false],
     pulls: [],
@@ -27,6 +29,7 @@ export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces
     nextId: 1,
     duel: null,
     impact: 0,
+    popped: 0,
   };
 }
 
@@ -78,6 +81,8 @@ function startPop(world: World, b: Bubble) {
   b.popping = 0;
   b.join = null;
   b.popFx = pick(world, world.fx.pop);
+  world.popped = Math.max(world.popped, b.r);
+  startPuff(world, b);
   addBurst(world, {
     fx: b.popFx,
     p: { x: b.p.x, y: b.p.y, z: b.p.z },
@@ -406,6 +411,14 @@ export function sweepAlong(world: World, box: Box, ax: number, ay: number, bx: n
 export function popAll(world: World) {
   'worklet';
   for (const b of world.bubbles) startPop(world, b);
+}
+
+/** Radius of the largest bubble popped since last asked, or 0. */
+export function takePopped(world: World) {
+  'worklet';
+  const r = world.popped;
+  world.popped = 0;
+  return r;
 }
 
 function squash(b: Bubble, axis: Axis, speed: number, wobble: number) {
@@ -757,6 +770,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     // Breath.
     b.dv.x += Math.sin(t * 3.1) * 0.35 * dt * 10;
     b.dv.y += Math.sin(t * 3.1 + 2.2) * 0.35 * dt * 10;
+    if (!undecided(held)) feelPuffs(world, b, feelOf(b, feels), true, dt);
     relaxShape(b, dt);
   }
   pressHeld(world);
@@ -774,6 +788,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     b.v.x += pull.x * feel.tilt * dt;
     b.v.y += pull.y * feel.tilt * dt;
     b.v.z += pull.z * feel.tilt * dt;
+    feelPuffs(world, b, feel, false, dt);
     let speed = Math.hypot(b.v.x, b.v.y, b.v.z);
     let k = fade;
     if (speed > T.maxSpeed) k = T.maxSpeed / speed;
@@ -795,6 +810,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     b.p.z += b.v.z * dt;
     relaxShape(b, dt);
   }
+  agePuffs(world, dt);
   const settle = Math.exp(-T.merge.ease * dt);
   for (const b of world.bubbles) {
     b.reach.x *= settle;

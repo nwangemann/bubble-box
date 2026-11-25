@@ -10,7 +10,7 @@ Zen simplicity and beauty. Every action is simple, organic and calm.
 4. It meets a wall, squashes, sends a ripple across it and rebounds, eventually back to the viewer.
 5. Meeting the glass sends a gentle refracting ripple across the screen (the Glass option).
 6. Bubbles that meet throw light shaped by the collision (the Meet option).
-7. A quick two-finger swipe pops what it crosses (the Pop option chooses how). A tap can also pop (the Tap option).
+7. A quick two-finger swipe pops what it crosses (the Pop option chooses how). A tap can also pop (the Tap option). A pop breathes on its neighbours: they drift away from it, and held ones shiver. Once, two faint fingertips act it out, for whoever has not found it.
 8. A quick swipe that starts on a bubble flicks it: it is nudged that way, and spins if caught near its edge.
 9. Bubbles that touch can merge (the Contact option): edges swell into a neck and the smaller sinks into the larger.
 10. Bubbles can draw each other (the Pull option): paths bend, and some meet that would have missed.

@@ -13,6 +13,7 @@ import type { Pull } from '@/config/pulls';
 import type { Tap } from '@/config/taps';
 import type { TrailLook } from '@/config/trails';
 import { TUNING } from '@/config/tuning';
+import { advanceHint, createHint, learnHint } from '@/core/hint';
 import { lean, settleTilt } from '@/core/tilt';
 import type { Box, FxPools, Vec3 } from '@/core/types';
 import {
@@ -30,10 +31,12 @@ import {
   release,
   sweepAlong,
   swipeOf,
+  takePopped,
 } from '@/core/world';
 import { drawScene } from './drawScene';
 import { throughGlass } from './glassFilter';
 import { getGpu } from './gpu';
+import { drawHint } from './hint';
 import { roomPicture } from './roomPicture';
 import { Tilt } from './Tilt';
 import { drawWallLight } from './walls';
@@ -57,12 +60,28 @@ type Props = {
   popSignal: number;
   /** Holds everything still while something covers the room. */
   paused: boolean;
+  /** Reduce Motion is on. */
+  calm: boolean;
+  /** Whether the first-time hint is still to come. */
+  hints: boolean;
+  /** Holds the hint back, while the menu is open. */
+  hush: boolean;
+  onHinted: () => void;
   onTouch: () => void;
 };
 
 const buzz = (strength: number) => {
   const s = Haptics.ImpactFeedbackStyle;
   Haptics.impactAsync(strength > 2 ? s.Medium : strength > 1 ? s.Light : s.Soft).catch(() => {});
+};
+
+/** A film giving way: crisp and dry, where a wall is round. */
+const buzzPop = (radius: number) => {
+  const felt =
+    radius < TUNING.haptic.faint
+      ? Haptics.selectionAsync()
+      : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid);
+  felt.catch(() => {});
 };
 
 export function Scene({
@@ -78,6 +97,10 @@ export function Scene({
   trails,
   popSignal,
   paused,
+  calm,
+  hints,
+  hush,
+  onHinted,
   onTouch,
 }: Props) {
   const { width, height } = useWindowDimensions();
@@ -97,6 +120,7 @@ export function Scene({
   // Water keeps moving while there is anything to move it, then settles.
   const stir = useSharedValue(0);
   const wallTime = useSharedValue(0);
+  const hint = useSharedValue(createHint(!hints));
   const lastBuzz = useSharedValue(0);
   const gravity = useSharedValue<Vec3 | null>(null);
   const tilts = useMemo(() => feels.some((f) => f.tilt > 0), [feels]);
@@ -112,9 +136,10 @@ export function Scene({
       w.waves.length === 0 &&
       w.trails.length === 0 &&
       w.bursts.length === 0;
+    if (advanceHint(hint.value, w, box, !hush, dt)) scheduleOnRN(onHinted);
     const wet = env.wall === 'water';
     stir.value += ((empty ? 0 : 1) - stir.value) * (1 - Math.exp(-dt / TUNING.walls.settle));
-    const still = empty && (!wet || stir.value < 0.02);
+    const still = empty && hint.value.age < 0 && (!wet || stir.value < 0.02);
     // An empty room costs nothing, after one last frame to clear it.
     if (still && quiet.value) return;
     quiet.value = still;
@@ -126,9 +151,14 @@ export function Scene({
     if (empty) settleTilt(w);
     else lean(w, gravity.value, dt);
     advance(w, box, feels, env.bounce, dt);
-    if (w.impact > TUNING.hapticMinImpact && w.time - lastBuzz.value > 0.06) {
-      lastBuzz.value = w.time;
-      scheduleOnRN(buzz, w.impact);
+    if (w.time - lastBuzz.value > TUNING.haptic.gap) {
+      // A pop outranks a wall, and one that comes too soon waits its turn.
+      const popped = takePopped(w);
+      if (popped > 0 || w.impact > TUNING.hapticMinImpact) {
+        lastBuzz.value = w.time;
+        if (popped > 0) scheduleOnRN(buzzPop, popped);
+        else scheduleOnRN(buzz, w.impact);
+      }
     }
     picture.value = createPicture((canvas) => {
       'worklet';
@@ -171,6 +201,7 @@ export function Scene({
           scene();
         });
       } else scene();
+      drawHint(canvas, gpu.hintPaint, gpu.hintEffect, hint.value, view, env.ink, calm);
     });
   });
 
@@ -248,7 +279,7 @@ export function Scene({
         at[h.finger] = { x: h.target.x, y: h.target.y };
       }
       sweepers.value = at;
-      if (popped > 0) scheduleOnRN(buzz, 0.5);
+      if (popped > 0 && learnHint(hint.value)) scheduleOnRN(onHinted);
     },
     onTouchesUp: (e) => {
       'worklet';
