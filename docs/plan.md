@@ -2,18 +2,62 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2.
 
-**Next: 1.2, judge the 8-ball trial on a phone. Without one: 3.2, mixed casts.**
+**Next: 1.15, seeing where balls are.**
 
-Without a phone, skip 2 and 7.1 to 7.3, and leave 1.3 to 1.5 until 1.2 has been judged on one. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
+Without a phone, skip 2 and 7.1 to 7.3, and pass over 1.2, and in section 1 stop after 1.17. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
 
 ## 1. 8-ball in space
 
-A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in the calm room, with the cue ball made as a calm bubble is. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). 1.2 is a trial: go on to 1.3 to 1.5 only if a shot is fun.
+A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in the calm room, with the cue ball made as a calm bubble is. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). Order: see the balls, then make a shot and a pot worth it, then the game, then its looks. The rules wait for 1.2: go on past 1.17 only if a shot is fun on a phone.
 
-- [ ] 1.2 Judge the trial on a phone, by the questions at the end of [pool](pool.md). Built and played on a simulator only
-- [ ] 1.3 The full game: settle rules that suit a cue ball always to hand, then the rack, solids and stripes, the 8, perhaps two players
+**A. See and follow.** Done when depth and direction read at a glance, at rest and on a break, at 60 fps.
+
+- [ ] 1.15 Seeing where balls are, the first principle of [pool](pool.md). Try each alone and together, with 15 balls at rest, rolling and on a break, then reduce:
+  - Glow: light each moving ball throws on the near walls and floor, brighter as it nears them; against a plain halo, which is expected to help tracking but not depth
+  - Where a ball is, marked on the walls: firmer shadows and contact, perhaps a faint ring at its depth while it moves
+  - Stronger depth by haze, light and rim, so near and far balls differ at a glance
+  - Cues must also hold on an opaque wall, for 1.13
+  - Frame time with all 15 moving
+- [ ] 1.18 Somewhere for pool's options: how they open without crowding the table or its one dot, saved with the rest. Needed by 1.16, 1.13 and 1.14; holds nothing else
+- [ ] 1.16 Ball trails as pool options, building on `config/trails`: short, in the ball's colour, narrowing with depth, longer with speed; perhaps none, the cue ball only, or all. The default is whatever best serves 1.15
+- [ ] 1.2 Judge on a phone, by the questions at the end of [pool](pool.md): ball size, placing a shot, `mouth`, side pockets drawn wider than they take, power. Tune before going on
+
+**B. A pot worth it.** Done when each ball is told apart at any depth, and a pot feels like progress without stopping play.
+
+- [ ] 1.9 Telling balls apart: each ball its own at any depth, solids from stripes first, the 8 unmistakable; potted and remaining shown one by one, laid out so it can be split between two players later (1.19). Before 1.17, which sends balls there
+- [ ] 1.17 Celebrate a pocketed ball: explore how to mark it as a real step in the game, felt as well as seen. Today it only sinks, shrinks and gives a haptic. Try several, then reduce:
+  - The ball itself changes: glows, turns to film, pops as a bubble, or bursts into its colour (`src/fx`)
+  - The pocket and room answer: light spilling from the hole, a ripple over the far wall, a brief wash of the ball's colour
+  - It travels to its place in the row of potted balls, so the progress is seen
+  - A haptic shaped to the moment; a soft tone once there is sound (4.1)
+  - Scaled by meaning: more for a called or last ball, most for the 8, muted for a foul or the cue ball (with 1.6 to 1.11)
+  - Never hides balls still moving or delays the next shot; calmer with Reduce Motion
+
+**C. True 8-ball.** Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won.
+
+- [ ] 1.6 A ruleset on paper first: current standard 8-ball, adapted slightly where this table needs it (cue ball to hand, fouls, scratch, the break, calling pockets). Settles 1.7 to 1.12; replaces 1.3. To decide, with a first suggestion:
+  - Turns: a shot waits for the table to be still (8 to 9 s after a break today, so perhaps stronger drag late on)
+  - Every shot starts at the glass, so ball in hand is always had: a foul gives the opponent two shots instead
+  - Calling: only the 8
+  - Break: a pot keeps the turn and leaves the table open; the 8 potted is set back
+  - Cue ball potted is a foul; with the 8, a loss
+  - The vision has no scores or text: which exceptions the game needs
+- [ ] 1.7 Player 1 and player 2: whose turn it is, when it passes, what a foul gives
+- [ ] 1.8 Solids and stripes: the table is open until a first legal pot assigns them
+- [ ] 1.19 Whose balls: each player's potted and remaining, and whose turn, on the layout of 1.9
+- [ ] 1.10 True 8-ball mode: the 8 must be sunk last; early, or with a scratch, it loses
+- [ ] 1.11 Win conditions and a win screen, with play again
+- [ ] 1.12 Win tracking: wins for each player, kept between games
+
+**D. The table.** Options, so each can be left out without harm. Done when both hold to the first principle.
+
+- [ ] 1.13 A felt, pool-table-like, opaque option among the environments (`config/environments`). Pool uses its own look (`POOL.look`), not the calm boxes, so decide whether calm gets it too. Recheck 1.15 and 1.16 on it
+- [ ] 1.14 A stylized pool cue as a trajectory indicator, a setting for pool to toggle on; the present line stays the default
+
+**E. Later.**
+
 - [ ] 1.4 More from spin: draw and follow, if a swipe can say them
-- [ ] 1.5 The mode itself: looks for table and balls, an opponent to play alone
+- [ ] 1.5 An opponent to play alone
 
 ## 2. First time on a phone
 
@@ -142,6 +186,7 @@ Selectable, with Random available and None as the default.
 
 - 1.1 on paper, then rebuilt to a new structure: the calm room and camera, six pockets on the far wall, a cue ball from the calm hold at any moment ([pool](pool.md))
 - The trial of 1.2: exact contacts (`core/pool`), a pyramid of 15 whose break moves them all, a faint draw near pockets, a line straight ahead, opened with a third side of the mode switch. Simulator, release build, 15 balls: 60 fps, 1.4 ms a frame
+- After first play of the trial: one ball size, long press to place the shot, narrower pockets with a fainter draw, judged by simulated shots. Seen in the web preview
 
 ### Trails
 

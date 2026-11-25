@@ -26,6 +26,15 @@ const cheer = () => {
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
 };
 
+const steadyHand = () => {
+  const hand = createWorld();
+  hand.steady = { r: POOL.radius, charge: POOL.cue.charge };
+  return hand;
+};
+const tick = () => {
+  Haptics.selectionAsync().catch(() => {});
+};
+
 const HANDS = [FEELS.weightless];
 
 /** The 8-ball trial (docs/pool.md). Opened with the mode switch. */
@@ -38,8 +47,8 @@ export function Pool({ onLeave }: { onLeave: () => void }) {
   const [gpu] = useState(getPoolGpu);
   const [start] = useState(() => createPool(box));
   const pool = useSharedValue(start);
-  // Only what is in the hand: the calm room's growing and launching, unchanged.
-  const hand = useSharedValue(createWorld());
+  // Only what is in the hand: the calm room's holding and launching, at one size.
+  const hand = useSharedValue(steadyHand());
   const picture = useSharedValue(createPicture(() => {}));
   const dirty = useSharedValue(true);
   const lastBuzz = useSharedValue(0);
@@ -50,8 +59,12 @@ export function Pool({ onLeave }: { onLeave: () => void }) {
     const w = hand.value;
     const dt = Math.min((frame.timeSincePreviousFrame ?? 0) / 1000, TUNING.maxFrame);
     const moved = advancePool(p, box, dt);
-    if (w.holds.length > 0) advance(w, box, HANDS, 1, dt);
     const h = w.holds[0];
+    const heldFor = h ? h.seconds : 0;
+    if (h) advance(w, box, HANDS, 1, dt);
+    // From here the finger places the shot rather than swipes it.
+    const { place, ease, swipe } = POOL.aim;
+    if (h && heldFor < place && h.seconds >= place) scheduleOnRN(tick);
     // A still table draws nothing.
     if (!moved && !h && !dirty.value) return;
     dirty.value = moved || !!h;
@@ -65,13 +78,14 @@ export function Pool({ onLeave }: { onLeave: () => void }) {
     let sure = 0;
     if (h) {
       const s = swipeOf(h);
-      sure = Math.max(0, 1 - Math.hypot(s.x, s.y) / POOL.aim.swipe);
+      const placing = Math.min(1, Math.max(0, (h.seconds - place) / ease));
+      sure = Math.max(placing, 1 - Math.hypot(s.x, s.y) / swipe);
     }
-    const r = h ? (POOL.cue.grows ? h.bubble.r : POOL.radius) : 0;
-    const trace = h && sure > 0 ? traceAhead(p, box, { ...h.bubble.p, z: r }, r) : null;
+    const trace = h && sure > 0 ? traceAhead(p, box, { ...h.bubble.p }, h.bubble.r) : null;
+    const grown = h ? Math.min(1, h.seconds / POOL.cue.appear) : 0;
     picture.value = createPicture((canvas) => {
       'worklet';
-      drawPool(canvas, gpu, p, h ? h.bubble : null, trace, sure, box, view);
+      drawPool(canvas, gpu, p, h ? h.bubble : null, grown, trace, sure, box, view);
     });
   });
 
@@ -80,7 +94,7 @@ export function Pool({ onLeave }: { onLeave: () => void }) {
     const w = hand.value;
     const h = heldBy(w, finger.value);
     if (!h) return;
-    const v = swiped ? swipeOf(h) : { x: 0, y: 0 };
+    const v = swiped && h.seconds < POOL.aim.place ? swipeOf(h) : { x: 0, y: 0 };
     release(w, v.x, v.y, POOL.cue.speed, finger.value);
     const bubble = w.bubbles.pop();
     if (bubble) enter(pool.value, bubble);

@@ -58,7 +58,7 @@ Each preview is a small `World` in its own box, driven by `preview/scripts` and 
 
 ## 8-ball
 
-`ui/Pool` covers the room, in the same box and view. What is in the hand is a small `World` with one hold, advanced by the calm code; on release its bubble becomes the cue ball (`enter`) of a `Pool`, whose contacts `core/pool` solves exactly. `traceAhead` runs the same contacts for the line. A still table with no finger draws nothing. See [pool](pool.md).
+`ui/Pool` covers the room, in the same box and view. What is in the hand is a small `World` with one hold, advanced by the calm code at one size (`World.steady`); on release its bubble becomes the cue ball (`enter`) of a `Pool`, whose contacts `core/pool` solves exactly. `traceAhead` runs the same contacts for the line. A still table with no finger draws nothing. See [pool](pool.md).
 
 ## Mode switch
 

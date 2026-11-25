@@ -1,13 +1,15 @@
 /** The 8-ball trial, in the calm room's box. Lengths as in `tuning`; see docs/pool.md. */
 export const POOL = {
-  radius: 0.15,
-  /** A ball drops when its middle is this close to a pocket's point. */
-  pocket: 0.55,
+  /** Every ball, the cue ball too: about a third of the largest calm bubble. */
+  radius: 0.22,
+  /** A ball drops when its middle is this close to where it would sit snug in a pocket. */
+  mouth: 0.2,
   /**
-   * The cue ball is launched as a calm bubble, with this feel's speed. Growing, it is heavier the
-   * longer it is held; otherwise it is always the size of the rest. `held` is its opacity in the hand.
+   * The cue ball is launched as a calm bubble, with this feel's speed, but never grows. Power stops
+   * rising after `charge` seconds, so taking time to aim costs nothing. It swells into the hand in
+   * `appear` seconds; `held` is its opacity there.
    */
-  cue: { grows: true, speed: 1.6, held: 0.45 },
+  cue: { speed: 1.6, charge: 0.8, appear: 0.16, held: 0.45 },
   /** Constant slowing, and how long spin lasts in seconds. */
   drag: 0.12,
   spinFade: 1.8,
@@ -20,13 +22,17 @@ export const POOL = {
   step: 1 / 120,
   /** Most contacts solved in one step. */
   maxEvents: 64,
-  /** While holding, a line straight ahead, gone when the finger swipes this fast. */
-  aim: { opacity: 0.5, swipe: 1 },
   /**
-   * A slight draw towards each pocket: acceleration at its very point, fading to none at `reach`. Where
+   * While holding, a line straight ahead. Before `place` seconds a swipe this fast hides it, and
+   * steers. After, the finger is placing the shot: the line stays, shown over `ease` seconds, and
+   * lifting sends the ball along it however the finger moves.
+   */
+  aim: { opacity: 0.5, swipe: 1, place: 0.35, ease: 0.15 },
+  /**
+   * A slight draw towards each pocket: acceleration where a ball sits snug, fading to none at `reach`. Where
    * it is stronger than `drag` even a resting ball drifts in.
    */
-  draw: { strength: 0.3, reach: 1.15 },
+  draw: { strength: 0.18, reach: 0.75 },
   /** How long a ball takes to sink into a pocket, or an old cue ball to fade. */
   sink: 0.5,
   /** Seconds of stillness before a cleared table is set again. */
@@ -71,7 +77,8 @@ export const POOL = {
     wallOpacity: 1,
     softness: 0,
   },
-  holes: { fill: 0.7, edge: 0.7 },
+  /** Pockets as drawn. `side` is how far a middle one spreads each way; looks only, `mouth` decides. */
+  holes: { side: 0.42, fill: 0.7, edge: 0.7 },
   hapticGap: 0.05,
   hapticLeast: 0.3,
 };

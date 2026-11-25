@@ -23,6 +23,7 @@ export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces
     trails: [],
     sweep: null,
     holds: [],
+    steady: null,
     tilt: { rest: null, pull: { x: 0, y: 0, z: 0 } },
     time: 0,
     leftover: 0,
@@ -307,7 +308,7 @@ export function release(world: World, swipeX: number, swipeY: number, speed: num
   drop(world, finger);
   if (world.sweep) world.sweep.launched.push(held.bubble.id);
   const b = held.bubble;
-  const charge = chargeAt(held.seconds);
+  const charge = chargeAt(Math.min(held.seconds, world.steady?.charge ?? Infinity));
   const L = T.launch;
   const swipe = Math.hypot(swipeX, swipeY);
   const limit = swipe > L.maxSwipe / L.swipe ? L.maxSwipe / L.swipe / swipe : 1;
@@ -336,7 +337,7 @@ export function beginHold(
 ) {
   'worklet';
   release(world, 0, 0, 1, finger);
-  const r = radiusAt(0);
+  const r = world.steady?.r ?? radiusAt(0);
   const at = { x: unproject(box, sx, r), y: unproject(box, sy, r), z: r };
   const bubble = newBubble(world, style, r, at);
   const over = bubbleAt(world, box, sx, sy);
@@ -760,7 +761,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
   for (const held of world.holds) {
     const b = held.bubble;
     held.seconds += dt;
-    b.r = radiusAt(held.seconds);
+    b.r = world.steady?.r ?? radiusAt(held.seconds);
     b.p.z = b.r;
     const ease = 1 - Math.exp(-T.grow.follow * dt);
     const tx = clamp(unproject(box, held.target.x, b.r), -box.hw + b.r, box.hw - b.r);

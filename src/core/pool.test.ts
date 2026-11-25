@@ -1,7 +1,17 @@
+import { FEELS } from '../config/feels';
 import { POOL } from '../config/pool';
-import { advancePool, createPool, enter, pockets, retire, traceAhead, type Pool } from './pool';
+import {
+  advancePool,
+  createPool,
+  enter,
+  pockets,
+  retire,
+  snugs,
+  traceAhead,
+  type Pool,
+} from './pool';
 import type { Box } from './types';
-import { createWorld, newBubble } from './world';
+import { advance, beginHold, createWorld, moveHold, newBubble, release } from './world';
 
 const box: Box = { hw: 1, hh: 2.17, depth: 5, focal: 3.2 };
 const r = POOL.radius;
@@ -159,15 +169,15 @@ test('what shows straight ahead is what happens', () =>
   }));
 
 test('it knows when the target would drop', () => {
-  // Along the line from a pocket through the target.
-  const d = { x: -0.5, y: -0.7, z: -1.6 };
+  const ball = { x: 0.5, y: 1.1, z: 3.4 };
+  const q = snugs(box)[5]!;
+  const d = { x: ball.x - q.x, y: ball.y - q.y, z: ball.z - q.z };
   const l = Math.hypot(d.x, d.y, d.z);
-  const ball = [0.5, 1.47, 3.4];
-  const pool = table([0, 0, 1], [0, 0, 0], [ball]);
-  const x = 0.5 + (d.x / l) * 2 * r;
-  const y = 1.47 + (d.y / l) * 2 * r;
+  const pool = table([0, 0, 1], [0, 0, 0], [[ball.x, ball.y, ball.z]]);
+  const x = ball.x + (d.x / l) * 2 * r;
+  const y = ball.y + (d.y / l) * 2 * r;
   expect(traceAhead(pool, box, at([x, y, r]), r).drops).toBe(true);
-  expect(traceAhead(pool, box, at([0.5, 1.47, r]), r).drops).toBe(false);
+  expect(traceAhead(pool, box, at([ball.x, ball.y, r]), r).drops).toBe(false);
 });
 
 test('the rack is a pyramid of 15 touching balls, its tip to the viewer', () => {
@@ -211,10 +221,38 @@ test('a pocket draws in what rests near, bends what passes, and leaves the rest 
     for (let n = 0; n < 1800; n++) advancePool(pool, box, 1 / 60);
     return b;
   };
-  expect(rest([0.6, 1.8, 4.7]).sunk).toBeGreaterThanOrEqual(0);
+  const q = snugs(box)[5]!;
+  const near = (d: number) => [q.x, q.y, q.z - d];
+  expect(rest(near(0.23)).sunk).toBeGreaterThanOrEqual(0);
+  // Hanging on the lip it tips in; further off it stays.
+  expect(rest(near(0.45)).sunk).toBe(-1);
   expect(rest([0, 1, 4]).v).toEqual({ x: 0, y: 0, z: 0 });
   expect(rest([0, 1, 4]).p).toEqual(at([0, 1, 4]));
   const pass = table([0.35, 1.4, 4.6], [0, 0.3, 0], [[0, -1, 1]]);
   advancePool(pass, box, 0.5);
   expect(pass.balls[0]!.v.x).toBeGreaterThan(0);
+});
+
+test('in the hand the cue ball keeps its size, goes where it is dragged, and gains no more power', () => {
+  const held = (seconds: number) => {
+    const w = createWorld();
+    w.steady = { r, charge: POOL.cue.charge };
+    beginHold(w, box, 0, 0, 'glass');
+    moveHold(w, 0.3, 0.5);
+    for (let t = 0; t < seconds; t += 1 / 60) {
+      advance(w, box, [FEELS.weightless!], 1, 1 / 60);
+      expect(w.holds[0]!.bubble.r).toBe(r);
+    }
+    const traced = { ...w.holds[0]!.bubble.p };
+    release(w, 0, 0, POOL.cue.speed);
+    const b = w.bubbles[0]!;
+    expect(b.p).toEqual(traced);
+    expect(b.v.x).toBe(0);
+    expect(b.v.y).toBe(0);
+    return b;
+  };
+  const long = held(4);
+  expect(long.p.x).toBeCloseTo((0.3 * (box.focal + r)) / box.focal, 3);
+  expect(long.v.z).toBeCloseTo(held(1.2).v.z, 6);
+  expect(long.v.z).toBeGreaterThan(held(0.2).v.z);
 });

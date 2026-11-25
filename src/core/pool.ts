@@ -45,6 +45,17 @@ export function pockets(box: Box): Vec3[] {
   return out;
 }
 
+/** Where a ball sits snug in each pocket, touching every wall there. */
+export function snugs(box: Box): Vec3[] {
+  'worklet';
+  const r = POOL.radius;
+  return pockets(box).map((q) => ({
+    x: q.x - Math.sign(q.x) * r,
+    y: q.y - Math.sign(q.y) * r,
+    z: q.z - r,
+  }));
+}
+
 function newBall(p: Vec3, r: number): Ball {
   'worklet';
   return {
@@ -158,7 +169,7 @@ function nextHit(balls: Ball[], box: Box, holes: Vec3[], most: number): Hit {
       }
       for (let k = 0; k < holes.length; k++) {
         const q = holes[k]!;
-        const s = meetTime(p.x - q.x, p.y - q.y, p.z - q.z, v.x, v.y, v.z, POOL.pocket);
+        const s = meetTime(p.x - q.x, p.y - q.y, p.z - q.z, v.x, v.y, v.z, POOL.mouth);
         if (s < hit.t) {
           hit.t = s;
           hit.kind = 'pocket';
@@ -364,7 +375,7 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
   );
   for (const b of balls) if (b.sunk >= 0) b.sunk += seconds;
   if (busy) {
-    const holes = pockets(box);
+    const holes = snugs(box);
     pool.leftover += seconds;
     while (pool.leftover >= POOL.step) {
       pool.leftover -= POOL.step;
@@ -389,7 +400,7 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
 /** Puts a ball made by a finger into play, with what the launch gave it. */
 export function enter(pool: Pool, bubble: Bubble) {
   'worklet';
-  const cue = newBall(bubble.p, POOL.cue.grows ? bubble.r : POOL.radius);
+  const cue = newBall(bubble.p, bubble.r);
   cue.p.z = cue.r;
   cue.v = { x: bubble.v.x, y: bubble.v.y, z: bubble.v.z };
   cue.w.z = bubble.spin;
@@ -399,7 +410,7 @@ export function enter(pool: Pool, bubble: Bubble) {
 /** Follows the ball in the hand straight ahead, with the same contacts as play. */
 export function traceAhead(pool: Pool, box: Box, p: Vec3, r: number): Trace {
   'worklet';
-  const holes = pockets(box);
+  const holes = snugs(box);
   const cue = newBall(p, r);
   cue.v.z = 1;
   const balls = [cue];
@@ -426,7 +437,7 @@ export function traceAhead(pool: Pool, box: Box, p: Vec3, r: number): Trace {
     // Off a pocket's own jaw is as good as straight in.
     const speed = Math.hypot(b.v.x, b.v.y, b.v.z);
     resolve(balls, next);
-    out.drops = nextHit(balls, box, holes, POOL.pocket / Math.max(1e-6, speed)).kind === 'pocket';
+    out.drops = nextHit(balls, box, holes, POOL.mouth / Math.max(1e-6, speed)).kind === 'pocket';
   }
   return out;
 }

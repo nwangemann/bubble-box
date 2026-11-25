@@ -174,6 +174,8 @@ export type World = {
   sweep: { firstSpared: number; launched: number[] } | null;
   /** One per finger that is growing a bubble. */
   holds: Held[];
+  /** What fingers hold is this size throughout, and gains no more power after `charge` seconds. */
+  steady: { r: number; charge: number } | null;
   /** Which way gravity points when the phone is at rest, and the pull from tilting away from it. */
   tilt: { rest: Vec3 | null; pull: Vec3 };
   time: number;

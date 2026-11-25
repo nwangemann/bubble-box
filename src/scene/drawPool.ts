@@ -69,8 +69,9 @@ export function poolRoom(box: Box, view: View): SkPicture {
     const s = scaleAt(box, z) * view.ppu;
     return { x: view.cx + x * s, y: view.cy + y * s };
   };
-  // Where a ball resting against each wall would drop.
-  const reach = Math.sqrt(POOL.pocket ** 2 - POOL.radius ** 2);
+  // Where a ball resting against each wall would drop: `out` from a wall.
+  const out = POOL.radius + POOL.mouth;
+  const corner = Math.hypot(out, POOL.radius);
   const [r, g, b] = POOL.look.ink;
   return createPicture((canvas) => {
     canvas.drawPicture(room);
@@ -90,8 +91,8 @@ export function poolRoom(box: Box, view: View): SkPicture {
         const arc = [];
         for (let i = 0; i <= 24; i++) {
           const a = middle ? (i / 24 - 0.5) * Math.PI : ((i / 24) * Math.PI) / 2;
-          const c = Math.cos(a) * reach;
-          const s = Math.sin(a) * reach;
+          const c = Math.cos(a) * (middle ? out : corner);
+          const s = Math.sin(a) * (middle ? POOL.holes.side : corner);
           const y = q.y + s * (middle ? 1 : inY);
           if (normal === 'x') arc.push(at(q.x, y, q.z - c));
           else if (normal === 'z') arc.push(at(q.x + inX * c, y, q.z));
@@ -152,6 +153,8 @@ export function drawPool(
   pool: Pool,
   /** The ball in the hand, and straight ahead from it. */
   held: Bubble | null,
+  /** How far it has swelled into the hand, 0 to 1. */
+  grown: number,
   trace: Trace | null,
   /** How plainly that shows, 0 to 1. */
   sure: number,
@@ -233,7 +236,7 @@ export function drawPool(
   }
   if (held) {
     const c = at(held.p);
-    const r = (POOL.cue.grows ? held.r : POOL.radius) * c.s;
+    const r = held.r * c.s * (1 - (1 - grown) ** 3);
     const rx = r * (1 + held.d.x - held.d.z * 0.3);
     const ry = r * (1 + held.d.y - held.d.z * 0.3);
     drawDisc(canvas, gpu.ball, effect, 0, c.x, c.y, rx, ry, POOL.cue.held, 0, 0.4);
