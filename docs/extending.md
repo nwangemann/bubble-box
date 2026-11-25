@@ -35,6 +35,10 @@ Add to `src/config/glass.ts`. Wave speed and life are in `TUNING.glass`; ring sp
 
 Add to `src/config/contacts.ts`. What merging does is `startMerge` and `sink` in `core/world.ts`.
 
+## Showdown theme
+
+Write a `Theme` in `src/showdown/` and register it in `index.ts`. A cast is twelve; `npm test` fails if two share a name, colours, face or hat. Draw a `Fighter` on a ball of radius 1 with the helpers in `shapes.ts` and `parts.ts`, staying within 2.2. Place scenery from `horizon` up, so it fits any screen. A new rule is an entry in `src/config/rules.ts`.
+
 ## Feel
 
 Add to `src/config/feels.ts`. A new force is a new `Feel` field plus a line in `step` in `core/world.ts`.

@@ -98,6 +98,54 @@ export const TUNING = {
   hapticMinImpact: 0.35,
   /** Light from glowing bubbles; seconds for water to settle in an empty room. */
   walls: { glow: 0.9, settle: 1.2 },
+  /**
+   * Showdown. The arena is shallower than the box so everyone is seen. Entrants wait `ready` seconds,
+   * set off at `start`, and turn towards the nearest rival: rate `least`, gaining `gain` for each
+   * second past `patience` without a clash, up to `most`, at speed `chase`. `slow` is the last
+   * pair's slow motion: from `gap` apart, down to `pace`; `blow` and `after` hold it past the final
+   * knock-out. The winner basks, then rises at rate `rise` to `podium`, whose size adds `gain`
+   * of whatever it has grown, up to `most`.
+   */
+  showdown: {
+    depth: 2.4,
+    radius: 0.24,
+    columns: 3,
+    /** Share of the arena's height the line-up fills, and the least between its rows. */
+    spread: 0.6,
+    gap: 0.56,
+    ready: 2.8,
+    start: 0.32,
+    least: 0,
+    gain: 0.4,
+    patience: 1.6,
+    most: 3,
+    chase: 0.85,
+    slow: { gap: 0.45, pace: 0.35, blow: 0.25, after: 0.25 },
+    bask: 0.5,
+    rise: 2.6,
+    podium: { y: -0.02, z: 0.75, r: 0.5, gain: 0.8, most: 0.74 },
+    /**
+     * Surfaces ringing. `tension` sets how quick, `viscosity` how soon it fades; `stretch` and `pear`
+     * are the blows from draining in, `blow` from a pop beside it, `most` the largest swings.
+     */
+    ring: {
+      tension: 0.4,
+      viscosity: 0.011,
+      stretch: 13,
+      pear: 8,
+      blow: 1.6,
+      most2: 0.26,
+      most3: 0.1,
+    },
+    /** How long spray from a clash lasts. */
+    clash: 1.7,
+    /** Calm multiplies speed, for Reduce Motion. */
+    calm: 0.7,
+    motes: 26,
+    /** Neck between coalescing bubbles, against the smaller; fine droplets thrown off. */
+    neck: 0.95,
+    spray: 22,
+  },
   /** The bubble maker. Shares of the screen for the bubble; pixels for slider names. */
   maker: { width: 0.9, height: 0.42, label: 56 },
   /** The preview picker. Pixels for layout; world units (half a cell wide) and seconds for motion. */

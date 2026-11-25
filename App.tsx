@@ -19,11 +19,15 @@ import {
 } from '@/config/defaults';
 import { CUSTOM, customLook, type Custom } from '@/config/custom';
 import { dress, type Walls } from '@/config/environments';
+import { RULES, type RuleId } from '@/config/rules';
 import { Scene } from '@/scene/Scene';
 import { loadSettings, saveSettings } from '@/services/savedSettings';
 import { useReduceMotion } from '@/services/useReduceMotion';
+import { THEME_IDS, THEMES, type ThemeId } from '@/showdown';
+import { Lobby } from '@/ui/Lobby';
 import { Maker } from '@/ui/Maker';
 import { Picker } from '@/ui/Picker';
+import { Showdown } from '@/ui/Showdown';
 import { Tray } from '@/ui/Tray';
 
 export default function App() {
@@ -38,15 +42,19 @@ export default function App() {
   const env = useMemo(() => dress(look, light, walls), [look, light, walls]);
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Setting | null>(null);
+  const [lobby, setLobby] = useState(false);
+  const [rule, setRule] = useState<RuleId>(saved.rule);
+  const [count, setCount] = useState(saved.count);
+  const [bout, setBout] = useState<{ theme: ThemeId; round: number } | null>(null);
   const [popSignal, setPopSignal] = useState(0);
   const close = useCallback(() => setOpen(false), []);
 
   const calm = useReduceMotion();
   useEffect(() => {
     // A slider moves many times a second; one write at the end is enough.
-    const timer = setTimeout(() => saveSettings({ settings, walls, custom }), 300);
+    const timer = setTimeout(() => saveSettings({ settings, walls, custom, rule, count }), 300);
     return () => clearTimeout(timer);
-  }, [settings, walls, custom]);
+  }, [settings, walls, custom, rule, count]);
 
   const { bubble, feel, glass, tap, contact, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
@@ -65,6 +73,17 @@ export default function App() {
     setSettings((s) => ({ ...s, [key]: id }));
   };
 
+  const fight = (theme: ThemeId) => {
+    setLobby(false);
+    setOpen(false);
+    setBout((b) => ({ theme, round: (b?.round ?? 0) + 1 }));
+  };
+  const anotherArena = (not?: ThemeId) => {
+    const others = THEME_IDS.filter((id) => id !== not);
+    fight(others[Math.floor(Math.random() * others.length)]!);
+  };
+  const covered = preview !== null || making || lobby || bout !== null;
+
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#070a18' }}>
       <StatusBar hidden />
@@ -78,12 +97,14 @@ export default function App() {
         fx={fx}
         merges={merges}
         popSignal={popSignal}
-        paused={preview !== null || making}
+        paused={covered}
         onTouch={close}
       />
       <Tray
-        open={open && preview === null && !making}
+        open={open && !covered}
         onToggle={() => setOpen((o) => !o)}
+        onLobby={() => setLobby(true)}
+        onFight={(id) => (id === RANDOM ? anotherArena() : fight(id as ThemeId))}
         walls={walls}
         onWalls={setWalls}
         onPopAll={() => setPopSignal((n) => n + 1)}
@@ -121,6 +142,28 @@ export default function App() {
           calm={calm}
           onChange={setCustom}
           onClose={() => setMaking(false)}
+        />
+      )}
+      {lobby && (
+        <Lobby
+          rule={rule}
+          onRule={setRule}
+          count={count}
+          onCount={setCount}
+          onPick={fight}
+          onClose={() => setLobby(false)}
+        />
+      )}
+      {bout && (
+        <Showdown
+          key={bout.round}
+          theme={THEMES[bout.theme]}
+          rule={RULES[rule]}
+          count={count}
+          calm={calm}
+          onAgain={() => fight(bout.theme)}
+          onNext={() => anotherArena(bout.theme)}
+          onLeave={() => setBout(null)}
         />
       )}
     </GestureHandlerRootView>

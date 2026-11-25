@@ -1,5 +1,6 @@
 import { TUNING as T } from '../config/tuning';
 import type { Feel } from '../config/feels';
+import { direct, oddsOf, sizeOf, strike } from './duel';
 import { scaleAt, unproject } from './projection';
 import type { Axis, Box, Bubble, Burst, FxPools, Held, Vec3, World } from './types';
 
@@ -18,6 +19,7 @@ export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces
     time: 0,
     leftover: 0,
     nextId: 1,
+    duel: null,
     impact: 0,
   };
 }
@@ -573,22 +575,29 @@ function sink(world: World, b: Bubble, feels: Feel[], dt: number) {
   b.v.y -= ay * ma;
   b.v.z -= az * ma;
   const given = u >= 1 ? mb : (mb * (smooth(u) - before)) / (1 - before);
-  const share = given / (ma + given);
+  // In a showdown some is lost as spray.
+  const kept = world.duel ? given * world.duel.absorb : given;
+  const share = kept / (ma + kept);
   a.p.x += dx * share;
   a.p.y += dy * share;
   a.p.z += dz * share;
   a.v.x += (b.v.x - a.v.x) * share;
   a.v.y += (b.v.y - a.v.y) * share;
   a.v.z += (b.v.z - a.v.z) * share;
-  a.r = Math.cbrt(ma + given);
+  a.r = Math.cbrt(ma + kept);
   b.r = Math.cbrt(Math.max(0, mb - given));
   const orbit = (dx * vy - dy * vx) / (0.4 * a.r * a.r);
   a.spin += (b.spin - a.spin) * share + orbit * share * M.twist;
   a.spin = clamp(a.spin, -T.spin.max, T.spin.max);
-  const k = share * M.stretch * feelOf(a, feels).wobble;
+  const k = world.duel ? 0 : share * M.stretch * feelOf(a, feels).wobble;
   a.dv.x += k * (1.5 * nx * nx - 0.5);
   a.dv.y += k * (1.5 * ny * ny - 0.5);
   a.dv.z += k * (1.5 * nz * nz - 0.5);
+  if (world.duel) {
+    const R = T.showdown.ring;
+    strike(world, a, nx, ny, nz, share * R.stretch, share * R.pear);
+    return;
+  }
   // Both edges swell into a neck, then relax. A small one moves a large edge less.
   const swell = M.reach * Math.sin(Math.PI * Math.sqrt(u)) * (1 - Math.exp(-M.ease * dt));
   const little = Math.min(1, b.r / a.r);
@@ -596,6 +605,40 @@ function sink(world: World, b: Bubble, feels: Feel[], dt: number) {
   a.reach.y += ny * swell * little;
   b.reach.x -= nx * swell;
   b.reach.y -= ny * swell;
+}
+
+/** Entrants that touch settle it on the spot. Returns whether the loser is being taken in. */
+function settle(world: World, a: Bubble, b: Bubble, nx: number, ny: number, nz: number) {
+  'worklet';
+  const duel = world.duel;
+  if (!duel || duel.phase !== 'fight') return false;
+  const aWins = Math.random() < oddsOf(world, a, b);
+  const winner = aWins ? a : b;
+  const loser = aWins ? b : a;
+  duel.clashes.push({
+    winner: winner.id,
+    loser: loser.id,
+    p: { x: a.p.x + nx * a.r, y: a.p.y + ny * a.r, z: a.p.z + nz * a.r },
+    at: { x: loser.p.x, y: loser.p.y, z: loser.p.z },
+    v: { x: loser.v.x, y: loser.v.y, z: loser.v.z },
+    r: loser.r,
+    age: 0,
+  });
+  duel.out++;
+  duel.wins[winner.id] = (duel.wins[winner.id] ?? 0) + 1;
+  duel.since = 0;
+  const R = T.showdown.ring;
+  if (duel.absorb <= 0) {
+    strike(world, winner, nx, ny, nz, -R.blow, 0);
+    startPop(world, loser);
+    return false;
+  }
+  duel.sizes[winner.id] = Math.cbrt(
+    sizeOf(world, winner) ** 3 + duel.absorb * sizeOf(world, loser) ** 3,
+  );
+  // The film between them has burst: one drains into the other. See `sink`.
+  loser.join = { into: winner.id, seconds: 0 };
+  return true;
 }
 
 /** Equal-density collision. A held bubble has infinite mass. */
@@ -617,6 +660,7 @@ function collide(
   const nx = dist > 1e-6 ? dx / dist : 0;
   const ny = dist > 1e-6 ? dy / dist : 0;
   const nz = dist > 1e-6 ? dz / dist : 1;
+  if (!aHeld && settle(world, a, b, nx, ny, nz)) return;
   if (!aHeld && startMerge(world, a, b)) {
     const rate = (a.v.x - b.v.x) * nx + (a.v.y - b.v.y) * ny + (a.v.z - b.v.z) * nz;
     meet(world, a, b, nx, ny, nz, rate);
@@ -682,6 +726,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
   'worklet';
   world.time += dt;
   const t = world.time;
+  direct(world, box, dt);
   for (const held of world.holds) {
     const b = held.bubble;
     held.seconds += dt;
@@ -753,8 +798,8 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     for (const h of solid) collide(world, h, a, true, bounceScale, feels);
     for (let j = i + 1; j < n; j++) {
       const b = world.bubbles[j]!;
-      // A sinking bubble passes through others; either of these may have just begun to.
-      if (a.join) break;
+      // A sinking bubble passes through others; either may have just begun to, or been knocked out.
+      if (a.join || a.popping >= 0) break;
       if (b.popping < 0 && !b.join) collide(world, a, b, false, bounceScale, feels);
     }
   }

@@ -38,6 +38,16 @@ Past `maxBubbles`, the oldest pops.
 
 Each preview is a small `World` in its own box, driven by `preview/scripts` and drawn by `drawScene`, all on one canvas. Coordinates are absolute, so glass needs no transform. While it is open the main room's loop is paused. `scene/gpu` holds the shaders both share.
 
+## Showdown
+
+`Showdown` has its own `World` with a `duel`, in a shallower box, and its own loop while the room is paused. `direct` in `core/duel` runs each step: entrants line up at one size and depth, then turn towards the nearest rival, harder the longer nobody has met. The nearest pair always face each other, so it always ends. `paceOf` slows time for the last pair. React hears only of a clash, the start and the win.
+
+`settle` in `core/world` decides a contact once. `oddsOf` is by volume to the power `edge`: Pop is 0, always even; Absorb is 1, so equals are even and twice the radius wins eight times in nine. Under Absorb the loser gets a `join` and `sink` drains it across; `absorb` is the share kept. `duel.sizes` holds sizes as they will be once drained, and odds use those. A winner may lose while still taking another in: chains drain through.
+
+`strike` sets a surface ringing in modes 2 and 3 about an axis, with Rayleigh's stiffness and damping, so large bubbles ring slow and long.
+
+`scene/liquid` draws a bubble and whatever it is taking in as one smooth union, marched per pixel; a lone calm bubble is a plain sphere. Films bend a picture of the arena painted once on the CPU. Figures are images painted once. An entrant's cast number picks one of twelve vapours.
+
 ## Maker
 
 `ui/Maker` edits the Custom bubble while the room is paused. `customLook` turns the choices into plain numbers (`mine`) handed to every draw. Custom is the only style with extra uniforms; `drawBubble` adds them after the shared ones.

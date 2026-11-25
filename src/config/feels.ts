@@ -77,3 +77,16 @@ export const FEELS = {
 } satisfies Record<string, Feel>;
 
 export type FeelId = keyof typeof FEELS;
+
+/** How entrants move in a showdown. Not in the tray. */
+export const ARENA_FEEL: Feel = {
+  name: 'Arena',
+  speed: 1,
+  restitution: 0.95,
+  drag: 0.05,
+  minSpeed: 0.2,
+  buoyancy: 0,
+  wander: 0.15,
+  wobble: 1.5,
+  tilt: 0,
+};

@@ -28,6 +28,12 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Preview picker                           | `src/ui/Picker.tsx`                        |
 | Custom bubble: choices, then its screen  | `src/config/custom.ts`, `src/ui/Maker.tsx` |
 | What each preview acts out               | `src/preview/`                             |
+| Showdown casts and arenas                | `src/showdown/`                            |
+| Showdown rules and entrant count         | `src/config/rules.ts`                      |
+| Showdown physics: odds, hunting, ringing | `src/core/duel.ts`                         |
+| Showdown bubble and merge shader         | `src/scene/liquid.ts`                      |
+| Drawing a showdown                       | `src/scene/drawShowdown.ts`                |
+| Showdown screen, and its chooser         | `src/ui/Showdown.tsx`, `src/ui/Lobby.tsx`  |
 
 ## Read before working
 

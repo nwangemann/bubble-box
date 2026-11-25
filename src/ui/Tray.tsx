@@ -1,7 +1,8 @@
 import { Fragment } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { Setting } from '@/config/defaults';
+import { RANDOM, type Setting } from '@/config/defaults';
 import type { Walls } from '@/config/environments';
+import { THEME_IDS, THEMES } from '@/showdown';
 import { Slider } from './Slider';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
@@ -20,10 +21,18 @@ type Props = {
   walls: Walls;
   onWalls: (walls: Walls) => void;
   onPopAll: () => void;
+  onLobby: () => void;
+  /** A theme id, or Random. */
+  onFight: (id: string) => void;
 };
 
+const FIGHTS = [
+  ...THEME_IDS.map((id) => ({ id: id as string, name: THEMES[id].name })),
+  { id: RANDOM, name: 'Random' },
+];
+
 /** One small dot that opens quiet rows of names. */
-export function Tray({ open, onToggle, rows, walls, onWalls, onPopAll }: Props) {
+export function Tray({ open, onToggle, rows, walls, onWalls, onPopAll, onLobby, onFight }: Props) {
   return (
     <View style={styles.wrap} pointerEvents="box-none">
       {open && (
@@ -32,6 +41,35 @@ export function Tray({ open, onToggle, rows, walls, onWalls, onPopAll }: Props) 
           exiting={FadeOut.duration(250)}
           style={styles.panel}
         >
+          <View style={styles.row}>
+            <Pressable
+              onPress={onLobby}
+              accessibilityRole="button"
+              accessibilityLabel="Choose a showdown"
+              hitSlop={6}
+              style={({ pressed }) => [styles.title, styles.wide, pressed && styles.titlePressed]}
+            >
+              <Text style={styles.label}>Showdown</Text>
+            </Pressable>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.names}
+              accessibilityLabel="Showdown"
+            >
+              {FIGHTS.map((o) => (
+                <Pressable
+                  key={o.id}
+                  onPress={() => onFight(o.id)}
+                  accessibilityRole="button"
+                  hitSlop={4}
+                  style={styles.option}
+                >
+                  <Text style={styles.name}>{o.name}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
           {rows.map((row) => (
             <Fragment key={row.key}>
               <View style={styles.row}>
@@ -113,6 +151,7 @@ const styles = StyleSheet.create({
     boxShadow:
       '0 4px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4), inset 0 -3px 0 rgba(20,26,56,0.2)',
   },
+  wide: { width: 88 },
   titlePressed: {
     transform: [{ translateY: 2 }],
     backgroundColor: '#e6e9f4',

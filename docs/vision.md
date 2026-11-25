@@ -15,6 +15,10 @@ Zen simplicity and beauty. Every action is simple, organic and calm.
 9. Bubbles that touch can merge (the Contact option): edges swell into a neck and the smaller sinks into the larger.
 10. Tilting the phone lets bubbles drift gently to the low side, until the hand settles into its new hold.
 
+## Showdown
+
+The one part that is a show. Chosen from the tray, it covers the room, which waits beneath, and one dot leaves. Touch does nothing while it runs. Themes are playful; bubbles and how they meet are realistic: films that bend light, a neck that opens and drains, a surface that rings and settles. Names and the winner's title are the exception to having no text.
+
 ## Spirit
 
 A solo, experimental project. Artistic fun decides. Lean on intuitive gestures, but broad accessibility is not the priority: be fun and weird, explore widely, then reduce.

@@ -20,6 +20,17 @@ Random never picks None. Pop None fades the bubble away quickly with no effect. 
 
 A white title button in the tray opens every option of that setting, alive. Tapping one chooses it and closes; the dot or empty space closes without choosing. Random shows one option after another. None plays the same scene without the effect. Previews use the other current settings. With Reduce Motion they are stills. Timing and sizes are in `TUNING.preview`.
 
+## Showdown
+
+Not a setting: a name in its row starts that showdown, and its white button opens the chooser, with the rule and how many enter. Both are saved. Fewer than 12 are drawn at random from the cast; nobody appears twice.
+
+| Rule   | Default | What happens                                                                   |
+| ------ | ------- | ------------------------------------------------------------------------------ |
+| Absorb | Yes     | The winner takes in 80% of the loser. Odds follow volume; equal sizes are even |
+| Pop    |         | The loser pops. Every clash is even and nobody grows                           |
+
+With Reduce Motion it runs slower and motes, swaying and rising titles are still.
+
 ## Custom
 
 Choosing Custom, or choosing it again, opens the maker: one large bubble with a pattern and four sliders. The dot or empty space closes it. Colour and Second are places on the colour wheel, Vivid runs from pale to full, and Size scales the pattern. Every Custom bubble, even one already in the room, follows the latest choice. Random includes it. Defaults are `DEFAULT_CUSTOM` in `src/config/custom.ts`.

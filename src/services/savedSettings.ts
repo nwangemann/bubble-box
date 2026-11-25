@@ -1,14 +1,17 @@
 import { File, Paths } from 'expo-file-system';
 import { cleanCustom, type Custom } from '@/config/custom';
+import { cleanCount, cleanRule, type RuleId } from '@/config/rules';
 import { cleanSettings, cleanWalls, type Settings } from '@/config/defaults';
 import type { Walls } from '@/config/environments';
 
-type Saved = { settings: Settings; walls: Walls; custom: Custom };
+type Saved = { settings: Settings; walls: Walls; custom: Custom; rule: RuleId; count: number };
 
 const clean = (data: unknown): Saved => ({
   settings: cleanSettings(data),
   walls: cleanWalls((data as { walls?: unknown } | null)?.walls),
   custom: cleanCustom((data as { custom?: unknown } | null)?.custom),
+  rule: cleanRule((data as { rule?: unknown } | null)?.rule),
+  count: cleanCount((data as { count?: unknown } | null)?.count),
 });
 
 const file = () => new File(Paths.document, 'settings.json');
@@ -23,11 +26,11 @@ export function loadSettings(): Saved {
   }
 }
 
-export function saveSettings({ settings, walls, custom }: Saved) {
+export function saveSettings({ settings, walls, custom, rule, count }: Saved) {
   try {
     const f = file();
     if (!f.exists) f.create();
-    f.write(JSON.stringify({ ...settings, walls, custom }));
+    f.write(JSON.stringify({ ...settings, walls, custom, rule, count }));
   } catch (e) {
     // Losing a preference should never interrupt play.
     console.warn('Settings were not saved', e);
