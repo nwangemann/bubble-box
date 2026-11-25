@@ -124,13 +124,13 @@ function drawBurst(
   canvas.restore();
 }
 
-function drawRipple(
+export function drawRipple(
   canvas: SkCanvas,
   paint: SkPaint,
   r: Ripple,
   box: Box,
   v: View,
-  env: Environment,
+  env: Pick<Environment, 'ink' | 'rippleOpacity'>,
 ) {
   'worklet';
   const t = r.age / TUNING.rippleSeconds;

@@ -23,3 +23,20 @@ export const AIR = {
   film: 0.1,
   figure: 0.12,
 };
+
+/**
+ * How a showdown bubble shows on the room around it. All but ripples die away by `fall` radii of gap
+ * between bubble and wall. Shadows: `shadow` beneath it on the floor, widening by `spread` of the gap,
+ * and `touch` on any wall it presses against. `light` is its own colour thrown on a wall, `focus` what
+ * it gathers in the middle of its shadow, `mirror` its reflection. `ripple` is the rings where it hits.
+ */
+export const ROOM_CONTACT = {
+  fall: 2.6,
+  shadow: 0.7,
+  spread: 0.35,
+  touch: 0.45,
+  light: 0.34,
+  focus: 0.16,
+  mirror: 0.42,
+  ripple: 0.8,
+};

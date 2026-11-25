@@ -16,7 +16,7 @@ import type { View } from './drawScene';
 const LAMPS = TUNING.maxBubbles + 1;
 
 /** Finds the wall behind a pixel: the perspective is simple enough to undo exactly. */
-const ROOM = `
+export const ROOM = `
 uniform float2 centre;
 uniform float ppu;
 uniform float hw;
@@ -148,7 +148,7 @@ half4 main(vec2 xy) {
 }
 `;
 
-function compile(name: string, sksl: string): SkRuntimeEffect | null {
+export function compile(name: string, sksl: string): SkRuntimeEffect | null {
   try {
     const effect = Skia.RuntimeEffect.Make(sksl);
     if (!effect) console.error(`${name} failed to compile`);

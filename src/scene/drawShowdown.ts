@@ -5,13 +5,14 @@ import {
   type SkRuntimeEffect,
   type SkShader,
 } from '@shopify/react-native-skia';
-import { AIR } from '@/config/arena';
+import { AIR, ROOM_CONTACT } from '@/config/arena';
 import { TUNING } from '@/config/tuning';
 import { awayAt, scaleAt } from '@/core/projection';
 import type { Box, Bubble, Clash, World } from '@/core/types';
 import type { Theme } from '@/showdown/types';
-import type { View } from './drawScene';
+import { drawRipple, type View } from './drawScene';
 import { PARTNERS } from './liquid';
+import { drawRoomContact, type Touching } from './roomContact';
 import { fighterLook, type FighterLook } from './showdownPictures';
 
 export type ShowdownLook = {
@@ -23,6 +24,10 @@ export type ShowdownLook = {
   fill: SkPaint;
   film: SkPaint;
   layer: SkPaint;
+  contact: SkPaint;
+  ring: SkPaint;
+  /** Rings on the walls, in the colour of the room's lines. */
+  ink: [number, number, number];
 };
 
 const GOLDEN = 0.61803;
@@ -35,6 +40,8 @@ const NO_DYE = [0, 0, 0];
 export function showdownLook(theme: Theme): ShowdownLook {
   const fill = Skia.Paint();
   fill.setAntiAlias(true);
+  const ring = Skia.Paint();
+  ring.setAntiAlias(true);
   const rgb = (c: string) => [...Skia.Color(c)].slice(0, 3);
   return {
     cast: theme.cast.map((f) => fighterLook(f, rgb(theme.backdrop[0]))),
@@ -44,6 +51,9 @@ export function showdownLook(theme: Theme): ShowdownLook {
     fill,
     film: Skia.Paint(),
     layer: Skia.Paint(),
+    contact: Skia.Paint(),
+    ring,
+    ink: theme.ink,
   };
 }
 
@@ -72,6 +82,12 @@ function enterOf(w: World, b: Bubble) {
   'worklet';
   if (w.duel?.phase !== 'ready') return 1;
   return smooth((w.duel.seconds - b.id * 0.06) / 0.9);
+}
+
+/** How far a burst film has torn open. */
+function tornOf(b: Bubble) {
+  'worklet';
+  return b.popping < 0 ? 0 : Math.min(1, b.popping / 0.22);
 }
 
 export function drawFigure(
@@ -210,7 +226,7 @@ function drawBubble(
   const y = v.cy + b.p.y * s;
   const rx = r * (1 + b.d.x - b.d.z * 0.3);
   const ry = r * (1 + b.d.y - b.d.z * 0.3);
-  const gone = b.popping < 0 ? 0 : Math.min(1, b.popping / 0.22);
+  const gone = tornOf(b);
   const lost = duel.clashes.find((c) => c.loser === b.id);
   const partners: number[][] = [];
   const dyes: number[][] = [];
@@ -268,26 +284,18 @@ function drawBubble(
   });
 }
 
-function drawShadow(canvas: SkCanvas, look: ShowdownLook, b: Bubble, box: Box, v: View) {
+/** What the room needs to know of each bubble. One drawn in or torn fades from the walls with it. */
+function touching(look: ShowdownLook, w: World): Touching[] {
   'worklet';
-  if (b.popping >= 0) return;
-  const s = scaleAt(box, b.p.z) * v.ppu;
-  const near = 1 - Math.min(1, (box.hh - b.p.y) / (box.hh * 2));
-  const rx = b.r * s * (1.35 - near * 0.4);
-  const x = v.cx + b.p.x * s;
-  const y = v.cy + box.hh * s;
-  // Soft edged, with the light a bubble focuses in its middle.
-  for (let i = 3; i > 0; i--) {
-    look.fill.setColor(Float32Array.of(0, 0, 0, (0.03 + 0.09 * near) * b.fade));
-    const k = rx * (0.5 + i * 0.2);
-    canvas.drawOval({ x: x - k, y: y - k * 0.2, width: k * 2, height: k * 0.4 }, look.fill);
+  const out: Touching[] = [];
+  for (const b of w.bubbles) {
+    const f = look.cast[castOf(w, b.id)];
+    const enter = enterOf(w, b);
+    const presence = b.fade * enter * (1 - tornOf(b));
+    if (!f || presence <= 0.01) continue;
+    out.push({ x: b.p.x, y: b.p.y, z: b.p.z, r: b.r * enter, tint: f.lit, presence });
   }
-  const c = look.cast[Number(b.style)]!.lit;
-  tint(look.fill, c, (0.05 + 0.12 * near) * b.fade);
-  canvas.drawOval(
-    { x: x - rx * 0.4, y: y - rx * 0.08, width: rx * 0.8, height: rx * 0.16 },
-    look.fill,
-  );
+  return out;
 }
 
 /** Fine mist where a film gave way: thrown out, slowed by the air, then sinking. */
@@ -364,6 +372,7 @@ export function drawShowdown(
   canvas: SkCanvas,
   look: ShowdownLook,
   effect: SkRuntimeEffect | null,
+  contact: SkRuntimeEffect | null,
   back: Backdrop | null,
   w: World,
   box: Box,
@@ -389,7 +398,11 @@ export function drawShowdown(
   }
   const all = [...w.bubbles];
   all.sort((a, b) => b.p.z - a.p.z);
-  for (const b of all) drawShadow(canvas, look, b, box, v);
+  drawRoomContact(canvas, look.contact, contact, touching(look, w), box, v);
+  for (const r of w.ripples) {
+    const rippleOpacity = ROOM_CONTACT.ripple * (1 - AIR.haze * awayAt(box, r.p.z, AIR.from));
+    drawRipple(canvas, look.ring, r, box, v, { ink: look.ink, rippleOpacity });
+  }
   const best = duel.phase === 'won' ? w.bubbles.find((b) => b.id === duel.champion) : undefined;
   if (best) drawGlory(canvas, look, best, w, box, v);
   // A bubble being taken in is part of the surface that takes it.

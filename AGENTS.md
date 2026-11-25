@@ -29,12 +29,13 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Custom bubble: choices, then its screen  | `src/config/custom.ts`, `src/ui/Maker.tsx` |
 | What each preview acts out               | `src/preview/`                             |
 | Showdown casts and arenas                | `src/showdown/`                            |
-| Showdown grid, mural, haze with distance | `src/config/arena.ts`                      |
+| Showdown grid, mural, haze, wall contact | `src/config/arena.ts`                      |
 | Showdown rules and entrant count         | `src/config/rules.ts`                      |
 | Showdown titles for unusual wins         | `src/config/feats.ts`, `src/core/feats.ts` |
 | Showdown physics: odds, hunting, ringing | `src/core/duel.ts`                         |
 | Showdown bubble and merge shader         | `src/scene/liquid.ts`                      |
 | Drawing a showdown                       | `src/scene/drawShowdown.ts`                |
+| Showdown shadows, reflections on walls   | `src/scene/roomContact.ts`                 |
 | Showdown screen, and its chooser         | `src/ui/Showdown.tsx`, `src/ui/Lobby.tsx`  |
 
 ## Read before working

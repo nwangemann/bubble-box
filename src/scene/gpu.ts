@@ -2,6 +2,7 @@ import { BlendMode, Skia } from '@shopify/react-native-skia';
 import { compileFx, compileStyles } from './effects';
 import { compileGlass } from './glassFilter';
 import { compileLiquid } from './liquid';
+import { compileRoomContact } from './roomContact';
 import { compileWalls } from './walls';
 
 function make() {
@@ -18,6 +19,7 @@ function make() {
     bubblePaint: Skia.Paint(),
     ripplePaint,
     liquid: compileLiquid(),
+    roomContact: compileRoomContact(),
     walls: compileWalls(),
     lightPaint: Skia.Paint(),
   };

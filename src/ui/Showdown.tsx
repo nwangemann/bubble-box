@@ -78,7 +78,7 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
   );
   const [look] = useState(() => showdownLook(theme));
   const arena = useMemo(() => arenaPicture(theme, box, view), [theme, box, view]);
-  const [{ liquid }] = useState(getGpu);
+  const [{ liquid, roomContact }] = useState(getGpu);
   const back = useMemo<Backdrop | null>(() => {
     const shader = pictureShader(arena, width, height, U.backdrop);
     return shader && { shader, scale: U.backdrop };
@@ -133,7 +133,7 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
     }
     picture.value = createPicture((canvas) => {
       'worklet';
-      drawShowdown(canvas, look, liquid, back, w, box, view, calm);
+      drawShowdown(canvas, look, liquid, roomContact, back, w, box, view, calm);
     });
   });
 

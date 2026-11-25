@@ -46,7 +46,7 @@ Each preview is a small `World` in its own box, driven by `preview/scripts` and 
 
 `strike` sets a surface ringing in modes 2 and 3 about an axis, with Rayleigh's stiffness and damping, so large bubbles ring slow and long.
 
-`scene/liquid` draws a bubble and whatever it is taking in as one smooth union, marched per pixel; a lone calm bubble is a plain sphere. The arena is `roomPicture` with a faint mural, both static. Distance (`AIR`, `awayAt`) hazes, dims and softens: in the film's shader for each part of a surface by its own depth, and for figures by fading to a second painting as seen at the back wall. Films bend a picture of the arena painted once on the CPU. Figures are images painted once. An entrant's cast number picks one of twelve vapours.
+`scene/liquid` draws a bubble and whatever it is taking in as one smooth union, marched per pixel; a lone calm bubble is a plain sphere. The arena is `roomPicture` with a faint mural, both static. Distance (`AIR`, `awayAt`) hazes, dims and softens: in the film's shader for each part of a surface by its own depth, and for figures by fading to a second painting as seen at the back wall. `scene/roomContact` is one full-screen pass beneath the bubbles: it finds the wall behind each pixel, as `walls` does, and adds every bubble's shadow, thrown light and mirror image; `drawRipple` then rings the walls. Films bend a picture of the arena painted once on the CPU. Figures are images painted once. An entrant's cast number picks one of twelve vapours.
 
 ## Maker
 
