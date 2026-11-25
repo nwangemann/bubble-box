@@ -17,16 +17,16 @@ Each box is one small session. Tick it when done and move **Next**.
 
 ## Phase 1: finish the MVP on a phone
 
-- [ ] 1.1 Install on a phone and note what feels wrong
+- [ ] 1.1 (needs you; 1.2 to 1.7 too) Install on a phone and note what feels wrong
 - [ ] 1.2 Tune growth: start size, pace, largest size
 - [ ] 1.3 Tune launch: hold power, swipe strength, depth of the box
 - [ ] 1.4 Tune rebound, drift and wobble
 - [ ] 1.5 Tune haptics
 - [ ] 1.6 Pick favourite styles; keep 5 or 6
 - [ ] 1.7 Measure frame time with 10 bubbles on the oldest phone to support
-- [ ] 1.8 Respect Reduce Motion
-- [ ] 1.9 Remember the chosen options
-- [ ] 1.10 App icon and splash
+- [x] 1.8 Respect Reduce Motion
+- [x] 1.9 Remember the chosen options
+- [x] 1.10 App icon and splash (first version; confirm on a phone)
 
 MVP is done when a stranger understands it without words, and it holds 60 fps with 10 bubbles.
 

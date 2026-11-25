@@ -42,6 +42,27 @@ export const ROWS: { key: Setting; label: string; options: Option[] }[] = [
   { key: 'pop', label: 'Pop', options: [...fxNamed('pop'), last] },
 ];
 
+/** Keeps the saved choices that still exist. */
+export function cleanSettings(saved: unknown): Settings {
+  const out: Settings = { ...DEFAULTS };
+  if (typeof saved !== 'object' || saved === null) return out;
+  for (const { key, options } of ROWS) {
+    const value = (saved as Record<string, unknown>)[key];
+    if (options.some((o) => o.id === value)) out[key] = value as string;
+  }
+  return out;
+}
+
+/** Gentler physics for Reduce Motion. The chosen settings are untouched. */
+export const calmFeel = (f: Feel): Feel => ({
+  ...f,
+  speed: f.speed * 0.6,
+  minSpeed: f.minSpeed * 0.6,
+  wander: f.wander * 0.4,
+  buoyancy: f.buoyancy * 0.5,
+  wobble: f.wobble * 0.25,
+});
+
 /** The choices a setting stands for: one, or all of them for Random. */
 function pool<T>(record: Record<string, T>, choice: string): T[] {
   return choice === RANDOM ? Object.values(record) : [record[choice]!];

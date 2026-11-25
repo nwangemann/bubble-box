@@ -1,13 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
-  DEFAULTS,
+  calmFeel,
   feelPool,
   fxPools,
   glassPool,
   pickBox,
   RANDOM,
+  NONE,
   ROWS,
   stylePool,
   tapPool,
@@ -15,21 +16,26 @@ import {
   type Settings,
 } from '@/config/defaults';
 import { Scene } from '@/scene/Scene';
+import { loadSettings, saveSettings } from '@/services/savedSettings';
+import { useReduceMotion } from '@/services/useReduceMotion';
 import { Tray } from '@/ui/Tray';
 
 export default function App() {
-  const [settings, setSettings] = useState<Settings>(DEFAULTS);
-  const [env, setEnv] = useState(() => pickBox(DEFAULTS.box));
+  const [settings, setSettings] = useState<Settings>(loadSettings);
+  const [env, setEnv] = useState(() => pickBox(settings.box));
   const [open, setOpen] = useState(false);
   const [popSignal, setPopSignal] = useState(0);
   const close = useCallback(() => setOpen(false), []);
 
+  const calm = useReduceMotion();
+  useEffect(() => saveSettings(settings), [settings]);
+
   const { bubble, feel, glass, tap, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
-  const feels = useMemo(() => feelPool(feel), [feel]);
-  const glasses = useMemo(() => glassPool(glass), [glass]);
+  const feels = useMemo(() => (calm ? feelPool(feel).map(calmFeel) : feelPool(feel)), [feel, calm]);
+  const glasses = useMemo(() => glassPool(calm ? 'still' : glass), [glass, calm]);
   const taps = useMemo(() => tapPool(tap), [tap]);
-  const fx = useMemo(() => fxPools(meet, pop), [meet, pop]);
+  const fx = useMemo(() => (calm ? fxPools(NONE, NONE) : fxPools(meet, pop)), [meet, pop, calm]);
 
   const pick = (key: Setting, id: string) => {
     // Choosing Random again moves to another box.

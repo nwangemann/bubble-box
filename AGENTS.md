@@ -20,6 +20,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | What a tap on a bubble does              | `src/config/taps.ts`         |
 | Meet and pop effects                     | `src/fx/`                    |
 | Default settings, tray rows, Random      | `src/config/defaults.ts`     |
+| Saved settings, Reduce Motion            | `src/services/`              |
 | Options tray                             | `src/ui/Tray.tsx`            |
 
 ## Read before working
