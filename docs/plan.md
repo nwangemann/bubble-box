@@ -2,7 +2,7 @@
 
 In priority order, for iOS. Each numbered box is one small session: do the first open one, tick it, and move **Next**. For anything that draws, check frame time on the simulator in the same session; device numbers come in 8.
 
-**Next: 1.4, a deeper arena.**
+**Next: 1.5, redraw the murals.**
 
 Sections 1 to 7 need no device. Section 8 needs a person, mostly with a phone, and stays last.
 
@@ -13,7 +13,7 @@ Make it plain where each entrant is, where it is going, and why two met or misse
 - [x] 1.1 See-through grid rooms for all six arenas: the core app's Lattice in each theme's colours, with the old scenery as a faint mural on the back wall. Solid painted rooms were tried and dropped: they hid the depth
 - [x] 1.2 Depth cues on bubbles: haze, dimming and softer focus with distance (`AIR` in `config/arena`)
 - [x] 1.3 Contact with the room: shadows and reflections on floor and walls, light on a wall a bubble nears, ripples where it hits (`ROOM_CONTACT` in `config/arena`). Simulator: 60 fps with 12, the same with the pass on or off
-- [ ] 1.4 Try a deeper arena (`TUNING.showdown.depth`) now that depth reads
+- [x] 1.4 A deeper arena: `TUNING.showdown.depth` 3.6, was 2.4, with the line-up kept at its old depth (`lineup`). Shows more floor and wall; simulated fights of 12 take about 15 s, were 13. Simulator: 60 fps with 12
 - [ ] 1.5 Redraw the murals less like cartoons, still faint, to sit with the films
 
 ## 2. Trails

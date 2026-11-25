@@ -99,15 +99,17 @@ export const TUNING = {
   /** Light from glowing bubbles; seconds for water to settle in an empty room. */
   walls: { glow: 0.9, settle: 1.2 },
   /**
-   * Showdown. The arena is shallower than the box so everyone is seen. Entrants wait `ready` seconds,
-   * set off at `start`, and turn towards the nearest rival: rate `least`, gaining `gain` for each
-   * second past `patience` without a clash, up to `most`, at speed `chase`. `slow` is the last
+   * Showdown. The arena is shallower than the box so everyone is seen. Entrants line up at depth
+   * `lineup`, nearer than the middle, so they start large. They wait `ready`
+   * seconds, set off at `start`, and turn towards the nearest rival: rate `least`, gaining `gain` for
+   * each second past `patience` without a clash, up to `most`, at speed `chase`. `slow` is the last
    * pair's slow motion: from `gap` apart, down to `pace`; `blow` and `after` hold it past the final
    * knock-out. The winner basks, then rises at rate `rise` to `podium`, whose size adds `gain`
    * of whatever it has grown, up to `most`.
    */
   showdown: {
-    depth: 2.4,
+    depth: 3.6,
+    lineup: 1.2,
     radius: 0.16,
     /** Winners grow at rate `swell`, up to `largest`, which just fits across the arena. */
     largest: 0.8,

@@ -547,6 +547,11 @@ function sink(world: World, b: Bubble, feels: Feel[], dt: number) {
     startPop(world, b);
     return;
   }
+  // Rounding can leave it empty a step early. What it sinks into may be empty too, so stop here.
+  if (b.r <= 1e-6) {
+    join.seconds = M.seconds;
+    return;
+  }
   const before = smooth(join.seconds / M.seconds);
   join.seconds += dt;
   const u = Math.min(1, join.seconds / M.seconds);
@@ -585,7 +590,7 @@ function sink(world: World, b: Bubble, feels: Feel[], dt: number) {
   // In a showdown winners grow by their own rule. See `swell` in `duel`.
   if (!world.duel) a.r = Math.cbrt(ma + given);
   b.r = Math.cbrt(Math.max(0, mb - given));
-  const orbit = (dx * vy - dy * vx) / (0.4 * a.r * a.r);
+  const orbit = (dx * vy - dy * vx) / Math.max(1e-6, 0.4 * a.r * a.r);
   a.spin += (b.spin - a.spin) * share + orbit * share * M.twist;
   a.spin = clamp(a.spin, -T.spin.max, T.spin.max);
   const k = world.duel ? 0 : share * M.stretch * feelOf(a, feels).wobble;

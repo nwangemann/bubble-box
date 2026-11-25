@@ -50,7 +50,7 @@ export function createShowdown(box: Box, rule: Rule, count: number, cast = count
     const x = ((col + 0.5) / across) * 2 - 1;
     // One depth for all, so perspective cannot make anyone look larger.
     const y = (row + 0.5 - rows / 2) * Math.max(S.gap, (box.hh * 2 * S.spread) / rows);
-    const at = { x: x * box.hw, y, z: box.depth / 2 };
+    const at = { x: x * box.hw, y, z: S.lineup };
     world.bubbles.push(newBubble(world, `${entrants[i]!}`, S.radius, at));
   }
   return world;
