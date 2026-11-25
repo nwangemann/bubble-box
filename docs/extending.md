@@ -1,6 +1,6 @@
 # Extending
 
-Everything below appears in the tray and its previews, and joins Random, automatically. List new options in [settings](settings.md).
+Everything below appears in the menu and its previews, and joins Random, automatically. List new options in [settings](settings.md).
 
 ## Bubble style
 
@@ -23,7 +23,7 @@ Add to `src/config/environments.ts`. Give it a `day` palette. For a material, wr
 ## Meet and pop effects
 
 1. Write `vec3 fx(vec2 p, float t)` in `src/fx/meet.ts` or `pop.ts`. `x` runs along the contact normal; use `hand()` and `spin` for twist, `blend()` for the two bubbles' colours.
-2. Register it in `src/fx/index.ts`. `on` says which rows it appears in; a pop also needs `body`.
+2. Register it in `src/fx/index.ts`. `on` says which settings it appears under; a pop also needs `body`.
 
 ![Effects at three ages, meetings left, pops right](effects.png)
 

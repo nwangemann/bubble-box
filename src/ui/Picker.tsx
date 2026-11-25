@@ -38,6 +38,7 @@ import { throughGlass } from '@/scene/glassFilter';
 import { getGpu } from '@/scene/gpu';
 import { roomPicture } from '@/scene/roomPicture';
 import { drawWallLight } from '@/scene/walls';
+import { Slider } from './Slider';
 
 const P = TUNING.preview;
 
@@ -49,6 +50,7 @@ type Props = {
   look: BoxLook;
   light: Light;
   walls: Walls;
+  onWalls: (walls: Walls) => void;
   /** Reduce Motion: previews are stills. */
   calm: boolean;
   onPick: (id: string) => void;
@@ -63,6 +65,7 @@ export function Picker({
   look,
   light,
   walls,
+  onWalls,
   calm,
   onPick,
   onClose,
@@ -79,7 +82,7 @@ export function Picker({
   const density = PixelRatio.get();
 
   const cells = useMemo(() => {
-    const rects = layoutCells(row.options.length, width, height);
+    const rects = layoutCells(row.options.length, width, height, setting === 'box' ? P.sliders : 0);
     return row.options.map(({ id, name }, i) => {
       const rect = rects[i]!;
       const chosen = (key: Setting) => (key === setting ? id : settings[key]);
@@ -139,19 +142,21 @@ export function Picker({
   }, [row, setting, settings, look, light, walls, width, height]);
 
   const stages = useSharedValue<Stage[]>([]);
-  const drawn = useSharedValue<unknown>(null);
+  const drawn = useSharedValue<string | null>(null);
+  // A still is drawn again when the room it shows changes.
+  const still = `${width} ${height} ${walls.opacity} ${walls.softness}`;
   const picture = useSharedValue(createPicture(() => {}));
 
   useFrameCallback((frame) => {
     const dt = (frame.timeSincePreviousFrame ?? 0) / 1000;
-    if (calm && drawn.value === width) return;
+    if (calm && drawn.value === still) return;
     if (stages.value.length !== cells.length || calm) {
       stages.value = cells.map((a) => {
         'worklet';
         return createStage(a.part);
       });
     }
-    drawn.value = calm ? width : null;
+    drawn.value = calm ? still : null;
     const all = stages.value;
     for (let i = 0; i < cells.length; i++) {
       if (calm) playToStill(all[i]!, cells[i]!.part);
@@ -270,6 +275,20 @@ export function Picker({
           </Pressable>
         );
       })}
+      {setting === 'box' && (
+        <View style={styles.sliders}>
+          <Slider
+            label="Opacity"
+            value={walls.opacity}
+            onChange={(opacity) => onWalls({ ...walls, opacity })}
+          />
+          <Slider
+            label="Softness"
+            value={walls.softness}
+            onChange={(softness) => onWalls({ ...walls, softness })}
+          />
+        </View>
+      )}
       <Pressable
         onPress={onClose}
         accessibilityRole="button"
@@ -309,6 +328,16 @@ const styles = StyleSheet.create({
     lineHeight: P.label,
   },
   on: { color: '#fff', fontWeight: '500' },
+  sliders: {
+    position: 'absolute',
+    left: 22,
+    right: 22,
+    bottom: P.bottom,
+    height: P.sliders,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
+  },
   // Over the tray's own dot, so the same place closes both.
   handle: {
     position: 'absolute',

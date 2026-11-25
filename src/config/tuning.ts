@@ -182,6 +182,8 @@ export const TUNING = {
   },
   /** The bubble maker. Shares of the screen for the bubble; pixels for slider names. */
   maker: { width: 0.9, height: 0.42, label: 56 },
+  /** The menu's tiles, in pixels. */
+  menu: { columns: 3, side: 16, gap: 8, height: 64, corner: 14, widest: 480 },
   /** The preview picker. Pixels for layout; world units (half a cell wide) and seconds for motion. */
   preview: {
     side: 18,
@@ -189,6 +191,8 @@ export const TUNING = {
     top: 104,
     bottom: 80,
     label: 26,
+    /** Room for the sliders under Box's options. */
+    sliders: 52,
     corner: 14,
     /** More options than this take three columns. */
     wideUpTo: 6,

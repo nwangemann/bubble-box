@@ -110,16 +110,12 @@ export default function App() {
         open={open && !covered}
         onToggle={() => setOpen((o) => !o)}
         onLobby={() => setLobby(true)}
-        walls={walls}
-        onWalls={setWalls}
         onPopAll={() => setPopSignal((n) => n + 1)}
-        rows={ROWS.map(({ key, label, options }) => ({
+        onTile={setPreview}
+        tiles={ROWS.map(({ key, label, options }) => ({
           key,
           label,
-          options,
-          value: settings[key],
-          onPick: (id) => pick(key, id),
-          onPreview: () => setPreview(key),
+          value: options.find((o) => o.id === settings[key])!.name,
         }))}
       />
       {preview && (
@@ -131,6 +127,7 @@ export default function App() {
           look={look}
           light={light}
           walls={walls}
+          onWalls={setWalls}
           calm={calm}
           onPick={(id) => {
             pick(preview, id);

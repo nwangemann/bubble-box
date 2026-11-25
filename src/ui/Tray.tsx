@@ -1,33 +1,30 @@
-import { Fragment } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import type { Setting } from '@/config/defaults';
 import { MODE_SWITCH } from '@/config/modes';
-import type { Walls } from '@/config/environments';
+import { TUNING } from '@/config/tuning';
 import { ModeSwitch } from './ModeSwitch';
-import { Slider } from './Slider';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
-type Row = {
-  key: Setting;
-  label: string;
-  options: { id: string; name: string }[];
-  value: string;
-  onPick: (id: string) => void;
-  onPreview: () => void;
-};
+const M = TUNING.menu;
+
+type Tile = { key: Setting; label: string; value: string };
 type Props = {
   open: boolean;
   onToggle: () => void;
-  rows: Row[];
-  walls: Walls;
-  onWalls: (walls: Walls) => void;
+  tiles: Tile[];
+  onTile: (key: Setting) => void;
   onPopAll: () => void;
   onLobby: () => void;
 };
 
-/** One small dot that opens quiet rows of names. */
-export function Tray({ open, onToggle, rows, walls, onWalls, onPopAll, onLobby }: Props) {
-  const { height } = useWindowDimensions();
+/** One small dot that opens a tile for each setting, showing what is chosen. */
+export function Tray({ open, onToggle, tiles, onTile, onPopAll, onLobby }: Props) {
+  const { width, height } = useWindowDimensions();
+  const grid = Math.min(width - M.side * 2, M.widest);
+  const tile = {
+    width: Math.floor((grid - M.gap * (M.columns - 1)) / M.columns),
+    minHeight: M.height,
+  };
   return (
     <View style={styles.wrap} pointerEvents="box-none">
       {open && (
@@ -36,63 +33,38 @@ export function Tray({ open, onToggle, rows, walls, onWalls, onPopAll, onLobby }
           exiting={FadeOut.duration(250)}
           style={[styles.panel, { maxHeight: height - MODE_SWITCH.bottom - MODE_SWITCH.above }]}
         >
-          <ScrollView alwaysBounceVertical={false} style={styles.rows}>
-            {rows.map((row) => (
-              <Fragment key={row.key}>
-                <View style={styles.row}>
-                  <Pressable
-                    onPress={row.onPreview}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Preview ${row.label}`}
-                    hitSlop={6}
-                    style={({ pressed }) => [styles.title, pressed && styles.titlePressed]}
-                  >
-                    <Text style={styles.label}>{row.label}</Text>
-                  </Pressable>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.names}
-                    accessibilityLabel={row.label}
-                  >
-                    {row.options.map((o) => (
-                      <Pressable
-                        key={o.id}
-                        onPress={() => row.onPick(o.id)}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: o.id === row.value }}
-                        hitSlop={4}
-                        style={styles.option}
-                      >
-                        <Text style={[styles.name, o.id === row.value && styles.on]}>{o.name}</Text>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                </View>
-                {row.key === 'box' && (
-                  <View style={styles.sliders}>
-                    <Slider
-                      label="Opacity"
-                      value={walls.opacity}
-                      onChange={(opacity) => onWalls({ ...walls, opacity })}
-                    />
-                    <Slider
-                      label="Softness"
-                      value={walls.softness}
-                      onChange={(softness) => onWalls({ ...walls, softness })}
-                    />
-                  </View>
-                )}
-              </Fragment>
+          <ScrollView
+            alwaysBounceVertical={false}
+            style={styles.scroll}
+            contentContainerStyle={[styles.grid, { width: grid }]}
+          >
+            {tiles.map(({ key, label, value }) => (
+              <Pressable
+                key={key}
+                onPress={() => onTile(key)}
+                accessibilityRole="button"
+                accessibilityLabel={label}
+                accessibilityValue={{ text: value }}
+                accessibilityHint="Shows the options"
+                style={({ pressed }) => [styles.tile, tile, pressed && styles.pressed]}
+              >
+                <Text numberOfLines={1} style={styles.label}>
+                  {label}
+                </Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit style={styles.value}>
+                  {value}
+                </Text>
+              </Pressable>
             ))}
             <Pressable
               onPress={onPopAll}
               accessibilityRole="button"
               accessibilityLabel="Clear all bubbles"
-              hitSlop={6}
-              style={({ pressed }) => [styles.title, styles.clear, pressed && styles.titlePressed]}
+              style={({ pressed }) => [styles.tile, styles.clear, tile, pressed && styles.pressed]}
             >
-              <Text style={styles.label}>Clear</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit style={styles.value}>
+                Clear
+              </Text>
             </Pressable>
           </ScrollView>
           <ModeSwitch mode="calm" onMode={onLobby} />
@@ -112,32 +84,30 @@ export function Tray({ open, onToggle, rows, walls, onWalls, onPopAll, onLobby }
 
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, bottom: 22, alignItems: 'center' },
-  panel: { alignSelf: 'stretch', backgroundColor: 'rgba(5,8,20,0.74)', paddingVertical: 6 },
-  rows: { flexGrow: 0, flexShrink: 1 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingLeft: 18 },
-  names: { alignItems: 'center', paddingLeft: 8, paddingRight: 22 },
-  // A raised white button, unlike the plain names beside it: it opens the previews.
-  title: {
-    width: 72,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
+  // The foot puts the switch at MODE_SWITCH.bottom, as in the chooser.
+  panel: {
+    alignSelf: 'stretch',
+    backgroundColor: 'rgba(5,8,20,0.74)',
+    paddingTop: 14,
+    paddingBottom: 6,
+  },
+  scroll: { flexGrow: 0, flexShrink: 1, marginBottom: 14 },
+  grid: { alignSelf: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: M.gap },
+  tile: {
+    borderRadius: M.corner,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     justifyContent: 'center',
-    backgroundColor: '#fff',
-    boxShadow:
-      '0 4px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4), inset 0 -3px 0 rgba(20,26,56,0.2)',
+    gap: 3,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
   },
-  titlePressed: {
-    transform: [{ translateY: 2 }],
-    backgroundColor: '#e6e9f4',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.5)',
-  },
-  label: { color: '#0b1024', fontSize: 13, fontWeight: '700' },
-  sliders: { flexDirection: 'row', gap: 18, paddingHorizontal: 22 },
-  option: { paddingHorizontal: 10, minHeight: 44, justifyContent: 'center' },
-  name: { color: 'rgba(255,255,255,0.68)', fontSize: 15, fontWeight: '300', letterSpacing: 0.3 },
-  on: { color: '#fff', fontWeight: '500' },
-  clear: { marginLeft: 18, marginTop: 6, marginBottom: 14 },
+  // An action, not a setting: an outline with nothing in it.
+  clear: { backgroundColor: 'transparent', alignItems: 'center' },
+  pressed: { transform: [{ scale: 0.96 }], backgroundColor: 'rgba(255,255,255,0.2)' },
+  label: { color: 'rgba(255,255,255,0.68)', fontSize: 12, letterSpacing: 0.4 },
+  value: { color: '#fff', fontSize: 16, fontWeight: '500', letterSpacing: 0.2 },
   handle: { width: 64, height: 44, alignItems: 'center', justifyContent: 'center' },
   dot: {
     width: 7,

@@ -24,9 +24,9 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | How bubbles draw each other              | `src/config/pulls.ts`, `src/core/pull.ts`                          |
 | Trails bubbles leave                     | `src/config/trails.ts`, `src/core/trail.ts`, `src/scene/trails.ts` |
 | Meet and pop effects                     | `src/fx/`                                                          |
-| Default settings, tray rows, Random      | `src/config/defaults.ts`                                           |
+| Default settings, menu tiles, Random     | `src/config/defaults.ts`                                           |
 | Saved settings, Reduce Motion            | `src/services/`                                                    |
-| Options tray                             | `src/ui/Tray.tsx`                                                  |
+| Options menu and its tiles               | `src/ui/Tray.tsx`                                                  |
 | Calm and Showdown switch                 | `src/config/modes.ts`, `src/ui/ModeSwitch.tsx`                     |
 | Preview picker                           | `src/ui/Picker.tsx`                                                |
 | Custom bubble: choices, then its screen  | `src/config/custom.ts`, `src/ui/Maker.tsx`                         |

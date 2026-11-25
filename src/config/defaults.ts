@@ -45,7 +45,7 @@ const fxNamed = (event: 'meet' | 'pop'): Option[] => [
 ];
 const last = { id: RANDOM, name: 'Random' };
 
-/** Tray rows, in order. Every row ends with Random. */
+/** The menu's tiles, in order, and their options. Every one ends with Random. */
 export const ROWS: { key: Setting; label: string; options: Option[] }[] = [
   { key: 'bubble', label: 'Bubble', options: [...named(STYLES), last] },
   { key: 'box', label: 'Box', options: [...named(ENVIRONMENTS), last] },

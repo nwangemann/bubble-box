@@ -1,6 +1,6 @@
 # Settings
 
-The tray opens from the dot. Defaults live in `src/config/defaults.ts`; change them there and here together.
+The menu opens from the dot: a tile for each setting, with its name and what is chosen. The last tile, Clear, is an action: it lets every bubble go. Defaults live in `src/config/defaults.ts`; change them there and here together.
 
 | Setting | Default    | Other options                                                                               | What Random does                                |
 | ------- | ---------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
@@ -20,7 +20,7 @@ Pull draws bubbles towards each other: Near is strong but short, Far is soft and
 
 ## Previews
 
-A white title button in the tray opens every option of that setting, alive. Tapping one chooses it and closes; the dot or empty space closes without choosing. Random shows one option after another. None plays the same scene without the effect. Previews use the other current settings. With Reduce Motion they are stills. Timing and sizes are in `TUNING.preview`.
+Tapping a tile opens every option of that setting, alive. Tapping one chooses it and closes; the dot or empty space closes without choosing. Either way leads back to the tiles. Random shows one option after another. None plays the same scene without the effect. Previews use the other current settings. With Reduce Motion they are stills. Timing and sizes are in `TUNING.preview`.
 
 ## Showdown
 
@@ -41,7 +41,7 @@ Patterns: Plain, Bands, Swirl, Dots, Cells, Marble, Petals.
 
 ## Walls
 
-Two sliders under Box. Opacity fades lines and materials; its middle is the box as designed, and it never changes the backdrop. Softness blurs lines, quiets materials and makes walls bounce less. They apply to every box and are saved. Defaults are `DEFAULT_WALLS` in `src/config/environments.ts`.
+Two sliders under Box's options, whose previews follow them. Opacity fades lines and materials; its middle is the box as designed, and it never changes the backdrop. Softness blurs lines, quiets materials and makes walls bounce less. They apply to every box and are saved. Defaults are `DEFAULT_WALLS` in `src/config/environments.ts`.
 
 ## Saving
 
