@@ -30,6 +30,20 @@ export type BoxLook = Palette & {
 /** A box in its light, with the wall sliders applied. */
 export type Environment = BoxLook & { wallOpacity: number; softness: number };
 
+/** What `roomPicture` needs of a box. */
+export type RoomLook = Pick<
+  Environment,
+  | 'backdrop'
+  | 'ink'
+  | 'edgeOpacity'
+  | 'grid'
+  | 'gridOpacity'
+  | 'faceOpacity'
+  | 'wall'
+  | 'wallOpacity'
+  | 'softness'
+>;
+
 /** Wall sliders, 0 to 1. */
 export type Walls = { opacity: number; softness: number };
 

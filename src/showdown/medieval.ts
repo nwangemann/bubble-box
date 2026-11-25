@@ -53,9 +53,9 @@ export const medieval: Theme = {
   font: 'Copperplate-Bold',
   accent: '#ffcf5a',
   verbs: ['unhorses', 'bests', 'banishes', 'smites'],
-  sky: ['#33306b', '#a6577f', '#f4a871'],
-  floor: { near: '#8d5f36', far: '#d7a263', pattern: 'sand', ink: '#5d3a20' },
-  scenery: ({ horizon: h, top, bottom }) => [
+  backdrop: ['#5a3650', '#170b20'],
+  ink: [255, 208, 150],
+  mural: ({ horizon: h, top, bottom }) => [
     glow(oval(0.45, h - 0.75, 0.28), '#ffe0a055', 0.12),
     fill(oval(0.45, h - 0.75, 0.2), '#ffeec4'),
     fill(

@@ -27,9 +27,9 @@ export const haunted: Theme = {
   font: 'Chalkduster',
   accent: '#b6ff5c',
   verbs: ['spooks', 'exorcises', 'haunts', 'hexes'],
-  sky: ['#0d0722', '#2f1a55', '#5d3f78'],
-  floor: { near: '#1f2b2a', far: '#4c5f4d', pattern: 'sand', ink: '#121a1a' },
-  scenery: ({ horizon: h, top, bottom }) => [
+  backdrop: ['#35285a', '#090511'],
+  ink: [185, 255, 145],
+  mural: ({ horizon: h, top, bottom }) => [
     ...scatter(40, (a, b, c) =>
       fill(oval(a * 2 - 1, top + b * (h - top) * 0.7, 0.003 + c * 0.005), '#ffffff88'),
     ),

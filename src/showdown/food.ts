@@ -9,9 +9,9 @@ export const food: Theme = {
   font: 'MarkerFelt-Wide',
   accent: '#ff7a59',
   verbs: ['toasts', 'roasts', 'whisks away', 'devours'],
-  sky: ['#4aa8a0', '#86d1bd', '#f6e7bd'],
-  floor: { near: '#d94a45', far: '#f07a6a', pattern: 'checker', ink: '#fff5e6' },
-  scenery: ({ horizon: h, top }) => [
+  backdrop: ['#37857b', '#0d2c2f'],
+  ink: [255, 238, 212],
+  mural: ({ horizon: h, top }) => [
     // Tiles.
     ...Array.from({ length: 11 }, (_, i) =>
       line(`M${-1 + i * 0.2} ${top}V${h}`, '#ffffff33', 0.012),

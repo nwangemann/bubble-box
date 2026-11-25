@@ -105,8 +105,9 @@ export type Ringing = { n: Vec3; a2: number; v2: number; a3: number; v3: number 
 
 /** A showdown: entrants meet, one of each pair is knocked out, the last one wins. */
 export type Duel = {
-  /** Share of a loser's volume the winner takes in, and how far size sways the odds. */
-  absorb: number;
+  /** Whether a loser is taken in, how many times wider a winner grows, and how far size sways the odds. */
+  absorb: boolean;
+  grow: number;
   edge: number;
   phase: 'ready' | 'fight' | 'won';
   /** Seconds in this phase, and since the last clash. */
@@ -115,11 +116,13 @@ export type Duel = {
   clashes: Clash[];
   /** Who is fighting: cast numbers by bubble id, the first id being 1. */
   entrants: number[];
+  /** Every knock-out so far: when, and how many times wider the loser was. */
+  log: { winner: number; seconds: number; odds: number }[];
   /** How many have been knocked out, and wins by bubble id. */
   out: number;
   wins: Record<number, number>;
   ringing: Record<number, Ringing>;
-  /** Sizes once what they are taking in has drained across, by bubble id. */
+  /** Sizes once they have finished growing, by bubble id. */
   sizes: Record<number, number>;
   /** Id of the winner, or 0. */
   champion: number;

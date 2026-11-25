@@ -27,12 +27,14 @@ export function createShowdown(box: Box, rule: Rule, count: number, cast = count
   const entrants = shuffled(cast).slice(0, count);
   world.duel = {
     absorb: rule.absorb,
+    grow: rule.grow,
     edge: rule.edge,
     phase: 'ready',
     seconds: 0,
     since: 0,
     clashes: [],
     entrants,
+    log: [],
     out: 0,
     wins: {},
     ringing: {},

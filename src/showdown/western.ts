@@ -40,9 +40,9 @@ export const western: Theme = {
   font: 'Rockwell-Bold',
   accent: '#ffb84a',
   verbs: ['outdraws', 'runs off', 'lassos', 'outfoxes'],
-  sky: ['#7a2f4a', '#e8693f', '#ffcf6e'],
-  floor: { near: '#a65a2c', far: '#e6a258', pattern: 'sand', ink: '#7a3d1c' },
-  scenery: ({ horizon: h }) => [
+  backdrop: ['#86422f', '#260e14'],
+  ink: [255, 205, 140],
+  mural: ({ horizon: h }) => [
     glow(oval(0, h - 0.28, 0.62), '#fff0a855', 0.2),
     fill(oval(0, h - 0.28, 0.42), '#fff0b0'),
     fill(`M-1 ${h}V${h - 0.5}H-.72L-.64 ${h - 0.72}H-.4L-.34 ${h - 0.45}L-.2 ${h}Z`, '#b1493f'),

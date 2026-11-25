@@ -78,6 +78,19 @@ function ring(duel: Duel, b: Bubble, dt: number) {
   }
 }
 
+/** Whether a winner has finished growing, all but a little. */
+export function grown(duel: Duel, b: Bubble) {
+  'worklet';
+  return b.r >= (duel.sizes[b.id] ?? 0) * TUNING.showdown.grown;
+}
+
+/** Grows a winner towards its new size. */
+function swell(duel: Duel, b: Bubble, dt: number) {
+  'worklet';
+  const size = duel.sizes[b.id];
+  if (size) b.r += (size - b.r) * (1 - Math.exp(-TUNING.showdown.swell * dt));
+}
+
 function nearestTo(b: Bubble, all: Bubble[]) {
   'worklet';
   let best: Bubble | null = null;
@@ -103,7 +116,10 @@ export function direct(world: World, box: Box, dt: number) {
   for (const c of duel.clashes) c.age += dt;
   duel.clashes = duel.clashes.filter((c) => c.age < S.clash);
   const all = standing(world);
-  for (const b of all) ring(duel, b, dt);
+  for (const b of all) {
+    ring(duel, b, dt);
+    if (duel.phase === 'fight') swell(duel, b, dt);
+  }
   if (duel.phase === 'ready') {
     const go = duel.seconds >= S.ready;
     for (const b of all) {
@@ -148,7 +164,10 @@ export function direct(world: World, box: Box, dt: number) {
   if (!b) return;
   // The last one to lose drains across before the winner rises.
   if (world.bubbles.some((o) => o.join)) duel.seconds = Math.min(duel.seconds, S.bask);
-  if (duel.seconds <= S.bask) return;
+  if (duel.seconds <= S.bask) {
+    swell(duel, b, dt);
+    return;
+  }
   const ease = (1 - Math.exp(-S.rise * dt)) * Math.min(1, duel.seconds - S.bask);
   b.p.x -= b.p.x * ease;
   b.p.y += (box.hh * S.podium.y - b.p.y) * ease;

@@ -97,8 +97,8 @@ test('either side of a clash is as likely to win', () => {
     w.duel!.phase = 'fight';
     w.bubbles = w.bubbles.slice(0, 2);
     const [a, b] = w.bubbles as [(typeof w.bubbles)[0], (typeof w.bubbles)[0]];
-    a.p = { x: -0.2, y: 0, z: 1 };
-    b.p = { x: 0.2, y: 0, z: 1 };
+    a.p = { x: -S.radius * 0.85, y: 0, z: 1 };
+    b.p = { x: S.radius * 0.85, y: 0, z: 1 };
     const id = a.id;
     tick(w);
     expect(w.duel!.out).toBe(1);
@@ -112,7 +112,7 @@ test('a bubble knocked out cannot knock out another in the same moment', () => {
     const w = createShowdown(phone, RULES.even, N);
     w.duel!.phase = 'fight';
     w.bubbles = w.bubbles.slice(0, 3);
-    w.bubbles.forEach((b, k) => (b.p = { x: (k - 1) * 0.3, y: 0, z: 1 }));
+    w.bubbles.forEach((b, k) => (b.p = { x: (k - 1) * S.radius * 1.3, y: 0, z: 1 }));
     tick(w);
     const out = new Set<number>();
     for (const c of w.duel!.clashes) {
@@ -129,7 +129,8 @@ test('the winner stays, rises to the podium and never pops', () => {
   const b = w.bubbles.find((o) => o.id === w.duel!.champion)!;
   expect(w.bubbles).toHaveLength(1);
   expect(b.popping).toBeLessThan(0);
-  expect(b.r).toBeCloseTo(S.podium.r, 2);
+  expect(b.r).toBeGreaterThan(S.podium.r);
+  expect(b.r).toBeLessThanOrEqual(S.podium.most + 1e-9);
   expect(b.p.x).toBeCloseTo(0, 2);
 });
 
@@ -139,7 +140,7 @@ test('time slows for the last pair only', () => {
   expect(paceOf(w)).toBe(1);
   w.bubbles = w.bubbles.slice(0, 2);
   w.bubbles[0]!.p = { x: 0, y: 0, z: 1 };
-  w.bubbles[1]!.p = { x: 0.52, y: 0, z: 1 };
+  w.bubbles[1]!.p = { x: S.radius * 2.15, y: 0, z: 1 };
   expect(paceOf(w)).toBeLessThan(0.5);
 });
 
@@ -154,8 +155,8 @@ const clash = (rule: Rule, ra: number, rb: number, n = 2000) => {
     const [a, b] = w.bubbles as [(typeof w.bubbles)[0], (typeof w.bubbles)[0]];
     a.r = ra;
     b.r = rb;
-    a.p = { x: -0.2, y: 0, z: 1 };
-    b.p = { x: 0.2, y: 0, z: 1 };
+    a.p = { x: -S.radius * 0.85, y: 0, z: 1 };
+    b.p = { x: S.radius * 0.85, y: 0, z: 1 };
     const id = a.id;
     tick(w);
     if (w.duel!.clashes[0]!.winner === id) won++;
@@ -170,21 +171,28 @@ test('when winners grow, the larger is likelier to win and equals are even', () 
   expect(Math.abs(clash(RULES.grow, 0.4, 0.4).share - 0.5)).toBeLessThan(0.04);
   const slight = clash(RULES.grow, 0.3, 0.25).share;
   const large = clash(RULES.grow, 0.5, 0.25).share;
-  expect(slight).toBeGreaterThan(0.56);
+  expect(slight).toBeGreaterThan(0.53);
   expect(large).toBeGreaterThan(slight);
   // An upset stays possible.
   expect(large).toBeLessThan(0.95);
   expect(clash(RULES.grow, 0.25, 0.5).share).toBeCloseTo(1 - large, 1);
-  // Under even odds size changes nothing, and nobody grows.
+  // Under even odds size changes nothing.
   const even = clash(RULES.even, 0.5, 0.25);
   expect(Math.abs(even.share - 0.5)).toBeLessThan(0.04);
-  expect([0.25, 0.5]).toContain(even.size);
 });
 
-test('a winner takes in its share of the loser and ends up big', () => {
+test.each(Object.entries(RULES))(
+  'under %s a winner doubles at each clash until it fills the arena',
+  (_, rule) => {
+    const r = S.radius;
+    expect(clash(rule, r, r, 1).size).toBeCloseTo(r * 2);
+    expect(clash(rule, r * 2, r * 2, 1).size).toBeCloseTo(r * 4);
+    expect(clash(rule, S.largest * 0.9, S.largest * 0.9, 1).size).toBeCloseTo(S.largest);
+  },
+);
+
+test('a champion ends up big', () => {
   const r = S.radius;
-  const { size } = clash(RULES.grow, r, r, 1);
-  expect(size ** 3).toBeCloseTo(r ** 3 * (1 + RULES.grow.absorb));
   const { w } = fight(phone, RULES.grow);
   const before = w.bubbles.find((b) => b.id === w.duel!.champion)!;
   expect(w.duel!.sizes[before.id]).toBeGreaterThan(r * 1.7);
@@ -205,17 +213,17 @@ const pair = (rule: Rule) => {
   const w = createShowdown(phone, rule, 2);
   w.duel!.phase = 'fight';
   const [a, b] = w.bubbles as [(typeof w.bubbles)[0], (typeof w.bubbles)[0]];
-  a.p = { x: -0.22, y: 0, z: 1.2 };
-  b.p = { x: 0.22, y: 0.1, z: 1.2 };
+  a.p = { x: -S.radius * 0.92, y: 0, z: 1.2 };
+  b.p = { x: S.radius * 0.92, y: S.radius * 0.4, z: 1.2 };
   a.v = { x: 0.5, y: 0.2, z: 0 };
   b.v = { x: -0.1, y: 0, z: 0 };
   return w;
 };
 
-test('draining across moves volume smoothly and loses only the spray', () => {
+test('a winner grows smoothly to twice its size', () => {
   const w = pair(RULES.grow);
   let last = 0;
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < 110; i++) {
     tick(w);
     const win = w.bubbles.find((b) => !b.join && b.popping < 0)!;
     if (last) expect(win.r - last).toBeLessThan(0.02);
@@ -224,7 +232,8 @@ test('draining across moves volume smoothly and loses only the spray', () => {
     if (w.duel!.phase === 'won' && w.bubbles.length === 1) break;
   }
   expect(w.bubbles).toHaveLength(1);
-  expect(last ** 3).toBeCloseTo(S.radius ** 3 * (1 + RULES.grow.absorb), 3);
+  expect(last).toBeGreaterThan(S.radius * 1.95);
+  expect(last).toBeLessThanOrEqual(S.radius * 2 + 1e-9);
 });
 
 test('the surface rings after coalescing, then settles', () => {
@@ -250,7 +259,7 @@ test('a bubble can lose while still taking another in, and nothing is stranded',
   for (let i = 0; i < 30; i++) {
     const w = createShowdown(phone, RULES.grow, 3);
     w.duel!.phase = 'fight';
-    w.bubbles.forEach((b, k) => (b.p = { x: (k - 1) * 0.46, y: 0, z: 1.2 }));
+    w.bubbles.forEach((b, k) => (b.p = { x: (k - 1) * S.radius * 1.9, y: 0, z: 1.2 }));
     for (let t = 0; t < 60 * 20; t++) tick(w);
     expect(w.bubbles).toHaveLength(1);
     expect(w.bubbles[0]!.id).toBe(w.duel!.champion);

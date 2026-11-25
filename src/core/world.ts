@@ -1,6 +1,6 @@
 import { TUNING as T } from '../config/tuning';
 import type { Feel } from '../config/feels';
-import { direct, oddsOf, sizeOf, strike } from './duel';
+import { direct, grown, oddsOf, sizeOf, strike } from './duel';
 import { scaleAt, unproject } from './projection';
 import type { Axis, Box, Bubble, Burst, FxPools, Held, Vec3, World } from './types';
 
@@ -575,16 +575,15 @@ function sink(world: World, b: Bubble, feels: Feel[], dt: number) {
   b.v.y -= ay * ma;
   b.v.z -= az * ma;
   const given = u >= 1 ? mb : (mb * (smooth(u) - before)) / (1 - before);
-  // In a showdown some is lost as spray.
-  const kept = world.duel ? given * world.duel.absorb : given;
-  const share = kept / (ma + kept);
+  const share = given / (ma + given);
   a.p.x += dx * share;
   a.p.y += dy * share;
   a.p.z += dz * share;
   a.v.x += (b.v.x - a.v.x) * share;
   a.v.y += (b.v.y - a.v.y) * share;
   a.v.z += (b.v.z - a.v.z) * share;
-  a.r = Math.cbrt(ma + kept);
+  // In a showdown winners grow by their own rule. See `swell` in `duel`.
+  if (!world.duel) a.r = Math.cbrt(ma + given);
   b.r = Math.cbrt(Math.max(0, mb - given));
   const orbit = (dx * vy - dy * vx) / (0.4 * a.r * a.r);
   a.spin += (b.spin - a.spin) * share + orbit * share * M.twist;
@@ -612,6 +611,8 @@ function settle(world: World, a: Bubble, b: Bubble, nx: number, ny: number, nz: 
   'worklet';
   const duel = world.duel;
   if (!duel || duel.phase !== 'fight') return false;
+  // While one is still growing they only bounce, so swelling cannot sweep up a whole crowd at once.
+  if (!grown(duel, a) || !grown(duel, b)) return false;
   const aWins = Math.random() < oddsOf(world, a, b);
   const winner = aWins ? a : b;
   const loser = aWins ? b : a;
@@ -624,18 +625,22 @@ function settle(world: World, a: Bubble, b: Bubble, nx: number, ny: number, nz: 
     r: loser.r,
     age: 0,
   });
+  duel.log.push({
+    winner: winner.id,
+    seconds: duel.seconds,
+    odds: sizeOf(world, loser) / sizeOf(world, winner),
+  });
   duel.out++;
   duel.wins[winner.id] = (duel.wins[winner.id] ?? 0) + 1;
   duel.since = 0;
   const R = T.showdown.ring;
-  if (duel.absorb <= 0) {
+  const size = sizeOf(world, winner);
+  duel.sizes[winner.id] = Math.max(size, Math.min(T.showdown.largest, size * duel.grow));
+  if (!duel.absorb) {
     strike(world, winner, nx, ny, nz, -R.blow, 0);
     startPop(world, loser);
     return false;
   }
-  duel.sizes[winner.id] = Math.cbrt(
-    sizeOf(world, winner) ** 3 + duel.absorb * sizeOf(world, loser) ** 3,
-  );
   // The film between them has burst: one drains into the other. See `sink`.
   loser.join = { into: winner.id, seconds: 0 };
   return true;

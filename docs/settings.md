@@ -24,10 +24,10 @@ A white title button in the tray opens every option of that setting, alive. Tapp
 
 Not a setting: a name in its row starts that showdown, and its white button opens the chooser, with the rule and how many enter. Both are saved. Fewer than 12 are drawn at random from the cast; nobody appears twice.
 
-| Rule   | Default | What happens                                                                   |
-| ------ | ------- | ------------------------------------------------------------------------------ |
-| Absorb | Yes     | The winner takes in 80% of the loser. Odds follow volume; equal sizes are even |
-| Pop    |         | The loser pops. Every clash is even and nobody grows                           |
+| Rule   | Default | What happens                                                                                |
+| ------ | ------- | ------------------------------------------------------------------------------------------- |
+| Absorb | Yes     | The winner takes the loser in and doubles in width. Odds follow width; equal sizes are even |
+| Pop    |         | The loser pops. The winner doubles in width. Every clash is even                            |
 
 With Reduce Motion it runs slower and motes, swaying and rising titles are still.
 

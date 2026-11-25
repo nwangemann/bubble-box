@@ -4,7 +4,7 @@ import {
   type SkPaint,
   type SkRuntimeEffect,
 } from '@shopify/react-native-skia';
-import type { Environment, WallId } from '@/config/environments';
+import type { Environment, RoomLook, WallId } from '@/config/environments';
 import { TUNING } from '@/config/tuning';
 import type { Box, World } from '@/core/types';
 import { heldBubbles } from '@/core/world';
@@ -172,7 +172,7 @@ export function drawMaterial(
   materials: Record<WallId, SkRuntimeEffect | null>,
   box: Box,
   view: View,
-  env: Environment,
+  env: RoomLook,
 ) {
   const effect = env.wall ? materials[env.wall] : null;
   if (!effect) return;

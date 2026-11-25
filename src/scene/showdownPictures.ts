@@ -13,11 +13,13 @@ import {
   type SkImage,
   type SkPicture,
 } from '@shopify/react-native-skia';
+import { ARENA } from '@/config/arena';
 import { scaleAt } from '@/core/projection';
 import type { Box } from '@/core/types';
-import { INK, oval, poly, scatter, type Shape } from '@/showdown/shapes';
+import { INK, type Shape } from '@/showdown/shapes';
 import type { Fighter, Theme } from '@/showdown/types';
 import type { View } from './drawScene';
+import { roomPicture } from './roomPicture';
 
 /** Everything here is recorded once on the JS thread and only replayed in the frame loop. */
 
@@ -132,84 +134,24 @@ export function pictureShader(picture: SkPicture, width: number, height: number,
     .makeShaderOptions(TileMode.Clamp, TileMode.Clamp, FilterMode.Linear, MipmapMode.None);
 }
 
-/** Scenery for an arena. Its floor is the floor of the box. */
+/** The core room in a theme's colours, with its mural showing faintly through the back wall. */
 export function arenaPicture(theme: Theme, box: Box, view: View): SkPicture {
-  const k = scaleAt(box, box.depth);
-  const horizon = box.hh * k;
+  const { mural, horizon, ...look } = ARENA;
+  const env = { ...look, backdrop: theme.backdrop, ink: theme.ink };
+  const room = roomPicture(box, view, env);
+  const { hw, hh } = box;
+  const s = scaleAt(box, box.depth) * view.ppu;
   return createPicture((canvas) => {
+    canvas.drawPicture(room);
     canvas.save();
     canvas.translate(view.cx, view.cy);
-    canvas.scale(view.ppu, view.ppu);
-    const grade = (colors: string[], from: number, to: number) => {
-      const paint = Skia.Paint();
-      paint.setDither(true);
-      paint.setShader(
-        Skia.Shader.MakeLinearGradient(
-          { x: 0, y: from },
-          { x: 0, y: to },
-          colors.map((c) => Skia.Color(c)),
-          null,
-          TileMode.Clamp,
-        ),
-      );
-      canvas.drawRect({ x: -1, y: from, width: 2, height: to - from + 0.01 }, paint);
-    };
-    grade(theme.sky, -box.hh, horizon);
-    const { near, far, pattern, ink } = theme.floor;
-    grade([far, near], horizon, box.hh);
-    canvas.save();
-    canvas.clipRect(
-      { x: -1, y: horizon, width: 2, height: box.hh - horizon },
-      ClipOp.Intersect,
-      true,
-    );
-    drawShapes(canvas, floorShapes(pattern, ink, box));
+    canvas.scale(s, s);
+    canvas.clipRect({ x: -hw, y: -hh, width: hw * 2, height: hh * 2 }, ClipOp.Intersect, true);
+    const ghost = Skia.Paint();
+    ghost.setAlphaf(mural);
+    canvas.saveLayer(ghost);
+    drawShapes(canvas, theme.mural({ horizon: hh * horizon, top: -hh, bottom: hh }));
     canvas.restore();
-    drawShapes(canvas, theme.scenery({ horizon, top: -box.hh, bottom: box.hh }));
     canvas.restore();
-  });
-}
-
-function floorShapes(pattern: Theme['floor']['pattern'], ink: string, box: Box): Shape[] {
-  const at = (x: number, t: number): [number, number] => {
-    const s = scaleAt(box, t * box.depth);
-    return [x * s, box.hh * s];
-  };
-  if (pattern === 'checker') {
-    const tiles: Shape[] = [];
-    for (let i = -8; i < 8; i++)
-      for (let j = 0; j < 6; j++) {
-        if ((i + j) % 2) continue;
-        const [x, t] = [i / 4, j / 6];
-        tiles.push({
-          d: poly(...at(x, t), ...at(x + 0.25, t), ...at(x + 0.25, t + 1 / 6), ...at(x, t + 1 / 6)),
-          fill: ink,
-        });
-      }
-    return tiles;
-  }
-  if (pattern === 'planks')
-    return [
-      ...Array.from({ length: 17 }, (_, i) => {
-        const x = (i - 8) / 4;
-        return { d: poly(...at(x, 0), ...at(x, 1)), line: ink, w: 0.012 };
-      }),
-      ...scatter(22, (a, b) => {
-        const x = Math.floor(a * 16 - 8) / 4;
-        return { d: poly(...at(x, b), ...at(x + 0.25, b)), line: ink, w: 0.01 };
-      }),
-    ];
-  if (pattern === 'craters')
-    return scatter(16, (a, b, c) => {
-      const [x, y] = at(a * 4 - 2, b);
-      const r = 0.05 + c * 0.12;
-      return [
-        { d: oval(x, y, r, r * 0.35), fill: ink },
-        { d: oval(x, y + r * 0.1, r * 0.85, r * 0.25), fill: '#ffffff22' },
-      ];
-    }).flat();
-  return scatter(70, (a, b, c) => {
-    const [x, y] = at(a * 4 - 2, b);
-    return { d: oval(x, y, 0.01 + c * 0.04, 0.006 + c * 0.006), fill: `${ink}66` };
   });
 }

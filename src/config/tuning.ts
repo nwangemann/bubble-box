@@ -108,7 +108,12 @@ export const TUNING = {
    */
   showdown: {
     depth: 2.4,
-    radius: 0.24,
+    radius: 0.16,
+    /** Winners grow at rate `swell`, up to `largest`, which just fits across the arena. */
+    largest: 0.8,
+    swell: 4,
+    /** Share of its new size at which a winner can clash again. */
+    grown: 0.95,
     columns: 3,
     /** Share of the arena's height the line-up fills, and the least between its rows. */
     spread: 0.6,
@@ -129,10 +134,10 @@ export const TUNING = {
      * are the blows from draining in, `blow` from a pop beside it, `most` the largest swings.
      */
     ring: {
-      tension: 0.4,
-      viscosity: 0.011,
-      stretch: 13,
-      pear: 8,
+      tension: 0.2,
+      viscosity: 0.008,
+      stretch: 24,
+      pear: 14,
       blow: 1.6,
       most2: 0.26,
       most3: 0.1,

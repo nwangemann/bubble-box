@@ -11,9 +11,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { ARENA_FEEL } from '@/config/feels';
+import { FEATS, type FeatId } from '@/config/feats';
 import type { Rule } from '@/config/rules';
 import { TUNING } from '@/config/tuning';
 import { paceOf } from '@/core/duel';
+import { featsOf } from '@/core/feats';
 import { createShowdown } from '@/core/showdown';
 import type { Box } from '@/core/types';
 import { advance } from '@/core/world';
@@ -90,19 +92,24 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
   const [out, setOut] = useState<number[]>([]);
   const [news, setNews] = useState('');
   const [stage, setStage] = useState<'ready' | 'fight' | 'won'>('ready');
-  const [best, setBest] = useState<{ cast: number; wins: number } | null>(null);
+  const [best, setBest] = useState<{ cast: number; wins: number; feats: FeatId[] } | null>(null);
   const onClash = (winner: number, loser: number) => {
     thud();
     setOut((o) => [...o, loser]);
     const verb = theme.verbs[loser % theme.verbs.length]!;
     setNews(`${theme.cast[winner]!.name} ${verb} ${theme.cast[loser]!.name}`);
   };
-  const onPhase = (next: 'ready' | 'fight' | 'won', cast: number, wins: number) => {
+  const onPhase = (
+    next: 'ready' | 'fight' | 'won',
+    cast: number,
+    wins: number,
+    feats: FeatId[],
+  ) => {
     setStage(next);
     if (next !== 'won') return;
     cheer();
     setNews('');
-    setBest({ cast, wins });
+    setBest({ cast, wins, feats });
   };
 
   useFrameCallback((frame) => {
@@ -120,7 +127,8 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
     if (duel.phase !== phase.value) {
       phase.value = duel.phase;
       const id = duel.champion;
-      scheduleOnRN(onPhase, duel.phase, castOf(w, id), duel.wins[id] ?? 0);
+      const feats = duel.phase === 'won' ? featsOf(duel) : [];
+      scheduleOnRN(onPhase, duel.phase, castOf(w, id), duel.wins[id] ?? 0, feats);
     }
     picture.value = createPicture((canvas) => {
       'worklet';
@@ -209,6 +217,24 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
               {best.wins === 1 ? '1 knock-out' : `${best.wins} knock-outs`}
             </Text>
           </Animated.View>
+          {best.feats.length > 0 && (
+            <Animated.View
+              entering={calm ? FadeIn : FadeInDown.delay(U.feats.delay).duration(U.feats.rise)}
+              style={styles.feats}
+              pointerEvents="none"
+            >
+              {best.feats.map((id) => (
+                <Text
+                  key={id}
+                  style={[styles.feat, { fontFamily: theme.font, color: theme.accent }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {FEATS[id]}
+                </Text>
+              ))}
+            </Animated.View>
+          )}
           <Animated.View entering={FadeInDown.delay(1600)} style={styles.buttons}>
             {(
               [
@@ -273,6 +299,17 @@ const styles = StyleSheet.create({
   title: { fontSize: 15, fontWeight: '700', letterSpacing: 1.2, marginBottom: 4, ...shadow },
   big: { color: '#fff', fontSize: 42, lineHeight: 52, textAlign: 'center', ...shadow },
   small: { color: '#fff', fontSize: 16, fontWeight: '500', marginTop: 4, ...shadow },
+  // Grows upwards from above the buttons, clear of the champion.
+  feats: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: U.feats.bottom,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    gap: U.feats.gap,
+  },
+  feat: { fontSize: U.feats.size, textAlign: 'center', ...shadow },
   faint: { color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 4, ...shadow },
   buttons: {
     position: 'absolute',

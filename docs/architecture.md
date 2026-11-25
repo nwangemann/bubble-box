@@ -42,11 +42,11 @@ Each preview is a small `World` in its own box, driven by `preview/scripts` and 
 
 `Showdown` has its own `World` with a `duel`, in a shallower box, and its own loop while the room is paused. `direct` in `core/duel` runs each step: entrants line up at one size and depth, then turn towards the nearest rival, harder the longer nobody has met. The nearest pair always face each other, so it always ends. `paceOf` slows time for the last pair. React hears only of a clash, the start and the win.
 
-`settle` in `core/world` decides a contact once. `oddsOf` is by volume to the power `edge`: Pop is 0, always even; Absorb is 1, so equals are even and twice the radius wins eight times in nine. Under Absorb the loser gets a `join` and `sink` drains it across; `absorb` is the share kept. `duel.sizes` holds sizes as they will be once drained, and odds use those. A winner may lose while still taking another in: chains drain through.
+`settle` in `core/world` decides a contact once. `oddsOf` is by volume to the power `edge`: Pop is 0, always even; Absorb is 1/3, in proportion to width, so equals are even and twice the width wins two times in three. Under Absorb the loser gets a `join` and `sink` drains it across. Under both rules the winner's `duel.sizes` entry is multiplied by `grow` up to `largest`, and `swell` grows it there; until `grown`, it only bounces; odds use those. `duel.log` keeps every knock-out; `core/feats` reads it once, at the win, for special titles. A winner may lose while still draining another: chains drain through.
 
 `strike` sets a surface ringing in modes 2 and 3 about an axis, with Rayleigh's stiffness and damping, so large bubbles ring slow and long.
 
-`scene/liquid` draws a bubble and whatever it is taking in as one smooth union, marched per pixel; a lone calm bubble is a plain sphere. Films bend a picture of the arena painted once on the CPU. Figures are images painted once. An entrant's cast number picks one of twelve vapours.
+`scene/liquid` draws a bubble and whatever it is taking in as one smooth union, marched per pixel; a lone calm bubble is a plain sphere. The arena is `roomPicture` with a faint mural, both static. Films bend a picture of the arena painted once on the CPU. Figures are images painted once. An entrant's cast number picks one of twelve vapours.
 
 ## Maker
 

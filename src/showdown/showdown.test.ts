@@ -25,7 +25,7 @@ test('no name appears in two arenas', () => {
 
 test.each(themes)('%s draws only numbers it can draw', (_, theme) => {
   const all = [
-    ...theme.scenery({ horizon: 1.24, top: -2.17, bottom: 2.17 }),
+    ...theme.mural({ horizon: 1.24, top: -2.17, bottom: 2.17 }),
     ...theme.cast.flatMap((f) => [
       ...(f.back ?? []),
       ...(f.mark ?? []),

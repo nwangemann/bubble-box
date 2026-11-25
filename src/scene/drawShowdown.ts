@@ -39,11 +39,7 @@ export function showdownLook(theme: Theme): ShowdownLook {
     cast: theme.cast.map(fighterLook),
     accent: [...Skia.Color(theme.accent)],
     mote: { ...theme.motes, color: [...Skia.Color(theme.motes.color)] },
-    room: [
-      ...rgb(theme.sky[0]!),
-      ...rgb(theme.sky[theme.sky.length - 1]!),
-      ...rgb(theme.floor.far),
-    ],
+    room: [...rgb(theme.backdrop[1]), ...rgb(theme.backdrop[0]), ...rgb(theme.backdrop[1])],
     fill,
     film: Skia.Paint(),
     layer: Skia.Paint(),
@@ -269,7 +265,7 @@ function drawSpray(canvas: SkCanvas, look: ShowdownLook, c: Clash, w: World, box
   const S = TUNING.showdown;
   const life = c.age / S.clash;
   const s = scaleAt(box, c.at.z) * v.ppu;
-  const merged = w.duel!.absorb > 0;
+  const merged = w.duel!.absorb;
   const loser = look.cast[castOf(w, c.loser)]!.lit;
   const nx = c.at.x - c.p.x;
   const ny = c.at.y - c.p.y;

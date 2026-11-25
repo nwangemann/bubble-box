@@ -16,9 +16,9 @@ export const pirates: Theme = {
   font: 'AmericanTypewriter-Bold',
   accent: '#ffd35c',
   verbs: ['plunders', 'sinks', 'maroons', 'keelhauls'],
-  sky: ['#0d4a6b', '#2c9aa6', '#c9f0d0'],
-  floor: { near: '#7a4726', far: '#b87a44', pattern: 'planks', ink: '#4a2814' },
-  scenery: ({ horizon: h, top }) => [
+  backdrop: ['#166072', '#031820'],
+  ink: [165, 240, 230],
+  mural: ({ horizon: h, top }) => [
     glow(oval(-0.5, h - 1.75, 0.34), '#fff6c866', 0.14),
     fill(oval(-0.5, h - 1.75, 0.17), '#fff6c8'),
     ...[

@@ -6,7 +6,7 @@ import {
   TileMode,
   type SkPicture,
 } from '@shopify/react-native-skia';
-import type { Environment } from '@/config/environments';
+import type { RoomLook } from '@/config/environments';
 import { scaleAt } from '@/core/projection';
 import type { Box } from '@/core/types';
 import type { View } from './drawScene';
@@ -16,7 +16,7 @@ import { drawMaterial } from './walls';
 type P3 = [number, number, number];
 
 /** Records the static room: backdrop, faces, edges and grid. Called when the environment changes. */
-export function roomPicture(box: Box, view: View, env: Environment): SkPicture {
+export function roomPicture(box: Box, view: View, env: RoomLook): SkPicture {
   const at = ([x, y, z]: P3) => {
     const s = scaleAt(box, z) * view.ppu;
     return { x: view.cx + x * s, y: view.cy + y * s };

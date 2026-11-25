@@ -21,9 +21,9 @@ export const space: Theme = {
   font: 'Futura-CondensedExtraBold',
   accent: '#7df9ff',
   verbs: ['vaporises', 'out-orbits', 'beams up', 'ejects'],
-  sky: ['#070418', '#1b0f46', '#4a1f78'],
-  floor: { near: '#4d4a68', far: '#9a93b8', pattern: 'craters', ink: '#37334f' },
-  scenery: ({ horizon: h, top }) => [
+  backdrop: ['#2a1c68', '#060314'],
+  ink: [140, 225, 255],
+  mural: ({ horizon: h, top }) => [
     glow(oval(-0.4, -0.2, 0.7, 0.4), '#ff4fa033', 0.3),
     glow(oval(0.5, 0.4, 0.6, 0.5), '#3fa7ff33', 0.3),
     ...scatter(110, (a, b, c) =>

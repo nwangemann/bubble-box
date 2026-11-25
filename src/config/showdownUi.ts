@@ -5,6 +5,8 @@ export const SHOWDOWN_UI = {
   roster: 46,
   /** Widest place in the roster. */
   cell: 40,
+  /** Titles for unusual wins: pixels, and milliseconds for their entrance. */
+  feats: { bottom: 148, size: 25, gap: 4, delay: 1500, rise: 900 },
   /** Pixels per point of the scene that films bend. */
   backdrop: 1,
   /** Chooser cards. */

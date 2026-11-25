@@ -15,7 +15,7 @@ export type Fighter = {
   hat?: Shape[];
 };
 
-/** Where things are in an arena: 1 is half the screen width, the middle is 0, y down. */
+/** Where things are in a mural: 1 is half the back wall's width, the middle is 0, y down. */
 export type Place = { horizon: number; top: number; bottom: number };
 
 export type Theme = {
@@ -28,14 +28,11 @@ export type Theme = {
   accent: string;
   /** "{Winner} {verb} {loser}". */
   verbs: string[];
-  sky: string[];
-  floor: {
-    near: string;
-    far: string;
-    pattern: 'sand' | 'planks' | 'checker' | 'craters';
-    ink: string;
-  };
-  scenery: (at: Place) => Shape[];
+  /** The box: centre and edge of the backdrop, and 0-255 rgb of its lines. */
+  backdrop: [string, string];
+  ink: [number, number, number];
+  /** Seen faintly on the back wall. */
+  mural: (at: Place) => Shape[];
   /** Things floating in the air. `rise` is up when positive. */
   motes: { color: string; size: number; rise: number };
   cast: Fighter[];
