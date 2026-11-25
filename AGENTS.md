@@ -1,41 +1,40 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+# Bubble Box
 
-## Expo has changed — do not trust your training data
+A zen toy. Hold the screen to grow a bubble; release to send it into a box whose near face is the screen. Expo + React Native + Skia. Portrait, iOS tested first.
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+## Where things are
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+| To change                                | Open                         |
+| ---------------------------------------- | ---------------------------- |
+| Any feel number (growth, launch, wobble) | `src/config/tuning.ts`       |
+| Physics presets                          | `src/config/feels.ts`        |
+| Box looks and bounce                     | `src/config/environments.ts` |
+| Bubble looks                             | `src/styles/`                |
+| Motion, collisions, launch               | `src/core/world.ts`          |
+| Perspective                              | `src/core/projection.ts`     |
+| Frame loop, touch, haptics               | `src/scene/Scene.tsx`        |
+| Drawing bubbles and ripples              | `src/scene/drawScene.ts`     |
+| Drawing the room                         | `src/scene/roomPicture.ts`   |
+| Screen-side ripple strength and options  | `src/config/glass.ts`        |
+| Screen-side ripple shader                | `src/scene/glassFilter.ts`   |
+| What a tap on a bubble does              | `src/config/taps.ts`         |
+| Options tray                             | `src/ui/Tray.tsx`            |
 
-## Commands
+## Read before working
 
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
-
-```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
-```
-
-Run lint and typecheck before declaring any task done.
-
-## Navigation & Routing
-
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
-
-## Building with EAS
-
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
+1. [docs/plan.md](docs/plan.md): next step. Do one step per session.
+2. [docs/architecture.md](docs/architecture.md): only when touching core or scene.
+3. [docs/extending.md](docs/extending.md): when adding a style, box or feel.
+4. [docs/vision.md](docs/vision.md): for any visible change.
+5. [docs/running.md](docs/running.md): before running npm, pod or simulator commands.
 
 ## Rules
 
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+- `src/core` imports no React, Skia or Expo. Every function there starts with `'worklet'`.
+- Tunable numbers live in `src/config`, not inline.
+- Nothing in the frame loop goes through React state.
+- No new dependency without an ADR in `docs/adr`. No physics or 3D engine (ADR 1).
+- Update the matching doc in the same change, and tick the step in `docs/plan.md`.
+- Run `npm run check` before finishing. Look at shader changes on a simulator; tests cannot see them.
+- Expo changes every SDK. Read installed types in `node_modules` before using an API. Add packages with `npx expo install`.
+- `ios/` and `android/` are generated. Configure through `app.json`.
