@@ -37,6 +37,23 @@ MVP is done when a stranger understands it without words, and it holds 60 fps wi
 - [ ] Flick a bubble to nudge it
 - [ ] Tilt adds a gentle gravity
 
+## Phase 2a: grow and pop without a mode
+
+Goal: never open the tray to remove a bubble, and never need to know which mode is on.
+
+Today, with Tap set to Pop: a quick tap on a bubble pops it; a tap on empty space, or a hold anywhere, grows one. The cost is that a full room leaves little empty space for small new bubbles.
+
+- [ ] Live with the current rule on a phone; note each wrong result
+- [ ] Tune `TUNING.tap` (time, movement, target size)
+- [ ] Ignore far, small bubbles as tap targets when the room is full
+- [ ] Try double tap on empty space to let every bubble go
+- [ ] Try a two-finger swipe that pops what it crosses
+- [ ] Try pinching a bubble until it bursts
+- [ ] Try bubbles that age and pop by themselves, as a Feel field
+- [ ] If the rule holds up, remove the Tap option
+
+Prefer not to use: shake (clumsy, undo on iOS), a mode button (has to be remembered), a long press to pop (conflicts with growing).
+
 ## Phase 2b: pop effects
 
 Explore after the first version is committed. Today a pop swells slightly while the film tears open from the middle.
