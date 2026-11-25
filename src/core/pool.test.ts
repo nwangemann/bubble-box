@@ -44,6 +44,7 @@ const table = (cue: number[], v: number[], others: number[][], size = r) => {
   c.v = at(v);
   return pool;
 };
+const still = (pool: Pool) => pool.balls.every((b) => b.lively === 0);
 const until = (pool: Pool, done: () => boolean, most = 2400) => {
   for (let n = 0; n < most && !done(); n++) advancePool(pool, box, 1 / 120);
 };
@@ -255,4 +256,59 @@ test('in the hand the cue ball keeps its size, goes where it is dragged, and gai
   expect(long.p.x).toBeCloseTo((0.3 * (box.focal + r)) / box.focal, 3);
   expect(long.v.z).toBeCloseTo(held(1.2).v.z, 6);
   expect(long.v.z).toBeGreaterThan(held(0.2).v.z);
+});
+
+test('a ball is lively as it moves, eases in and out, and is drawn until it has', () => {
+  const pool = table([0, 0, 1], [1.2, 0, 0], []);
+  advancePool(pool, box, 1 / 60);
+  const cue = pool.balls[0]!;
+  expect(cue.lively).toBeGreaterThan(0);
+  expect(cue.lively).toBeLessThan(0.3);
+  // Something left to pot, or the table would be set again.
+  pool.balls.push({ ...createPool(box).balls[1]!, p: at([0, 1.5, 3]) });
+  until(pool, () => cue.lively > 0.8);
+  expect(cue.lively).toBeGreaterThan(0.8);
+  cue.v = at([0, 0, 0]);
+  expect(advancePool(pool, box, 1 / 60)).toBe(true);
+  expect(cue.lively).toBeGreaterThan(0.5);
+  until(pool, () => still(pool));
+  expect(still(pool)).toBe(true);
+  expect(advancePool(pool, box, 1 / 60)).toBe(false);
+});
+
+test('a moving ball leaves a trail that turns where it does, then goes', () => {
+  plainly(() => {
+    const pool = table([0.2, 0.3, 2], [1.4, 0, 0.5], [[-0.5, -1, 1]]);
+    pool.trailing = Infinity;
+    until(pool, () => pool.balls[0]!.v.x < 0);
+    until(pool, () => pool.balls[0]!.p.x < 0.6);
+    expect(pool.trails).toHaveLength(1);
+    const { points } = pool.trails[0]!;
+    // The bounce itself is a point, and nothing is older than it should be.
+    expect(Math.max(...points.map((o) => o.p.x))).toBeCloseTo(box.hw - r, 5);
+    expect(pool.time - points[1]!.t).toBeLessThanOrEqual(POOL.trail.look.seconds);
+    // It fades where it hangs after another takes its place, and the table then rests.
+    enter(pool, newBubble(createWorld(), 'soap', r, at([0, 0, r])));
+    advancePool(pool, box, 1 / 60);
+    expect(pool.trails[0]!.bubble).toBe(-1);
+    until(pool, () => pool.trails.length === 0);
+    expect(pool.trails).toHaveLength(0);
+    expect(advancePool(pool, box, 1 / 60)).toBe(false);
+  });
+});
+
+test('only as many balls as chosen leave trails', () => {
+  const run = (most: number) => {
+    const pool = createPool(box);
+    pool.trailing = most;
+    const cue = newBubble(createWorld(), 'soap', r, at([0.02, 0.01, r]));
+    cue.v.z = 4;
+    enter(pool, cue);
+    until(pool, () => !pool.racked);
+    for (let n = 0; n < 30; n++) advancePool(pool, box, 1 / 120);
+    return new Set(pool.trails.map((o) => o.bubble)).size;
+  };
+  expect(run(0)).toBe(0);
+  expect(run(1)).toBe(1);
+  expect(run(Infinity)).toBeGreaterThan(10);
 });

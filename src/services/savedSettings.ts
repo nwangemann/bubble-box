@@ -1,4 +1,5 @@
 import { cleanCustom, type Custom } from '@/config/custom';
+import { cleanPool, type PoolSettings } from '@/config/poolOptions';
 import { cleanCount, cleanRule, type RuleId } from '@/config/rules';
 import { cleanSettings, cleanWalls, type Settings } from '@/config/defaults';
 import type { Walls } from '@/config/environments';
@@ -12,6 +13,7 @@ type Saved = {
   rule: RuleId;
   count: number;
   cast: CastChoice;
+  pool: PoolSettings;
   /** The first-time hint is no longer needed. */
   hinted: boolean;
 };
@@ -23,6 +25,7 @@ const clean = (data: unknown): Saved => ({
   rule: cleanRule((data as { rule?: unknown } | null)?.rule),
   count: cleanCount((data as { count?: unknown } | null)?.count),
   cast: cleanCast((data as { cast?: unknown } | null)?.cast),
+  pool: cleanPool((data as { pool?: unknown } | null)?.pool),
   hinted: (data as { hinted?: unknown } | null)?.hinted === true,
 });
 
@@ -36,9 +39,9 @@ export function loadSettings(): Saved {
   }
 }
 
-export function saveSettings({ settings, walls, custom, rule, count, cast, hinted }: Saved) {
+export function saveSettings({ settings, ...rest }: Saved) {
   try {
-    write(JSON.stringify({ ...settings, walls, custom, rule, count, cast, hinted }));
+    write(JSON.stringify({ ...settings, ...rest }));
   } catch (e) {
     // Losing a preference should never interrupt play.
     console.warn('Settings were not saved', e);

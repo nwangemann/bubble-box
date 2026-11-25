@@ -47,6 +47,8 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Showdown shadows, reflections on walls   | `src/scene/roomContact.ts`                                         |
 | Showdown screen, and its chooser         | `src/ui/Showdown.tsx`, `src/ui/Lobby.tsx`                          |
 | 8-ball trial: numbers, physics           | `src/config/pool.ts`, `src/core/pool.ts`                           |
+| 8-ball trial: options                    | `src/config/poolOptions.ts`                                        |
+| 8-ball trial: shadows, light on walls    | `src/scene/poolWalls.ts`                                           |
 | 8-ball trial: drawing, screen            | `src/scene/drawPool.ts`, `src/ui/Pool.tsx`                         |
 
 ## Read before working
@@ -75,4 +77,4 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 1. Remove temporary probes and logging, then run `npm run check`.
 2. Delete the simulators, servers and scratch files this session made. Leave any it did not make: other sessions may be using them. Need a simulator while all are in use? Create one, and delete it here.
 3. Move the step to **Built** in `docs/plan.md` and move **Next**.
-4. End with one line to start the next session, such as "Execute step 1.1 from docs/plan.md", and say what is uncommitted, unfinished or unverified.
+4. End with one line to start the next session, such as "Execute step 1.1 from docs/plan.md", with one short sentence on what that step is and its phase, and say what is uncommitted, unfinished or unverified.

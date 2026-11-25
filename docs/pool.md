@@ -1,6 +1,6 @@
 # 8-ball in space
 
-Design for section 1 of the [plan](plan.md), and the trial built for 1.2. Opened with the third side of the mode switch; the dot leaves. Units as in [architecture](architecture.md). Numbers marked _sim_ come from simulated shots, not play.
+Design for section 1 of the [plan](plan.md), and the trial built for 1.2. Opened and left with the mode switch. Units as in [architecture](architecture.md). Numbers marked _sim_ come from simulated shots, not play.
 
 ## First principle: always know where a ball is
 
@@ -25,7 +25,16 @@ A ball drops when its middle comes within 0.2 of where it would sit snug in a po
 
 A faint line runs straight ahead, as a release without a swipe would go, with a ring where the cue ball would touch and a line to where the ball it meets would land, bolder if that drops. A quick swipe fades it, as it no longer tells the truth; once placing, it always shows. Because the shot starts at the finger and flies at the vanishing point, where you put your finger is how you cut the ball. The ball in the hand is translucent so as not to hide its target.
 
-Depth shows by size, haze, and a shadow on the far wall straight behind each ball.
+## How depth shows
+
+- **Shadows**, straight across from each ball. The far wall's carry all the way, so how far one sits from its ball is how deep the ball is. The rest show only on walls within 1.1, firmest where a ball presses.
+- **Light** of its own colour that a moving ball throws on walls within 1.1, brighter as it nears them. It follows the ball's speed, eased (`lively`), so a break does not flash and a resting ball throws none.
+- **Distance**: far balls are hazier, dimmer and without shine; near ones have a lit rim. Kept mild, so colours can still be told apart (1.9).
+- **Trails**, a soft streak of a moving ball's colour along its path, lasting 1.2 s (`POOL.trail`), so its length is the ball's speed. It narrows and hazes with depth, lies among the balls, and bends exactly where a ball bounces. All balls by default: even a break stays uncluttered, as most balls move slowly and slow ones show next to nothing. One flying straight away hides its own.
+
+Tried and dropped: a halo round each ball (easy to track, no depth, and it hides neighbours); a line on the walls at each ball's depth (thin ones cannot be placed, thick ones repeat the light); mirror images on the walls, as showdowns have (they read as ghost balls); light that reaches further (it greys the room and belongs to no ball). Shadows on all walls from anywhere give each ball five marks, too many to pair with their balls.
+
+All of it holds on an opaque green wall, the light more weakly than the shadows. Balls haze towards the blue room's air, which felt (1.13) would want to change.
 
 ## How forgiving a pocket is, simulated
 
@@ -49,6 +58,10 @@ So a careful shot drops as often as before, and a careless one seldom. Before: b
 | 0.1 s            | 0.4    | 8 s         |
 | 0.3 s            | 0.4    | 9 s         |
 | 0.8 s and longer | 0.6    | 9 s         |
+
+## Options
+
+The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. One row of tiles leaves the far wall clear; keep to three options. They are in `config/poolOptions`, saved together: so far only Trail.
 
 ## Physics
 

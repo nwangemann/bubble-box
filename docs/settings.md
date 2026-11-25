@@ -24,7 +24,7 @@ Tapping a tile opens every option of that setting, alive. Tapping one chooses it
 
 ## Showdown
 
-Not a setting: the switch at the foot of the menu turns from Calm to Showdown, which opens the chooser, with the rule, how many enter, the cast and every arena. The same switch there turns back to the calm menu. Its third side, in both places, opens 8-ball. Random arena starts any of them. Fewer than 12 are drawn at random from the cast; nobody appears twice. The cast is the arena's own by default; the arrows choose any one theme's for every arena, or Random cast, a theme's drawn anew for each showdown. Again keeps the cast. Rule, how many and cast are saved.
+Not a setting: the switch at the foot of the menu turns from Calm to Showdown, which opens the chooser, with the rule, how many enter, the cast and every arena. The same switch there turns back to the calm menu. Its third side opens 8-ball, whose own menu has the switch too. Random arena starts any of them. Fewer than 12 are drawn at random from the cast; nobody appears twice. The cast is the arena's own by default; the arrows choose any one theme's for every arena, or Random cast, a theme's drawn anew for each showdown. Again keeps the cast. Rule, how many and cast are saved.
 
 | Rule   | Default | What happens                                                                                |
 | ------ | ------- | ------------------------------------------------------------------------------------------- |
@@ -32,6 +32,14 @@ Not a setting: the switch at the foot of the menu turns from Calm to Showdown, w
 | Pop    |         | The loser pops. The winner doubles in width. Every clash is even                            |
 
 With Reduce Motion it runs slower and motes, swaying and rising titles are still.
+
+## 8-ball
+
+Its options are its own, apart from the calm room's: tiles in its menu, opened from its dot. A tap moves to the next option; the table is the preview. They are in `src/config/poolOptions.ts`. They have no Random.
+
+| Setting | Default   | Other options  | What it does                                |
+| ------- | --------- | -------------- | ------------------------------------------- |
+| Trail   | All balls | Cue ball, None | A short streak shows which way and how fast |
 
 ## Custom
 
@@ -53,4 +61,4 @@ With a bubble loose and the screen untouched a few seconds, the two-finger swipe
 
 ## Reduce Motion
 
-While the system setting is on, bubbles move slower and wobble less, tilting does nothing, Glass acts as Still, and Pull, Trail, Meet and Pop act as None. The first-time hint stands still. Saved choices are untouched. The amounts are in `calmFeel` in `src/config/defaults.ts`.
+While the system setting is on, bubbles move slower and wobble less, tilting does nothing, Glass acts as Still, and Pull, Trail (8-ball's too), Meet and Pop act as None. The first-time hint stands still. Saved choices are untouched. The amounts are in `calmFeel` in `src/config/defaults.ts`.

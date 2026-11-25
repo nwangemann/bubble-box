@@ -1,11 +1,21 @@
 import { POOL } from '../config/pool';
-import type { Box, Bubble, Vec3 } from './types';
+import { ageTrail, pointAt, sideOf } from './trail';
+import type { Box, Bubble, Trail, Vec3 } from './types';
 
 /**
  * A ball. The cue ball is the first. `sunk` is seconds since it left play, or negative; `pocket` is
- * the one it dropped in, or -1 if it only faded.
+ * the one it dropped in, or -1 if it only faded. `lively` follows its
+ * speed, 0 to 1, for what is drawn.
  */
-export type Ball = { r: number; p: Vec3; v: Vec3; w: Vec3; sunk: number; pocket: number };
+export type Ball = {
+  r: number;
+  p: Vec3;
+  v: Vec3;
+  w: Vec3;
+  sunk: number;
+  pocket: number;
+  lively: number;
+};
 
 export type Pool = {
   balls: Ball[];
@@ -18,6 +28,10 @@ export type Pool = {
   /** Hardest knock and number of balls potted since last asked. */
   knock: number;
   potted: number;
+  /** How many balls leave trails, the cue ball first. */
+  trailing: number;
+  /** Each with its ball's place in `balls`, or -1 once that has been replaced. */
+  trails: Trail[];
 };
 
 /** A contact: ball `i` with ball `j`, with a cushion (`j` is the axis), or with pocket `j`. */
@@ -65,6 +79,7 @@ function newBall(p: Vec3, r: number): Ball {
     w: { x: 0, y: 0, z: 0 },
     sunk: -1,
     pocket: -1,
+    lively: 0,
   };
 }
 
@@ -117,6 +132,8 @@ export function createPool(box: Box): Pool {
     done: 0,
     knock: 0,
     potted: 0,
+    trailing: 0,
+    trails: [],
   };
 }
 
@@ -311,6 +328,53 @@ function burst(pool: Pool, hard: number) {
   }
 }
 
+/** Marks where a ball is as part of its trail: always at a contact, else every so often. */
+function mark(pool: Pool, i: number, box: Box, contact: boolean) {
+  'worklet';
+  const b = pool.balls[i]!;
+  if (i >= pool.trailing || b.sunk >= 0) return;
+  const { look, every, least, most } = POOL.trail;
+  let trail = pool.trails.find((o) => o.bubble === i);
+  if (!trail) {
+    if (b.v.x === 0 && b.v.y === 0 && b.v.z === 0) return;
+    trail = { bubble: i, look, seed: 0, style: '', born: pool.time, points: [] };
+    pool.trails.push(trail);
+  }
+  const { points } = trail;
+  const last = points[points.length - 1];
+  if (last) {
+    const moved = Math.hypot(b.p.x - last.p.x, b.p.y - last.p.y, b.p.z - last.p.z);
+    // Half a step short of `every` still counts, so rounding never skips one.
+    if (moved < least || (!contact && pool.time - last.t < every - POOL.step / 2)) return;
+  }
+  points.push(pointAt(b, last, box.focal, pool.time));
+  if (points.length > most) points.shift();
+}
+
+/** After a contact: a second point in the same place, lying across the new way, so the two join cleanly. */
+function turn(pool: Pool, i: number, box: Box) {
+  'worklet';
+  const b = pool.balls[i]!;
+  const trail = pool.trails.find((o) => o.bubble === i);
+  const last = trail?.points[trail.points.length - 1];
+  if (!trail || !last || i >= pool.trailing || b.sunk >= 0) {
+    // One set going begins here.
+    mark(pool, i, box, true);
+    return;
+  }
+  const size = Math.hypot(b.v.x, b.v.y, b.v.z) * Math.hypot(last.v.x, last.v.y, last.v.z);
+  const along = b.v.x * last.v.x + b.v.y * last.v.y + b.v.z * last.v.z;
+  if (along > POOL.trail.corner * size) return;
+  const point = pointAt(b, last, box.focal, pool.time);
+  const side = sideOf(b.p, b.v, null, box.focal);
+  const s = last.side;
+  // The same edge stays on the same side.
+  const way = side.x * s.x + side.y * s.y + side.z * s.z < 0 ? -1 : 1;
+  point.side = { x: side.x * way, y: side.y * way, z: side.z * way };
+  trail.points.push(point);
+  if (trail.points.length > POOL.trail.most) trail.points.shift();
+}
+
 function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
   'worklet';
   const { balls } = pool;
@@ -328,10 +392,14 @@ function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
     travel(balls, hit.t);
     left -= hit.t;
     if (hit.kind === 'none') break;
+    mark(pool, hit.i, box, true);
+    if (hit.kind === 'ball') mark(pool, hit.j, box, true);
     const hard = resolve(balls, hit);
     pool.knock = Math.max(pool.knock, hard);
     if (pool.racked && hit.kind === 'ball' && hard > 0) burst(pool, hard);
     if (hit.kind === 'pocket' && hit.i > 0) pool.potted++;
+    turn(pool, hit.i, box);
+    if (hit.kind === 'ball') turn(pool, hit.j, box);
   }
   const fade = Math.exp(-dt / POOL.spinFade);
   for (const b of balls) {
@@ -355,6 +423,7 @@ function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
     b.w.y *= turn;
     b.w.z *= turn;
   }
+  for (let i = 0; i < balls.length; i++) mark(pool, i, box, false);
 }
 
 /** Lets the old cue ball go. */
@@ -364,6 +433,31 @@ export function retire(pool: Pool) {
   if (cue.sunk >= 0) return;
   cue.sunk = 0;
   cue.pocket = -1;
+}
+
+/** Returns whether any is still settling, so that it is drawn until it has. */
+function enliven(balls: Ball[], seconds: number) {
+  'worklet';
+  const L = POOL.lively;
+  const k = 1 - Math.exp(-seconds / L.ease);
+  let settling = false;
+  for (const b of balls) {
+    const speed = b.sunk >= 0 ? 0 : Math.hypot(b.v.x, b.v.y, b.v.z);
+    b.lively += (Math.min(1, speed / L.speed) - b.lively) * k;
+    if (speed > 0) continue;
+    if (b.lively < 0.004) b.lively = 0;
+    else settling = true;
+  }
+  return settling;
+}
+
+/** Lets trails age. Returns whether any is left to draw. */
+function fadeTrails(pool: Pool) {
+  'worklet';
+  if (pool.trails.length === 0) return false;
+  for (const trail of pool.trails) ageTrail(trail, pool.time);
+  pool.trails = pool.trails.filter((o) => o.points.length > 0);
+  return pool.trails.length > 0;
 }
 
 /** Advances by real elapsed seconds. Returns whether anything moved or is leaving. */
@@ -382,10 +476,12 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
       pool.time += POOL.step;
       step(pool, box, holes, POOL.step);
     }
-  }
+  } else pool.time += seconds;
+  const fading = fadeTrails(pool);
+  const settling = enliven(balls, seconds) || fading;
   if (balls.some((b, i) => i > 0 && b.sunk < POOL.sink)) {
     pool.done = 0;
-    return busy;
+    return busy || settling;
   }
   pool.done += seconds;
   if (pool.done < POOL.again) return true;
@@ -400,6 +496,8 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
 /** Puts a ball made by a finger into play, with what the launch gave it. */
 export function enter(pool: Pool, bubble: Bubble) {
   'worklet';
+  // What the last one left fades where it hangs.
+  for (const trail of pool.trails) if (trail.bubble === 0) trail.bubble = -1;
   const cue = newBall(bubble.p, bubble.r);
   cue.p.z = cue.r;
   cue.v = { x: bubble.v.x, y: bubble.v.y, z: bubble.v.z };

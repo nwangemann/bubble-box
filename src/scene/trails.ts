@@ -90,12 +90,13 @@ vec3 image(vec2 p, float rim, float k, float born) {
 }`,
 };
 
-/** Compiles every trail once. One that fails is reported and skipped. */
-export function compileTrails() {
+/** Compiles looks once each, from `sources`. One that fails is reported and skipped. */
+export function compileLooks(looks: Record<string, TrailLook>, sources: Record<string, string>) {
   const effects: Record<string, SkRuntimeEffect> = {};
-  for (const [id, sksl] of Object.entries(SOURCES)) {
-    const look: TrailLook = TRAILS[id as TrailId];
-    const effect = Skia.RuntimeEffect.Make(HEAD + LIB + FADE + sksl + (look.gap ? IMAGE : STRIP));
+  for (const [id, sksl] of Object.entries(sources)) {
+    const effect = Skia.RuntimeEffect.Make(
+      HEAD + LIB + FADE + sksl + (looks[id]!.gap ? IMAGE : STRIP),
+    );
     if (effect) effects[id] = effect;
     else console.error(`${id} trail failed to compile`);
   }
@@ -104,65 +105,80 @@ export function compileTrails() {
   return { effects, paint };
 }
 
-export type TrailGpu = ReturnType<typeof compileTrails>;
+export const compileTrails = () => compileLooks(TRAILS, SOURCES);
+
+export type TrailGpu = ReturnType<typeof compileLooks>;
 
 /** Part of a trail, short enough to be drawn in order of depth. An image is a single point. */
 export type Piece = { trail: Trail; points: TrailPoint[]; clear: number[]; z: number };
 
-/** Cuts trails into pieces, each sharing its end with the next. */
+/** Cuts a trail into pieces, each sharing its end with the next. `b` is what still leads it. */
+export function cutTrail(
+  out: Piece[],
+  trail: Trail,
+  b: Pick<Bubble, 'p' | 'v' | 'r'> | undefined,
+  time: number,
+  box: Box,
+) {
+  'worklet';
+  const points = [...trail.points];
+  const last = points[points.length - 1];
+  if (!last) return;
+  const clear = [-1, 0];
+  const shown = trail.look.shown ?? T.shown;
+  if (b) {
+    points.push(pointAt(b, last, box.focal, time));
+    // How long ago it was last behind or before the bubble.
+    let inner = 0;
+    let outer = 0;
+    let before = 0;
+    for (let i = points.length - 2; i >= 0; i--) {
+      const { p, t } = points[i]!;
+      const age = time - t;
+      const since = time - points[i + 1]!.t;
+      // As seen: where that part of the trail appears beside its bubble.
+      const k = scaleAt(box, p.z) / scaleAt(box, b.p.z);
+      const away = Math.hypot(p.x * k - b.p.x, p.y * k - b.p.y) / b.r;
+      const when = (edge: number) => {
+        'worklet';
+        return since + ((age - since) * (edge - before)) / Math.max(1e-6, away - before);
+      };
+      if (away < T.hidden) inner = age;
+      else if (before < T.hidden) inner = when(T.hidden);
+      outer = away < shown ? age : when(shown);
+      if (away >= shown) break;
+      before = away;
+    }
+    clear[0] = inner;
+    clear[1] = Math.max(outer, inner + 0.01);
+  }
+  if (trail.look.gap) {
+    for (const o of imagesOf(points, trail.look.gap)) {
+      // Ones not yet showing, or already gone, cost nothing.
+      const age = time - o.t;
+      if (age > clear[0]! && age < trail.look.seconds)
+        out.push({ trail, points: [o], clear, z: o.p.z });
+    }
+    return;
+  }
+  for (let from = 0; from < points.length - 1; from += T.piece) {
+    // What is wholly hidden at its own bubble costs nothing.
+    if (time - points[from]!.t <= clear[0]!) break;
+    const part = points.slice(from, from + T.piece + 1);
+    let z = 0;
+    for (const o of part) z += o.p.z / part.length;
+    out.push({ trail, points: part, clear, z });
+  }
+}
+
 export function trailPieces(w: World, box: Box): Piece[] {
   'worklet';
   const out: Piece[] = [];
   for (const trail of w.trails) {
-    const b: Bubble | undefined = w.bubbles.find(
-      (o) => o.id === trail.bubble && o.popping < 0 && !o.join,
-    );
-    const points = [...trail.points];
-    const last = points[points.length - 1];
-    if (!last) continue;
-    const clear = [-1, 0];
-    const leads = b && w.trailLooks.some((l) => l.id === trail.look.id);
-    if (leads) {
-      points.push(pointAt(b, last, box.focal, w.time));
-      // How long ago it was last behind or before the bubble.
-      let inner = 0;
-      let outer = 0;
-      let before = 0;
-      for (let i = points.length - 2; i >= 0; i--) {
-        const { p, t } = points[i]!;
-        const age = w.time - t;
-        const since = w.time - points[i + 1]!.t;
-        // As seen: where that part of the trail appears beside its bubble.
-        const k = scaleAt(box, p.z) / scaleAt(box, b.p.z);
-        const away = Math.hypot(p.x * k - b.p.x, p.y * k - b.p.y) / b.r;
-        const when = (edge: number) => {
-          'worklet';
-          return since + ((age - since) * (edge - before)) / Math.max(1e-6, away - before);
-        };
-        if (away < T.hidden) inner = age;
-        else if (before < T.hidden) inner = when(T.hidden);
-        outer = away < T.shown ? age : when(T.shown);
-        if (away >= T.shown) break;
-        before = away;
-      }
-      clear[0] = inner;
-      clear[1] = Math.max(outer, inner + 0.01);
-    }
-    if (trail.look.gap) {
-      for (const o of imagesOf(points, trail.look.gap)) {
-        // Ones not yet showing, or already gone, cost nothing.
-        const age = w.time - o.t;
-        if (age > clear[0]! && age < trail.look.seconds)
-          out.push({ trail, points: [o], clear, z: o.p.z });
-      }
-      continue;
-    }
-    for (let from = 0; from < points.length - 1; from += T.piece) {
-      const part = points.slice(from, from + T.piece + 1);
-      let z = 0;
-      for (const o of part) z += o.p.z / part.length;
-      out.push({ trail, points: part, clear, z });
-    }
+    const b = w.trailLooks.some((l) => l.id === trail.look.id)
+      ? w.bubbles.find((o) => o.id === trail.bubble && o.popping < 0 && !o.join)
+      : undefined;
+    cutTrail(out, trail, b, w.time, box);
   }
   return out;
 }
@@ -171,7 +187,7 @@ export function drawPiece(
   canvas: SkCanvas,
   gpu: TrailGpu,
   piece: Piece,
-  w: World,
+  time: number,
   box: Box,
   v: View,
   tint: number[],
@@ -184,7 +200,7 @@ export function drawPiece(
   const at = [];
   const on = [];
   for (const o of points) {
-    const age = w.time - o.t;
+    const age = time - o.t;
     const s = scaleAt(box, o.p.z) * v.ppu;
     if (look.gap) {
       const half = o.r * look.width * (1 - (T.shrink * age) / look.seconds) * s;
@@ -213,14 +229,14 @@ export function drawPiece(
   const last = points[points.length - 1]!;
   gpu.paint.setShader(
     effect.makeShader([
-      w.time,
+      time,
       look.seconds,
       trail.seed,
       look.strength,
       clear[0]!,
       clear[1]!,
-      w.time - last.t,
-      w.time - first.t,
+      time - last.t,
+      time - first.t,
       last.p.z / box.depth,
       first.p.z / box.depth,
       tint[0]!,

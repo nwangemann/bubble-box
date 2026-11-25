@@ -13,9 +13,9 @@ import { scaleAt } from '@/core/projection';
 import type { Box, Bubble, Vec3 } from '@/core/types';
 import { LIB } from '@/styles/prelude';
 import type { View } from './drawScene';
-import { getGpu } from './gpu';
 import { roomPicture } from './roomPicture';
-import { drawRoomContact } from './roomContact';
+import { compilePoolWalls, drawPoolWalls, LIGHTS } from './poolWalls';
+import { compileLooks, cutTrail, drawPiece, type Piece } from './trails';
 
 /** A film round a tinted middle. Uniform order matches `drawBall`. */
 const BALL = `
@@ -23,8 +23,9 @@ uniform float3 color;
 uniform float stripe;
 uniform float px;
 uniform float fade;
-uniform float haze;
+uniform float away;
 uniform float lit;
+uniform float4 far; // haze, dim, dull, rim
 uniform float3 air;
 ${LIB}
 half4 main(vec2 p) {
@@ -38,12 +39,21 @@ half4 main(vec2 p) {
   float light = 0.5 + 0.5 * dot(n, normalize(vec3(-0.45, -0.75, 0.5)));
   vec3 c = body * (0.22 + 0.68 * light * light);
   c += body * 0.35 * pow(rim, 2.0) + film(0.8 + 1.3 * rim + 0.4 * p.y) * 0.16 * pow(rim, 1.5);
-  c += vec3(shine(n)) * 0.8 + body * lit * (0.18 + 0.5 * pow(rim, 2.5));
-  c = mix(c, air, haze);
+  float crisp = 1.0 - far.z * away;
+  c *= 1.0 - far.y * away;
+  c += body * far.w * (1.0 - away) * pow(rim, 3.0);
+  c += vec3(shine(n)) * 0.8 * crisp + body * lit * (0.18 + 0.5 * pow(rim, 2.5));
+  c = mix(c, air, far.x * away);
   float a = smoothstep(1.0, 1.0 - 2.0 * px, d) * fade;
   return half4(half3(clamp(c, 0.0, 1.0)) * half(a), half(a));
 }
 `;
+
+/** A soft streak of a ball's colour, as `trail` in `scene/trails`. */
+const WAKE = `
+vec3 trail(float v, float k, float born) {
+  return tint * (1.0 - 0.35 * v * v);
+}`;
 
 function make() {
   const line = Skia.Paint();
@@ -56,7 +66,9 @@ function make() {
   } catch (e) {
     console.error('ball failed to compile', e);
   }
-  return { line, ball, contact, effect, roomContact: getGpu().roomContact };
+  const { look } = POOL.trail;
+  const trails = compileLooks({ [look.id]: look }, { [look.id]: WAKE });
+  return { line, ball, contact, effect, walls: compilePoolWalls(), trails };
 }
 export type PoolGpu = ReturnType<typeof make>;
 let made: PoolGpu | null = null;
@@ -106,6 +118,7 @@ export function poolRoom(box: Box, view: View): SkPicture {
 }
 
 const AIR = [0.05, 0.14, 0.22];
+const FAR = [POOL.far.haze, POOL.far.dim, POOL.far.dull, POOL.rim];
 
 export function drawDisc(
   canvas: SkCanvas,
@@ -117,7 +130,7 @@ export function drawDisc(
   rx: number,
   ry: number,
   fade: number,
-  haze: number,
+  away: number,
   lit: number,
 ) {
   'worklet';
@@ -125,7 +138,7 @@ export function drawDisc(
   if (r < 0.3 || fade <= 0) return;
   const look = POOL.looks[which]!;
   paint.setShader(
-    effect.makeShader([...look.color, look.stripe, 1 / (2 * r), fade, haze, lit, ...AIR]),
+    effect.makeShader([...look.color, look.stripe, 1 / (2 * r), fade, away, lit, ...FAR, ...AIR]),
   );
   canvas.save();
   canvas.translate(x, y);
@@ -141,10 +154,26 @@ function ink(paint: SkPaint, stroke: boolean, r: number, g: number, b: number, a
   paint.setColor(Float32Array.of(r, g, b, a));
 }
 
-/** How far a ball is from the nearest wall it could show on. */
-function gapOf(b: Ball, box: Box) {
+/** Draws pieces of trails from `next` as far forward as `z`. Returns the next to draw. */
+function drawWakes(
+  canvas: SkCanvas,
+  gpu: PoolGpu,
+  pieces: Piece[],
+  next: number,
+  z: number,
+  time: number,
+  box: Box,
+  v: View,
+) {
   'worklet';
-  return Math.min(box.hw - Math.abs(b.p.x), box.hh - Math.abs(b.p.y), box.depth - b.p.z) - b.r;
+  let i = next;
+  for (; i < pieces.length && pieces[i]!.z >= z; i++) {
+    const piece = pieces[i]!;
+    // One left behind was the cue ball's.
+    const tint = LIGHTS[Math.max(0, piece.trail.bubble)]!;
+    drawPiece(canvas, gpu.trails, piece, time, box, v, tint);
+  }
+  return i;
 }
 
 export function drawPool(
@@ -169,31 +198,7 @@ export function drawPool(
     const s = scaleAt(box, p.z) * v.ppu;
     return { x: v.cx + p.x * s, y: v.cy + p.y * s, s };
   };
-  const up = pool.balls.map((b, i) => ({ b, i })).filter(({ b }) => b.sunk < 0);
-  drawRoomContact(
-    canvas,
-    gpu.contact,
-    gpu.roomContact,
-    // The pass takes only so many; those far from any wall hardly show in it.
-    [...up]
-      .sort((m, n) => gapOf(m.b, box) - gapOf(n.b, box))
-      .map(({ b, i }) => ({
-        x: b.p.x,
-        y: b.p.y,
-        z: b.p.z,
-        r: b.r,
-        tint: POOL.looks[i]!.color,
-        presence: 1,
-      })),
-    box,
-    v,
-  );
-  // A shadow on the far wall, straight behind each.
-  for (const { b } of up) {
-    const back = at({ x: b.p.x, y: b.p.y, z: box.depth });
-    ink(line, false, 0, 0, 0, POOL.shadow);
-    canvas.drawCircle(back.x, back.y, b.r * back.s, line);
-  }
+  drawPoolWalls(canvas, gpu.contact, gpu.walls, pool.balls, box, v);
   if (trace) {
     const a = at(trace.from);
     const b = at(trace.to);
@@ -207,7 +212,15 @@ export function drawPool(
     if (b.sunk < POOL.sink) all.push({ b, i });
   });
   all.sort((a, b) => b.b.p.z - a.b.p.z);
+  const pieces: Piece[] = [];
+  for (const trail of pool.trails) {
+    const b = pool.balls[trail.bubble];
+    cutTrail(pieces, trail, b && b.sunk < POOL.sink ? b : undefined, pool.time, box);
+  }
+  pieces.sort((a, b) => b.z - a.z);
+  let next = 0;
   for (const { b, i } of all) {
+    next = drawWakes(canvas, gpu, pieces, next, b.p.z, pool.time, box, v);
     // A sinking ball eases into its pocket and shrinks away.
     const k = b.sunk < 0 ? 0 : Math.min(1, b.sunk / POOL.sink);
     const q = holes[b.pocket];
@@ -221,10 +234,11 @@ export function drawPool(
         : b.p;
     const c = at(p);
     const lit = trace && i === trace.hit ? sure : 0;
-    const haze = (p.z / box.depth) * POOL.haze;
+    const away = p.z / box.depth;
     const r = b.r * c.s * (1 - 0.6 * k * k);
-    drawDisc(canvas, gpu.ball, effect, i, c.x, c.y, r, r, 1 - k * k, haze, lit);
+    drawDisc(canvas, gpu.ball, effect, i, c.x, c.y, r, r, 1 - k * k, away, lit);
   }
+  drawWakes(canvas, gpu, pieces, next, -Infinity, pool.time, box, v);
   if (trace?.lands) {
     // Where the one it would meet goes.
     const a = at(pool.balls[trace.hit]!.p);

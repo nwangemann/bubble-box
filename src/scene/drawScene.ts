@@ -196,7 +196,7 @@ export function drawScene(
     'worklet';
     for (; trails && next < pieces.length && pieces[next]!.z >= z; next++) {
       const piece = pieces[next]!;
-      drawPiece(canvas, trails, piece, world, box, view, tintOf(piece.trail.style, mine));
+      drawPiece(canvas, trails, piece, world.time, box, view, tintOf(piece.trail.style, mine));
     }
   };
   for (const b of all) {

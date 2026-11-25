@@ -1,6 +1,6 @@
 import { Canvas, createPicture, Picture } from '@shopify/react-native-skia';
 import * as Haptics from 'expo-haptics';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { GestureDetector, useManualGesture } from 'react-native-gesture-handler';
 import Animated, {
@@ -10,13 +10,16 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import type { Mode } from '@/config/modes';
 import { POOL } from '@/config/pool';
+import { POOL_ROWS, stepPool, trailing, type PoolSettings } from '@/config/poolOptions';
 import { TUNING } from '@/config/tuning';
 import { FEELS } from '@/config/feels';
 import { advancePool, createPool, enter, retire, traceAhead } from '@/core/pool';
 import type { Box } from '@/core/types';
 import { advance, beginHold, createWorld, heldBy, moveHold, release, swipeOf } from '@/core/world';
 import { drawPool, getPoolGpu, poolRoom } from '@/scene/drawPool';
+import { Tray } from './Tray';
 
 const buzz = (strength: number) => {
   const s = Haptics.ImpactFeedbackStyle;
@@ -37,8 +40,19 @@ const tick = () => {
 
 const HANDS = [FEELS.weightless];
 
-/** The 8-ball trial (docs/pool.md). Opened with the mode switch. */
-export function Pool({ onLeave }: { onLeave: () => void }) {
+type Props = {
+  settings: PoolSettings;
+  /** Reduce Motion: no trails. */
+  calm: boolean;
+  onSettings: (settings: PoolSettings) => void;
+  /** To the calm room's menu, or to showdowns. */
+  onMode: (mode: Mode) => void;
+};
+
+/** The 8-ball trial (docs/pool.md). Opened and left with the mode switch. */
+export function Pool({ settings, calm, onSettings, onMode }: Props) {
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
   const { width, height } = useWindowDimensions();
   // The calm room's own box and view.
   const view = useMemo(() => ({ cx: width / 2, cy: height / 2, ppu: width / 2 }), [width, height]);
@@ -53,11 +67,15 @@ export function Pool({ onLeave }: { onLeave: () => void }) {
   const dirty = useSharedValue(true);
   const lastBuzz = useSharedValue(0);
   const finger = useSharedValue(-1);
+  const leaving = calm ? 0 : trailing(settings.trail);
+  const trails = useSharedValue(leaving);
+  useEffect(() => trails.set(leaving), [trails, leaving]);
 
   useFrameCallback((frame) => {
     const p = pool.value;
     const w = hand.value;
     const dt = Math.min((frame.timeSincePreviousFrame ?? 0) / 1000, TUNING.maxFrame);
+    p.trailing = trails.value;
     const moved = advancePool(p, box, dt);
     const h = w.holds[0];
     const heldFor = h ? h.seconds : 0;
@@ -138,7 +156,7 @@ export function Pool({ onLeave }: { onLeave: () => void }) {
       exiting={FadeOut.duration(250)}
       style={styles.wrap}
       accessibilityViewIsModal
-      onAccessibilityEscape={onLeave}
+      onAccessibilityEscape={() => (open ? close() : onMode('calm'))}
     >
       <Canvas style={StyleSheet.absoluteFill}>
         <Picture picture={room} />
@@ -150,35 +168,32 @@ export function Pool({ onLeave }: { onLeave: () => void }) {
           </Canvas>
         </View>
       </GestureDetector>
-      <Pressable
-        onPress={onLeave}
-        accessibilityRole="button"
-        accessibilityLabel="Leave the table"
-        style={styles.handle}
-      >
-        <View style={styles.dot} />
-      </Pressable>
+      {/* Over the table, so a touch that closes the menu does not also play. */}
+      {open && <Pressable style={StyleSheet.absoluteFill} onPress={close} accessible={false} />}
+      <Tray
+        mode="pool"
+        open={open}
+        onToggle={() => setOpen((o) => !o)}
+        onMode={onMode}
+        hint="Changes to the next option"
+        onTile={(key) =>
+          onSettings(
+            stepPool(
+              POOL_ROWS.find((r) => r.key === key)!,
+              settings,
+            ),
+          )
+        }
+        tiles={POOL_ROWS.map(({ key, label, options }) => ({
+          key,
+          label,
+          value: options.find((o) => o.id === settings[key])!.name,
+        }))}
+      />
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { ...StyleSheet.absoluteFill, backgroundColor: '#070a18' },
-  // Over the tray's own dot, so the same place closes both.
-  handle: {
-    position: 'absolute',
-    bottom: 22,
-    alignSelf: 'center',
-    width: 64,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dot: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: '#fff',
-    boxShadow: '0 0 5px rgba(5,8,20,0.9)',
-  },
 });

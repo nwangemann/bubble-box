@@ -2,7 +2,7 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2.
 
-**Next: 1.15, seeing where balls are.**
+**Next: 1.9, telling balls apart** (1.2 first, with a phone).
 
 Without a phone, skip 2 and 7.1 to 7.3, and pass over 1.2, and in section 1 stop after 1.17. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
 
@@ -12,14 +12,6 @@ A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than wat
 
 **A. See and follow.** Done when depth and direction read at a glance, at rest and on a break, at 60 fps.
 
-- [ ] 1.15 Seeing where balls are, the first principle of [pool](pool.md). Try each alone and together, with 15 balls at rest, rolling and on a break, then reduce:
-  - Glow: light each moving ball throws on the near walls and floor, brighter as it nears them; against a plain halo, which is expected to help tracking but not depth
-  - Where a ball is, marked on the walls: firmer shadows and contact, perhaps a faint ring at its depth while it moves
-  - Stronger depth by haze, light and rim, so near and far balls differ at a glance
-  - Cues must also hold on an opaque wall, for 1.13
-  - Frame time with all 15 moving
-- [ ] 1.18 Somewhere for pool's options: how they open without crowding the table or its one dot, saved with the rest. Needed by 1.16, 1.13 and 1.14; holds nothing else
-- [ ] 1.16 Ball trails as pool options, building on `config/trails`: short, in the ball's colour, narrowing with depth, longer with speed; perhaps none, the cue ball only, or all. The default is whatever best serves 1.15
 - [ ] 1.2 Judge on a phone, by the questions at the end of [pool](pool.md): ball size, placing a shot, `mouth`, side pockets drawn wider than they take, power. Tune before going on
 
 **B. A pot worth it.** Done when each ball is told apart at any depth, and a pot feels like progress without stopping play.
@@ -187,6 +179,10 @@ Selectable, with Random available and None as the default.
 - 1.1 on paper, then rebuilt to a new structure: the calm room and camera, six pockets on the far wall, a cue ball from the calm hold at any moment ([pool](pool.md))
 - The trial of 1.2: exact contacts (`core/pool`), a pyramid of 15 whose break moves them all, a faint draw near pockets, a line straight ahead, opened with a third side of the mode switch. Simulator, release build, 15 balls: 60 fps, 1.4 ms a frame
 - After first play of the trial: one ball size, long press to place the shot, narrower pockets with a fainter draw, judged by simulated shots. Seen in the web preview
+- 1.15, seeing where balls are: shadows across to the walls, the light a moving ball throws on them, and stronger depth on balls (`scene/poolWalls`, `POOL.walls`, `POOL.far`). A halo, a line at each ball's depth and mirror images were tried and dropped ([pool](pool.md)). Development build, simulator, breaks of 15: 60 fps, 2.5 ms a frame, 2.5 to 3 before. Judged on stills, at rest, rolling and on a break, and with a green stone wall standing in for felt. Not yet judged in play or on a phone (1.2); recheck in 1.13
+
+- 1.18, somewhere for pool's options: the dot opens a menu of its own with the mode switch, which leaves; tiles step through options over the live table, saved with the rest (`config/poolOptions`, `ui/Tray`). Empty until 1.16. Seen in the web preview with stand-in options; not on a simulator. Frame time not measured: nothing new is drawn per frame
+- 1.16, short trails behind balls, pool's first option: All balls, Cue ball or None (`POOL.trail`, `core/pool`, `scene/trails`). All by default. Pieces hidden behind their own ball are skipped, calm trails too. Development build, simulator, break of 15: 60 fps, about 4 ms a frame, 2.5 in 1.15. Judged on stills; not yet in play or on a phone (1.2). Calm trails not looked at again
 
 ### Trails
 

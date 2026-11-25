@@ -64,9 +64,43 @@ export const POOL = {
   ],
   /** Where potted balls rest: pixels. */
   row: { top: 78, gap: 24, radius: 9 },
-  /** How balls haze with distance, and the shadow each drops on the far wall. */
-  haze: 0.3,
-  shadow: 0.35,
+  /** How balls look with distance, at the far wall: haze into the air, dimming, and duller shine. */
+  far: { haze: 0.35, dim: 0.2, dull: 0.8 },
+  /** Light of a ball's own colour round the near edge of each, gone at the far wall. */
+  rim: 0.35,
+  /**
+   * How lively a ball is, 0 to 1: full at `speed`, following it over `ease` seconds. Its light comes
+   * and goes with this, so nothing flashes.
+   */
+  lively: { speed: 1, ease: 0.15 },
+  /**
+   * What balls mark on the walls. Shadows straight across, gone at `reach` (the far wall's carry all
+   * the way), widening by `spread` of the gap, and `touch` where one presses. While lively, `light` in
+   * its colour within `lightReach`, at least `least` in every channel. `haze` is the air before the
+   * far wall.
+   */
+  walls: {
+    reach: 1.1,
+    shadow: 0.6,
+    spread: 0.06,
+    touch: 0.8,
+    light: 1.9,
+    lightReach: 1.1,
+    least: 0.25,
+    haze: 0.4,
+  },
+  /**
+   * What a ball leaves behind it, as in `config/trails` but pool's own: short, so it shows only which
+   * way a ball goes and how fast. A point each `every` seconds, and at every contact that turns
+   * it past cosine `corner`.
+   */
+  trail: {
+    look: { id: 'wake', name: 'Wake', seconds: 1.2, width: 0.45, strength: 0.6, shown: 1.2 },
+    every: 1 / 15,
+    least: 0.01,
+    corner: 0.98,
+    most: 64,
+  },
   look: {
     backdrop: ['#12304a', '#04080f'] as [string, string],
     ink: [150, 205, 240] as [number, number, number],

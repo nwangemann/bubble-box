@@ -1,24 +1,37 @@
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import type { Setting } from '@/config/defaults';
 import { MODE_SWITCH, type Mode } from '@/config/modes';
 import { TUNING } from '@/config/tuning';
 import { ModeSwitch } from './ModeSwitch';
 
 const M = TUNING.menu;
 
-type Tile = { key: Setting; label: string; value: string };
-type Props = {
+type Tile<K> = { key: K; label: string; value: string };
+type Props<K> = {
+  /** Whose menu it is. */
+  mode: Mode;
   open: boolean;
   onToggle: () => void;
-  tiles: Tile[];
-  onTile: (key: Setting) => void;
-  onPopAll: () => void;
+  tiles: Tile<K>[];
+  /** What a tap on a tile does, read aloud. */
+  hint: string;
+  onTile: (key: K) => void;
+  /** Left out, there is no Clear. */
+  onPopAll?: () => void;
   onMode: (mode: Mode) => void;
 };
 
 /** One small dot that opens a tile for each setting, showing what is chosen. */
-export function Tray({ open, onToggle, tiles, onTile, onPopAll, onMode }: Props) {
+export function Tray<K extends string>({
+  mode,
+  open,
+  onToggle,
+  tiles,
+  hint,
+  onTile,
+  onPopAll,
+  onMode,
+}: Props<K>) {
   const { width, height } = useWindowDimensions();
   const grid = Math.min(width - M.side * 2, M.widest);
   const tile = {
@@ -33,41 +46,50 @@ export function Tray({ open, onToggle, tiles, onTile, onPopAll, onMode }: Props)
           exiting={FadeOut.duration(250)}
           style={[styles.panel, { maxHeight: height - MODE_SWITCH.bottom - MODE_SWITCH.above }]}
         >
-          <ScrollView
-            alwaysBounceVertical={false}
-            style={styles.scroll}
-            contentContainerStyle={[styles.grid, { width: grid }]}
-          >
-            {tiles.map(({ key, label, value }) => (
-              <Pressable
-                key={key}
-                onPress={() => onTile(key)}
-                accessibilityRole="button"
-                accessibilityLabel={label}
-                accessibilityValue={{ text: value }}
-                accessibilityHint="Shows the options"
-                style={({ pressed }) => [styles.tile, tile, pressed && styles.pressed]}
-              >
-                <Text numberOfLines={1} style={styles.label}>
-                  {label}
-                </Text>
-                <Text numberOfLines={1} adjustsFontSizeToFit style={styles.value}>
-                  {value}
-                </Text>
-              </Pressable>
-            ))}
-            <Pressable
-              onPress={onPopAll}
-              accessibilityRole="button"
-              accessibilityLabel="Clear all bubbles"
-              style={({ pressed }) => [styles.tile, styles.clear, tile, pressed && styles.pressed]}
+          {(tiles.length > 0 || onPopAll) && (
+            <ScrollView
+              alwaysBounceVertical={false}
+              style={styles.scroll}
+              contentContainerStyle={[styles.grid, { width: grid }]}
             >
-              <Text numberOfLines={1} adjustsFontSizeToFit style={styles.value}>
-                Clear
-              </Text>
-            </Pressable>
-          </ScrollView>
-          <ModeSwitch mode="calm" onMode={onMode} />
+              {tiles.map(({ key, label, value }) => (
+                <Pressable
+                  key={key}
+                  onPress={() => onTile(key)}
+                  accessibilityRole="button"
+                  accessibilityLabel={label}
+                  accessibilityValue={{ text: value }}
+                  accessibilityHint={hint}
+                  style={({ pressed }) => [styles.tile, tile, pressed && styles.pressed]}
+                >
+                  <Text numberOfLines={1} style={styles.label}>
+                    {label}
+                  </Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit style={styles.value}>
+                    {value}
+                  </Text>
+                </Pressable>
+              ))}
+              {onPopAll && (
+                <Pressable
+                  onPress={onPopAll}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear all bubbles"
+                  style={({ pressed }) => [
+                    styles.tile,
+                    styles.clear,
+                    tile,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text numberOfLines={1} adjustsFontSizeToFit style={styles.value}>
+                    Clear
+                  </Text>
+                </Pressable>
+              )}
+            </ScrollView>
+          )}
+          <ModeSwitch mode={mode} onMode={onMode} />
         </Animated.View>
       )}
       <Pressable

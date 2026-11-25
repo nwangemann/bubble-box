@@ -13,6 +13,8 @@ export type TrailLook = {
   strength: number;
   /** Makes it images rather than a strip: how far apart, in radii. */
   gap?: number;
+  /** Full from this many radii from its bubble, rather than `TUNING.trail.shown`. */
+  shown?: number;
 };
 
 export const TRAILS = {

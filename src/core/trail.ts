@@ -2,6 +2,9 @@ import type { TrailLook } from '../config/trails';
 import { TUNING } from '../config/tuning';
 import type { Bubble, Trail, TrailPoint, Vec3, World } from './types';
 
+/** As much of a bubble, or a ball, as a trail needs. */
+type Mover = Pick<Bubble, 'p' | 'v' | 'r'>;
+
 const T = TUNING.trail;
 
 /** The trail a bubble leaves. With several in play each bubble keeps one for life. */
@@ -40,7 +43,7 @@ export function sideOf(p: Vec3, v: Vec3, before: Vec3 | null, focal: number): Ve
 }
 
 /** Where a bubble is now, as the next point of its trail. */
-export function pointAt(b: Bubble, last: TrailPoint | undefined, focal: number, t: number) {
+export function pointAt(b: Mover, last: TrailPoint | undefined, focal: number, t: number) {
   'worklet';
   const moved = last ? Math.hypot(b.p.x - last.p.x, b.p.y - last.p.y, b.p.z - last.p.z) : 0;
   const point: TrailPoint = {
@@ -79,6 +82,13 @@ export function imagesOf(points: TrailPoint[], gap: number): TrailPoint[] {
   return out;
 }
 
+/** Lets what is too old go. */
+export function ageTrail({ points, look }: Trail, time: number) {
+  'worklet';
+  // The last to go stays until the next has gone too, so the end fades rather than snaps.
+  while (points.length > 0 && time - (points[1] ?? points[0]!).t > look.seconds) points.shift();
+}
+
 function lay(world: World, trail: Trail, b: Bubble, focal: number) {
   'worklet';
   const last: TrailPoint | undefined = trail.points[trail.points.length - 1];
@@ -101,14 +111,7 @@ export function layTrails(world: World, focal: number) {
   'worklet';
   const { trailLooks, time } = world;
   if (trailLooks.length === 0 && world.trails.length === 0) return;
-  for (const trail of world.trails) {
-    // The last to go stays until the next has gone too, so the end fades rather than snaps.
-    while (
-      trail.points.length > 0 &&
-      time - (trail.points[1] ?? trail.points[0]!).t > trail.look.seconds
-    )
-      trail.points.shift();
-  }
+  for (const trail of world.trails) ageTrail(trail, time);
   const laid: Trail[] = [];
   for (const b of world.bubbles) {
     if (b.popping >= 0 || b.join) continue;

@@ -58,6 +58,7 @@ export default function App() {
     round: number;
   } | null>(null);
   const [pool, setPool] = useState(false);
+  const [poolSettings, setPoolSettings] = useState(saved.pool);
   const [popSignal, setPopSignal] = useState(0);
   const close = useCallback(() => setOpen(false), []);
   const learned = useCallback(() => setHinted(true), []);
@@ -66,11 +67,21 @@ export default function App() {
   useEffect(() => {
     // A slider moves many times a second; one write at the end is enough.
     const timer = setTimeout(
-      () => saveSettings({ settings, walls, custom, rule, count, cast, hinted }),
+      () =>
+        saveSettings({
+          settings,
+          walls,
+          custom,
+          rule,
+          count,
+          cast,
+          pool: poolSettings,
+          hinted,
+        }),
       300,
     );
     return () => clearTimeout(timer);
-  }, [settings, walls, custom, rule, count, cast, hinted]);
+  }, [settings, walls, custom, rule, count, cast, poolSettings, hinted]);
 
   const { bubble, feel, glass, tap, contact, pull, trail, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
@@ -103,7 +114,7 @@ export default function App() {
   const switchTo = (mode: Mode) => {
     setLobby(mode === 'showdown');
     setPool(mode === 'pool');
-    // The chooser waits over the menu; 8-ball is left for the room, as a showdown is.
+    // The chooser waits over the menu; 8-ball has a menu of its own.
     setOpen(mode !== 'pool');
   };
   const covered = preview !== null || making || lobby || bout !== null || pool;
@@ -131,6 +142,8 @@ export default function App() {
         onTouch={close}
       />
       <Tray
+        mode="calm"
+        hint="Shows the options"
         open={open && !covered}
         onToggle={() => setOpen((o) => !o)}
         onMode={switchTo}
@@ -197,7 +210,9 @@ export default function App() {
           onLeave={() => setBout(null)}
         />
       )}
-      {pool && <Pool onLeave={() => setPool(false)} />}
+      {pool && (
+        <Pool settings={poolSettings} calm={calm} onSettings={setPoolSettings} onMode={switchTo} />
+      )}
     </GestureHandlerRootView>
   );
 }
