@@ -1,9 +1,9 @@
-import { File, Paths } from 'expo-file-system';
 import { cleanCustom, type Custom } from '@/config/custom';
 import { cleanCount, cleanRule, type RuleId } from '@/config/rules';
 import { cleanSettings, cleanWalls, type Settings } from '@/config/defaults';
 import type { Walls } from '@/config/environments';
 import { cleanCast, type CastChoice } from '@/showdown/casts';
+import { read, write } from './store';
 
 type Saved = {
   settings: Settings;
@@ -26,13 +26,11 @@ const clean = (data: unknown): Saved => ({
   hinted: (data as { hinted?: unknown } | null)?.hinted === true,
 });
 
-const file = () => new File(Paths.document, 'settings.json');
-
 /** Reads at launch, so the first frame is already right. Anything unreadable becomes defaults. */
 export function loadSettings(): Saved {
   try {
-    const f = file();
-    return clean(f.exists ? JSON.parse(f.textSync()) : null);
+    const text = read();
+    return clean(text === null ? null : JSON.parse(text));
   } catch {
     return clean(null);
   }
@@ -40,9 +38,7 @@ export function loadSettings(): Saved {
 
 export function saveSettings({ settings, walls, custom, rule, count, cast, hinted }: Saved) {
   try {
-    const f = file();
-    if (!f.exists) f.create();
-    f.write(JSON.stringify({ ...settings, walls, custom, rule, count, cast, hinted }));
+    write(JSON.stringify({ ...settings, walls, custom, rule, count, cast, hinted }));
   } catch (e) {
     // Losing a preference should never interrupt play.
     console.warn('Settings were not saved', e);

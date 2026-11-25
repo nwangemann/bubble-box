@@ -118,6 +118,8 @@ Selectable, with Random available and None as the default.
 
 ### Core
 
+- A web preview, to try the app in a phone's browser without Xcode ([running](running.md), ADR 3). Safari on the simulator, on the Mac's own processor: 10 bubbles 53 to 60 fps, 8-ball 58 to 60, showdown with 12 at 60. A phone's is not known yet
+
 - Foundation: project, docs, physics core with tests, hold, launch, walls, ripples, contacts, 12 styles, 4 environments, 5 feels, tray, glass ripple, tap to pop, defaults and Random ([settings](settings.md))
 - Saved settings, Reduce Motion, first icon and splash
 - Touch: curved-swipe spin, several fingers, flick, tilt, two-finger swipe to pop

@@ -4,6 +4,7 @@ import {
   type SkPaint,
   type SkRuntimeEffect,
 } from '@shopify/react-native-skia';
+import { Platform } from 'react-native';
 import type { Glass } from '@/config/glass';
 import { TUNING } from '@/config/tuning';
 import type { Wave } from '@/core/types';
@@ -56,6 +57,8 @@ half4 main(float2 xy) {
 `;
 
 export function compileGlass(): SkRuntimeEffect | null {
+  // Skia on the web cannot filter a layer through a shader, so there Glass is always still.
+  if (Platform.OS === 'web') return null;
   try {
     return Skia.RuntimeEffect.Make(SKSL);
   } catch (e) {

@@ -27,6 +27,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Trails bubbles leave                     | `src/config/trails.ts`, `src/core/trail.ts`, `src/scene/trails.ts` |
 | Meet and pop effects                     | `src/fx/`                                                          |
 | Default settings, menu tiles, Random     | `src/config/defaults.ts`                                           |
+| Web preview: start, storage, page        | `src/start.web.ts`, `src/services/store.web.ts`, `public/`         |
 | Saved settings, Reduce Motion            | `src/services/`                                                    |
 | Options menu and its tiles               | `src/ui/Tray.tsx`                                                  |
 | Calm and Showdown switch                 | `src/config/modes.ts`, `src/ui/ModeSwitch.tsx`                     |

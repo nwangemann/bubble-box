@@ -3,7 +3,7 @@ const expo = require('eslint-config-expo/flat');
 const prettier = require('eslint-config-prettier');
 
 module.exports = defineConfig([
-  { ignores: ['ios/*', 'android/*', '.expo/*'] },
+  { ignores: ['ios/*', 'android/*', '.expo/*', 'dist/*', 'public/*'] },
   expo,
   prettier,
   {

@@ -25,7 +25,8 @@
     },
     "scheme": "bubblebox",
     "backgroundColor": "#070a18",
-    "platforms": ["ios", "android"],
+    "platforms": ["ios", "android", "web"],
+    "web": { "bundler": "metro", "output": "single", "favicon": "./assets/icon.png" },
     "plugins": [
       [
         "expo-splash-screen",
