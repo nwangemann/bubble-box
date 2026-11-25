@@ -28,6 +28,10 @@ Options reach the scene as lists: one entry, or all for Random. `feelOf` gives e
 
 Past `maxBubbles`, the oldest pops.
 
+## Picker
+
+Each preview is a small `World` in its own box, driven by `preview/scripts` and drawn by `drawScene`, all on one canvas. Coordinates are absolute, so glass needs no transform. While it is open the main room's loop is paused. `scene/gpu` holds the shaders both share.
+
 ## Scene
 
 - `roomPicture` records the room once per environment, shown on its own canvas.

@@ -1,4 +1,4 @@
-import { BlendMode, Canvas, createPicture, Picture, Skia } from '@shopify/react-native-skia';
+import { Canvas, createPicture, Picture } from '@shopify/react-native-skia';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useState } from 'react';
 import { PixelRatio, StyleSheet, View as RNView, useWindowDimensions } from 'react-native';
@@ -30,8 +30,8 @@ import {
   sweepAlong,
 } from '@/core/world';
 import { drawScene } from './drawScene';
-import { compileFx, compileStyles } from './effects';
-import { compileGlass, throughGlass } from './glassFilter';
+import { throughGlass } from './glassFilter';
+import { getGpu } from './gpu';
 import { roomPicture } from './roomPicture';
 
 type Props = {
@@ -44,6 +44,8 @@ type Props = {
   fx: FxPools;
   /** Increment to pop everything. */
   popSignal: number;
+  /** Holds everything still while something covers the room. */
+  paused: boolean;
   onTouch: () => void;
 };
 
@@ -52,26 +54,21 @@ const buzz = (strength: number) => {
   Haptics.impactAsync(strength > 2 ? s.Medium : strength > 1 ? s.Light : s.Soft).catch(() => {});
 };
 
-export function Scene({ styles, feels, env, glasses, taps, fx, popSignal, onTouch }: Props) {
+export function Scene({
+  styles,
+  feels,
+  env,
+  glasses,
+  taps,
+  fx,
+  popSignal,
+  paused,
+  onTouch,
+}: Props) {
   const { width, height } = useWindowDimensions();
   const view = useMemo(() => ({ cx: width / 2, cy: height / 2, ppu: width / 2 }), [width, height]);
   const box = useMemo<Box>(() => ({ hw: 1, hh: height / width, ...TUNING.box }), [width, height]);
-  const [gpu] = useState(() => {
-    const bubblePaint = Skia.Paint();
-    const ripplePaint = Skia.Paint();
-    ripplePaint.setAntiAlias(true);
-    const burstPaint = Skia.Paint();
-    burstPaint.setBlendMode(BlendMode.Plus);
-    return {
-      fx: compileStyles(),
-      burstFx: compileFx(),
-      burstPaint,
-      glassEffect: compileGlass(),
-      glassPaint: Skia.Paint(),
-      bubblePaint,
-      ripplePaint,
-    };
-  });
+  const [gpu] = useState(getGpu);
   const room = useMemo(() => roomPicture(box, view, env), [box, view, env]);
   const density = PixelRatio.get();
   const bends = useMemo(() => glasses.map((g) => g.bend > 0), [glasses]);
@@ -83,6 +80,7 @@ export function Scene({ styles, feels, env, glasses, taps, fx, popSignal, onTouc
   const lastBuzz = useSharedValue(0);
 
   useFrameCallback((frame) => {
+    if (paused) return;
     const dt = (frame.timeSincePreviousFrame ?? 0) / 1000;
     const w = world.value;
     const empty =

@@ -1,6 +1,6 @@
 # Extending
 
-Everything below appears in the tray, and joins Random, automatically. List new options in [settings](settings.md).
+Everything below appears in the tray and its previews, and joins Random, automatically. List new options in [settings](settings.md).
 
 ## Bubble style
 

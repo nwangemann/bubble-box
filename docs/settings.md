@@ -14,6 +14,10 @@ The tray opens from the dot. Defaults live in `src/config/defaults.ts`; change t
 
 Random never picks None. Pop None fades the bubble away quickly with no effect. Two-finger swipe always clears bubbles.
 
+## Previews
+
+A white title button in the tray opens every option of that setting, alive. Tapping one chooses it and closes; the dot or empty space closes without choosing. Random shows one option after another. None plays the same scene without the effect. Previews use the other current settings. With Reduce Motion they are stills. Timing and sizes are in `TUNING.preview`.
+
 ## Saving
 
 Choices are saved as they change and restored at launch (`src/services/savedSettings.ts`). An option that no longer exists falls back to its default. A default only affects people who have no saved choice, so clear the app's data to see a new one.

@@ -18,12 +18,14 @@ import {
 import { Scene } from '@/scene/Scene';
 import { loadSettings, saveSettings } from '@/services/savedSettings';
 import { useReduceMotion } from '@/services/useReduceMotion';
+import { Picker } from '@/ui/Picker';
 import { Tray } from '@/ui/Tray';
 
 export default function App() {
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [env, setEnv] = useState(() => pickBox(settings.box));
   const [open, setOpen] = useState(false);
+  const [preview, setPreview] = useState<Setting | null>(null);
   const [popSignal, setPopSignal] = useState(0);
   const close = useCallback(() => setOpen(false), []);
 
@@ -54,10 +56,11 @@ export default function App() {
         taps={taps}
         fx={fx}
         popSignal={popSignal}
+        paused={preview !== null}
         onTouch={close}
       />
       <Tray
-        open={open}
+        open={open && preview === null}
         onToggle={() => setOpen((o) => !o)}
         onPopAll={() => setPopSignal((n) => n + 1)}
         rows={ROWS.map(({ key, label, options }) => ({
@@ -65,8 +68,23 @@ export default function App() {
           options,
           value: settings[key],
           onPick: (id) => pick(key, id),
+          onPreview: () => setPreview(key),
         }))}
       />
+      {preview && (
+        <Picker
+          key={preview}
+          setting={preview}
+          settings={settings}
+          env={env}
+          calm={calm}
+          onPick={(id) => {
+            pick(preview, id);
+            setPreview(null);
+          }}
+          onClose={() => setPreview(null)}
+        />
+      )}
     </GestureHandlerRootView>
   );
 }

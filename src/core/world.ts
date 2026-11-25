@@ -71,7 +71,7 @@ function trim(world: World) {
 }
 
 /** Pops a bubble, breaking it into small ones if its effect has pieces. */
-function popApart(world: World, b: Bubble) {
+export function popApart(world: World, b: Bubble) {
   'worklet';
   if (b.popping >= 0) return;
   startPop(world, b);

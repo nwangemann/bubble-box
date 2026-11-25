@@ -64,17 +64,18 @@ Exploration. Everything below is selectable, with Random available and None as t
 
 ## Phase 2c: preview picker
 
-Explore. Tapping a category title in the tray (such as Bubble) opens a modal showing a medium, gently moving preview of every option in that category. Tapping a preview selects it. The names in the row stay as the quick way to choose.
+Tapping a category title in the tray (such as Bubble) opens a modal showing a medium, gently moving preview of every option in that category. Tapping a preview selects it. The names in the row stay as the quick way to choose.
 
-- [ ] Bubble first: a grid of live bubbles, drawn with the real style shaders and a slow breathing drift
-- [ ] Decide how the modal looks and closes while staying calm (full screen or sheet; room still visible behind or not)
-- [ ] Draw all previews on one canvas, only while open; pause the room behind and measure frame time
-- [ ] Box: small rooms with a drifting bubble
-- [ ] Meet and Pop: the effect looping, with a pause between plays
-- [ ] Glass: a looping ripple
-- [ ] Feel: a bubble moving in a small box with that physics
-- [ ] Decide whether Tap needs previews, and what Random and None show
-- [ ] Make titles look tappable without adding clutter; Reduce Motion shows stills
+- [x] Bubble first: a grid of live bubbles, drawn with the real style shaders and a slow breathing drift
+- [x] Decide how the modal looks and closes while staying calm (full screen or sheet; room still visible behind or not)
+- [x] Draw all previews on one canvas, only while open; pause the room behind and measure frame time (simulator: 1 to 3 ms of work per frame, 60 fps)
+- [x] Box: small rooms with a drifting bubble
+- [x] Meet and Pop: the effect looping, with a pause between plays
+- [x] Glass: a looping ripple
+- [x] Feel: a bubble moving in a small box with that physics
+- [x] Decide whether Tap needs previews, and what Random and None show
+- [x] Make titles look tappable: raised white buttons, pinned beside the names; Reduce Motion shows stills
+- [ ] On a phone: judge the picker and measure its frame time
 
 ## Phase 3: box
 

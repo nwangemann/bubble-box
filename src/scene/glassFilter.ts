@@ -14,7 +14,8 @@ const COUNT = TUNING.glass.maxWaves;
 /** Bends whatever is drawn beneath it. Works in device pixels. */
 const SKSL = `
 uniform shader image;
-uniform float2 res;
+uniform float2 low;
+uniform float2 high;
 uniform float2 centre;
 uniform float ppu;
 uniform float bend;
@@ -41,8 +42,8 @@ half4 main(float2 xy) {
     }
   }
   float2 off = push * bend * ppu;
-  float2 lo = float2(0.5);
-  float2 hi = res - 0.5;
+  float2 lo = low + 0.5;
+  float2 hi = high - 0.5;
   half4 mid = image.eval(clamp(xy + off, lo, hi));
   half r = image.eval(clamp(xy + off * (1.0 - prism), lo, hi)).r;
   half b = image.eval(clamp(xy + off * (1.0 + prism), lo, hi)).b;
@@ -63,6 +64,8 @@ export function compileGlass(): SkRuntimeEffect | null {
   }
 }
 
+type Area = { x: number; y: number; width: number; height: number };
+
 /** Points `paint` at a filter for the current waves. */
 function aim(
   paint: SkPaint,
@@ -71,6 +74,7 @@ function aim(
   glass: Glass,
   v: View,
   pd: number,
+  area: Area,
 ) {
   'worklet';
   const flat: number[] = [];
@@ -80,7 +84,8 @@ function aim(
     else flat.push(0, 0, 0, 0);
   }
   const b = Skia.RuntimeShaderBuilder(effect);
-  b.setUniform('res', [v.cx * 2 * pd, v.cy * 2 * pd]);
+  b.setUniform('low', [area.x * pd, area.y * pd]);
+  b.setUniform('high', [(area.x + area.width) * pd, (area.y + area.height) * pd]);
   b.setUniform('centre', [v.cx * pd, v.cy * pd]);
   b.setUniform('ppu', [v.ppu * pd]);
   b.setUniform('bend', [glass.bend]);
@@ -90,7 +95,7 @@ function aim(
   paint.setImageFilter(Skia.ImageFilter.MakeRuntimeShader(b, null, null));
 }
 
-/** Draws `content` through rippling glass. */
+/** Draws `content` through rippling glass. `area` is what it covers, normally the whole view. */
 export function throughGlass(
   canvas: SkCanvas,
   paint: SkPaint,
@@ -100,9 +105,10 @@ export function throughGlass(
   view: View,
   pixelDensity: number,
   content: () => void,
+  area: Area = { x: 0, y: 0, width: view.cx * 2, height: view.cy * 2 },
 ) {
   'worklet';
-  aim(paint, effect, waves, glass, view, pixelDensity);
+  aim(paint, effect, waves, glass, view, pixelDensity, area);
   canvas.save();
   // Skia runs these filters at scale 1, so the layer is made in device pixels to stay sharp.
   canvas.scale(1 / pixelDensity, 1 / pixelDensity);

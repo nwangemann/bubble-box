@@ -22,6 +22,8 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Default settings, tray rows, Random      | `src/config/defaults.ts`     |
 | Saved settings, Reduce Motion            | `src/services/`              |
 | Options tray                             | `src/ui/Tray.tsx`            |
+| Preview picker                           | `src/ui/Picker.tsx`          |
+| What each preview acts out               | `src/preview/`               |
 
 ## Read before working
 
