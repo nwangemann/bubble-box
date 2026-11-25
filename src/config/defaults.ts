@@ -8,6 +8,7 @@ import {
   type Light,
   type Walls,
 } from './environments';
+import { CONTACTS, type Contact } from './contacts';
 import { FEELS, type Feel } from './feels';
 import { GLASS, type Glass } from './glass';
 import { TAPS, type Tap } from './taps';
@@ -23,6 +24,7 @@ export const DEFAULTS = {
   feel: 'drift',
   glass: 'ripple',
   tap: 'grow',
+  contact: 'bounce',
   meet: NONE,
   pop: NONE,
 };
@@ -47,6 +49,7 @@ export const ROWS: { key: Setting; label: string; options: Option[] }[] = [
   { key: 'feel', label: 'Feel', options: [...named(FEELS), last] },
   { key: 'glass', label: 'Glass', options: [...named(GLASS), last] },
   { key: 'tap', label: 'Tap', options: [...named(TAPS), last] },
+  { key: 'contact', label: 'Contact', options: [...named(CONTACTS), last] },
   { key: 'meet', label: 'Meet', options: [...fxNamed('meet'), last] },
   { key: 'pop', label: 'Pop', options: [...fxNamed('pop'), last] },
 ];
@@ -95,6 +98,7 @@ export const stylePool = (s: string) => (s === RANDOM ? Object.keys(STYLES) : [s
 export const feelPool = (s: string) => pool<Feel>(FEELS, s);
 export const glassPool = (s: string) => pool<Glass>(GLASS, s);
 export const tapPool = (s: string) => pool<Tap>(TAPS, s);
+export const mergePool = (s: string) => pool<Contact>(CONTACTS, s).map((c) => c.merges);
 
 /** There is one room, so Random picks one now, and another when chosen again. */
 function pickOne<T>(record: Record<string, T>, choice: string, avoid?: T): T {

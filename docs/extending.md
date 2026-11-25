@@ -31,6 +31,10 @@ Add to `src/config/environments.ts`. Give it a `day` palette. For a material, wr
 
 Add to `src/config/glass.ts`. Wave speed and life are in `TUNING.glass`; ring spacing and decay are in `src/scene/glassFilter.ts`.
 
+## Contact
+
+Add to `src/config/contacts.ts`. What merging does is `startMerge` and `sink` in `core/world.ts`.
+
 ## Feel
 
 Add to `src/config/feels.ts`. A new force is a new `Feel` field plus a line in `step` in `core/world.ts`.

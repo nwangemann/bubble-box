@@ -2,13 +2,14 @@
 
 Each box is one small session. Tick it when done and move **Next**.
 
-**Next: Phase 4, bubbles that merge.** Phases are in priority order, not number order: 4, 5 and 2b first, then the rest. Phase 1 sits last because it needs a person with a phone.
+**Next: Phase 4, background refraction.** Phases are in priority order, not number order: 4, 5 and 2b first, then the rest. Phase 1 sits last because it needs a person with a phone.
 
 ## Phase 4: bubble
 
 - [x] Custom colour and pattern
 - [ ] On a phone: judge the maker and its patterns
-- [ ] Bubbles that merge
+- [x] Bubbles that merge
+- [ ] On a phone: judge merging and tune `TUNING.merge`
 - [ ] Background refraction
 - [ ] Style that shifts with speed or age
 

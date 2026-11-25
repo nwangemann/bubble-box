@@ -14,6 +14,7 @@ import {
   fxPools,
   glassPool,
   lightPool,
+  mergePool,
   ROWS,
   stylePool,
   tapPool,
@@ -102,6 +103,7 @@ export function Picker({
         feels: feelPool(chosen('feel')),
         taps: tapPool(chosen('tap')),
         fx: fxPools(chosen('meet'), chosen('pop')),
+        merges: mergePool(chosen('contact')),
         bounce: setting === 'box' || setting === 'light' ? envs[0]!.bounce : 1,
         // Feels start together, to be compared.
         delay: setting === 'feel' ? 0 : i * P.stagger,

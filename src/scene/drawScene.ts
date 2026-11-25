@@ -58,17 +58,20 @@ function drawBubble(
     w.time,
     b.seed,
     1 / Math.max(1, Math.min(rx, ry) * 2),
-    born * (1 - gone * gone),
+    born * (1 - gone * gone) * b.fade,
     body.tear ? gone : 0,
     b.p.z / box.depth,
     b.turn,
+    b.reach.x,
+    b.reach.y,
   ];
   if (b.style === CUSTOM) uniforms.push(...mine.uniforms);
   paint.setShader(effect.makeShader(uniforms));
   canvas.save();
   canvas.translate(v.cx + b.p.x * s, v.cy + b.p.y * s);
   canvas.scale(rx, ry);
-  canvas.drawRect({ x: -HALO, y: -HALO, width: HALO * 2, height: HALO * 2 }, paint);
+  const edge = HALO * (1 + Math.hypot(b.reach.x, b.reach.y));
+  canvas.drawRect({ x: -edge, y: -edge, width: edge * 2, height: edge * 2 }, paint);
   canvas.restore();
 }
 

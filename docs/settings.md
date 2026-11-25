@@ -10,6 +10,7 @@ The tray opens from the dot. Defaults live in `src/config/defaults.ts`; change t
 | Feel    | Drift      | Weightless, Lively, Syrup, Ascend                                                           | Each bubble, for life                           |
 | Glass   | Ripple     | Still                                                                                       | Each hit on the screen side                     |
 | Tap     | New bubble | Pop                                                                                         | Each touch                                      |
+| Contact | Bounce     | Merge                                                                                       | Each pair, every time they touch                |
 | Meet    | None       | Sparks, Chiral, Sunflower, Frost, Kali, Julia, Chord, Apollo                                | Each meeting                                    |
 | Pop     | None       | Film, Droplets, Mist, Shatter, Starlight, Implode, Brood, Chiral, Sunflower, Julia          | Each pop                                        |
 

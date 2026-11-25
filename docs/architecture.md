@@ -26,6 +26,8 @@ A curved swipe gives `spin` about the line of sight, from how far the finger's p
 
 Each finger has its own `Held`, keyed by touch id. Two fingers down less than `TUNING.sweep.fresh` seconds that both travel start a sweep: what they began is taken back, and they pop what they cross, including the path so far. Other fingers keep their bubbles. Bubbles born or launched during the sweep are spared. `swipeOf` measures launch speed from the finger's last moments.
 
+With Contact on Merge, two free bubbles that touch become one over `TUNING.merge.seconds`. The smaller (`join`) is drawn in, fades and passes its volume over bit by bit; momentum and centre of mass go with it, so nothing jumps. It passes through other bubbles, can be popped, and pops with the larger. `reach` bulges both edges towards each other in the style shader's `main`. A pair that would pass `maxRadius` bounces, and held bubbles never merge. `merges` on the world works like the other lists: each pair keeps one entry.
+
 Meetings and pops add a `Burst`: contact normal, sideways rub (`spin`), strength and both styles. `drawBurst` draws it as one additive shader rect aimed along the normal.
 
 Options reach the scene as lists: one entry, or all for Random. `feelOf` gives each bubble a feel from its id; `variant` on a wave and its ring picks the glass.

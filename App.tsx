@@ -6,6 +6,7 @@ import {
   feelPool,
   fxPools,
   glassPool,
+  mergePool,
   pickBox,
   pickLight,
   RANDOM,
@@ -47,11 +48,12 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [settings, walls, custom]);
 
-  const { bubble, feel, glass, tap, meet, pop } = settings;
+  const { bubble, feel, glass, tap, contact, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
   const feels = useMemo(() => (calm ? feelPool(feel).map(calmFeel) : feelPool(feel)), [feel, calm]);
   const glasses = useMemo(() => glassPool(calm ? 'still' : glass), [glass, calm]);
   const taps = useMemo(() => tapPool(tap), [tap]);
+  const merges = useMemo(() => mergePool(contact), [contact]);
   const fx = useMemo(() => (calm ? fxPools(NONE, NONE) : fxPools(meet, pop)), [meet, pop, calm]);
 
   const pick = (key: Setting, id: string) => {
@@ -74,6 +76,7 @@ export default function App() {
         glasses={glasses}
         taps={taps}
         fx={fx}
+        merges={merges}
         popSignal={popSignal}
         paused={preview !== null || making}
         onTouch={close}

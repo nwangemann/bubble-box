@@ -7,11 +7,12 @@ import {
   beginHold,
   createWorld,
   finishTap,
+  newBubble,
   popAll,
   popApart,
   release,
 } from '../core/world';
-import type { Box, Bubble, FxPools, World } from '../core/types';
+import type { Box, FxPools, World } from '../core/types';
 
 const P = TUNING.preview;
 const STILL_AIR: Feel = { ...FEELS.weightless };
@@ -24,6 +25,7 @@ export type Part = {
   feels: Feel[];
   taps: Tap[];
   fx: FxPools;
+  merges: boolean[];
   bounce: number;
   /** Seconds before it first moves, so neighbours do not act in unison. */
   delay: number;
@@ -58,21 +60,7 @@ function styleFor(part: Part, turn: number) {
 function add(stage: Stage, part: Part, x: number, y: number, z: number, r: number, offset = 0) {
   'worklet';
   const w = stage.world;
-  const id = w.nextId++;
-  const b: Bubble = {
-    id,
-    style: styleFor(part, stage.turn + offset),
-    seed: (id * 0.61803) % 1,
-    r,
-    p: { x, y, z },
-    v: { x: 0, y: 0, z: 0 },
-    d: { x: 0, y: 0, z: 0 },
-    dv: { x: 0, y: 0, z: 0 },
-    spin: 0,
-    turn: 0,
-    popping: -1,
-    popFx: '',
-  };
+  const b = newBubble(w, styleFor(part, stage.turn + offset), r, { x, y, z });
   w.bubbles.push(b);
   return b;
 }
@@ -115,6 +103,8 @@ export function play(stage: Stage, part: Part, seconds: number) {
     stage.turn++;
     before = -1e-6;
   }
+  // Random takes turns.
+  w.merges = [part.merges[stage.turn % part.merges.length]!];
   const now = stage.clock;
   const starts = before < 0 && now >= 0;
   const at = (t: number) => {
@@ -157,17 +147,22 @@ export function play(stage: Stage, part: Part, seconds: number) {
       const feel = part.feels[Math.floor(((held.id * 0.75488) % 1) * part.feels.length)]!;
       release(w, 1.1, -0.8, feel.speed);
     }
-  } else if (kind === 'meet') {
-    const r = P.radius.meet;
+  } else if (kind === 'meet' || kind === 'contact') {
+    const r = P.radius[kind];
+    // Different sizes show which takes in which.
+    const sizeOf = (x: number) => {
+      'worklet';
+      return kind === 'contact' && x > 0 ? r * P.lesser : r;
+    };
     if (starts) {
       add(stage, part, -0.62, 0.08, P.z, 0.001);
       add(stage, part, 0.62, -0.08, P.z, 0.001, 1);
     }
     if (now >= 0 && now < P.grow)
-      for (const b of w.bubbles) b.r = Math.max(0.001, r * smooth(now / P.grow));
+      for (const b of w.bubbles) b.r = Math.max(0.001, sizeOf(b.p.x) * smooth(now / P.grow));
     if (at(P.grow))
       for (const b of w.bubbles) {
-        b.r = r;
+        b.r = sizeOf(b.p.x);
         b.v.x = b.p.x < 0 ? P.closing : -P.closing;
       }
   } else {
@@ -189,7 +184,14 @@ export function play(stage: Stage, part: Part, seconds: number) {
       if (at(P.act.tap + P.press) && w.holds.length > 0 && !finishTap(w)) release(w, 0.9, -0.6, 1);
     }
   }
-  if ((kind === 'feel' || kind === 'meet' || kind === 'pop' || kind === 'tap') && at(P.clear[kind]))
+  if (
+    (kind === 'feel' ||
+      kind === 'meet' ||
+      kind === 'contact' ||
+      kind === 'pop' ||
+      kind === 'tap') &&
+    at(P.clear[kind])
+  )
     clear(stage, part);
   advance(
     w,

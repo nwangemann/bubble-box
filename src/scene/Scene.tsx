@@ -45,6 +45,8 @@ type Props = {
   glasses: Glass[];
   taps: Tap[];
   fx: FxPools;
+  /** Whether touching bubbles merge. */
+  merges: boolean[];
   /** Increment to pop everything. */
   popSignal: number;
   /** Holds everything still while something covers the room. */
@@ -65,6 +67,7 @@ export function Scene({
   glasses,
   taps,
   fx,
+  merges,
   popSignal,
   paused,
   onTouch,
@@ -108,6 +111,7 @@ export function Scene({
     quiet.value = still;
     wallTime.value += dt * stir.value;
     w.fx = fx;
+    w.merges = merges;
     if (empty) settleTilt(w);
     else lean(w, gravity.value, dt);
     advance(w, box, feels, env.bounce, dt);

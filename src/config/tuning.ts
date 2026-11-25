@@ -67,6 +67,23 @@ export const TUNING = {
   tilt: { slop: 0.05, full: 0.6, pull: 0.7, ease: 0.15, settle: 10, interval: 33 },
   /** Light from bubbles meeting and popping. */
   burst: { max: 8, minClosing: 0.18, pairPause: 0.45 },
+  /**
+   * Merging. Takes `seconds`, drawn together at rate `pull`. Nothing grows past `maxRadius`; such
+   * pairs bounce. `reach` is how far edges bulge to meet, easing at rate `ease`, never past
+   * `maxReach`. `stretch` draws the merged bubble out along the join, `twist` is the spin from
+   * meeting off centre, and pieces of a pop wait `shy` seconds.
+   */
+  merge: {
+    seconds: 1.1,
+    pull: 4.5,
+    maxRadius: 0.8,
+    reach: 0.36,
+    maxReach: 0.45,
+    ease: 16,
+    stretch: 30,
+    twist: 0.5,
+    shy: 1.2,
+  },
   /** Popping into pieces. */
   brood: { minRadius: 0.16, size: 0.42, speed: 0.9 },
   /**
@@ -103,13 +120,34 @@ export const TUNING = {
     grow: 0.7,
     closing: 0.5,
     press: 0.14,
+    /** The smaller bubble in Contact, against the larger. */
+    lesser: 0.7,
     stagger: 0.12,
     melt: 1.2,
-    radius: { bubble: 0.86, glass: 0.5, box: 0.28, light: 0.28, meet: 0.3, pop: 0.34, tap: 0.4 },
+    radius: {
+      bubble: 0.86,
+      glass: 0.5,
+      box: 0.28,
+      light: 0.28,
+      meet: 0.3,
+      pop: 0.34,
+      tap: 0.4,
+      contact: 0.4,
+    },
     /** Length of each loop, and when its event happens, when it clears and where it stands still. */
-    loop: { bubble: 3.4, box: 4.5, light: 4.5, feel: 6.8, glass: 4, tap: 4.4, meet: 4.4, pop: 4.4 },
+    loop: {
+      bubble: 3.4,
+      box: 4.5,
+      light: 4.5,
+      feel: 6.8,
+      glass: 4,
+      tap: 4.4,
+      meet: 4.4,
+      pop: 4.4,
+      contact: 4.8,
+    },
     act: { feel: 0.9, glass: 0.3, tap: 1.5, pop: 1.5 },
-    clear: { feel: 5.8, meet: 2.8, pop: 3.3, tap: 3.4 },
+    clear: { feel: 5.8, contact: 3.8, meet: 2.8, pop: 3.3, tap: 3.4 },
     still: {
       bubble: 1.5,
       box: 1.5,
@@ -117,6 +155,7 @@ export const TUNING = {
       feel: 1.8,
       glass: 1,
       tap: 1.85,
+      contact: 1.6,
       meet: 1.75,
       pop: 2,
     },

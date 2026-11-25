@@ -226,7 +226,7 @@ export function drawWallLight(
     const g = GLOWS[b.style];
     if (!g || g.glow === 0 || lamps.length >= LAMPS * 4) continue;
     const alive = b.popping < 0 ? 1 : Math.max(0, 1 - b.popping / TUNING.popSeconds);
-    lamps.push(b.p.x, b.p.y, b.p.z, g.glow * b.r * TUNING.walls.glow * alive);
+    lamps.push(b.p.x, b.p.y, b.p.z, g.glow * b.r * TUNING.walls.glow * alive * b.fade);
     const tint = b.style === CUSTOM ? mine.tint : g.tint;
     tints.push(tint[0]!, tint[1]!, tint[2]!, 1);
   }

@@ -49,6 +49,7 @@ export function Maker({ custom, mine, env, calm, onChange, onClose }: Props) {
       feels: feelPool(DEFAULTS.feel),
       taps: tapPool(DEFAULTS.tap),
       fx: fxPools(NONE, NONE),
+      merges: [false],
       bounce: 1,
       delay: 0,
     }),

@@ -20,6 +20,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Screen-side ripple strength and options  | `src/config/glass.ts`                      |
 | Screen-side ripple shader                | `src/scene/glassFilter.ts`                 |
 | What a tap on a bubble does              | `src/config/taps.ts`                       |
+| Whether touching bubbles merge           | `src/config/contacts.ts`                   |
 | Meet and pop effects                     | `src/fx/`                                  |
 | Default settings, tray rows, Random      | `src/config/defaults.ts`                   |
 | Saved settings, Reduce Motion            | `src/services/`                            |

@@ -1,7 +1,7 @@
 import { TUNING as T } from '../config/tuning';
 import type { Feel } from '../config/feels';
 import { scaleAt, unproject } from './projection';
-import type { Axis, Box, Bubble, Burst, FxPools, Held, World } from './types';
+import type { Axis, Box, Bubble, Burst, FxPools, Held, Vec3, World } from './types';
 
 export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces: {} }): World {
   'worklet';
@@ -11,6 +11,7 @@ export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces
     waves: [],
     bursts: [],
     fx,
+    merges: [false],
     sweep: null,
     holds: [],
     tilt: { rest: null, pull: { x: 0, y: 0, z: 0 } },
@@ -18,6 +19,30 @@ export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces
     leftover: 0,
     nextId: 1,
     impact: 0,
+  };
+}
+
+/** A round, resting bubble that is not yet in the world. */
+export function newBubble(world: World, style: string, r: number, p: Vec3): Bubble {
+  'worklet';
+  const id = world.nextId++;
+  return {
+    id,
+    style,
+    seed: (id * 0.61803) % 1,
+    r,
+    p,
+    v: { x: 0, y: 0, z: 0 },
+    d: { x: 0, y: 0, z: 0 },
+    dv: { x: 0, y: 0, z: 0 },
+    spin: 0,
+    turn: 0,
+    popping: -1,
+    popFx: '',
+    join: null,
+    fade: 1,
+    reach: { x: 0, y: 0 },
+    shy: 0,
   };
 }
 
@@ -43,6 +68,7 @@ function startPop(world: World, b: Bubble) {
   'worklet';
   if (b.popping >= 0) return;
   b.popping = 0;
+  b.join = null;
   b.popFx = pick(world, world.fx.pop);
   addBurst(world, {
     fx: b.popFx,
@@ -66,7 +92,7 @@ function trim(world: World) {
   let alive = 0;
   for (let i = world.bubbles.length - 1; i >= 0; i--) {
     const o = world.bubbles[i]!;
-    if (o.popping < 0 && ++alive > T.maxBubbles) startPop(world, o);
+    if (o.popping < 0 && !o.join && ++alive > T.maxBubbles) startPop(world, o);
   }
 }
 
@@ -81,22 +107,15 @@ export function popApart(world: World, b: Bubble) {
     const r = b.r * T.brood.size * (0.8 + 0.3 * ((i * 0.618) % 1));
     const dx = Math.cos(a);
     const dy = Math.sin(a);
-    const id = world.nextId++;
     const out = T.brood.speed;
-    world.bubbles.push({
-      id,
-      style: b.style,
-      seed: (id * 0.61803) % 1,
-      r,
-      p: { x: b.p.x + dx * b.r * 0.55, y: b.p.y + dy * b.r * 0.55, z: b.p.z },
-      v: { x: b.v.x + dx * out, y: b.v.y + dy * out, z: b.v.z + (i % 2 ? 0.3 : -0.3) },
-      d: { x: 0, y: 0, z: 0 },
-      dv: { x: 0, y: 0, z: 0 },
-      spin: b.spin,
-      turn: b.turn,
-      popping: -1,
-      popFx: '',
-    });
+    const at = { x: b.p.x + dx * b.r * 0.55, y: b.p.y + dy * b.r * 0.55, z: b.p.z };
+    const piece = newBubble(world, b.style, r, at);
+    piece.v = { x: b.v.x + dx * out, y: b.v.y + dy * out, z: b.v.z + (i % 2 ? 0.3 : -0.3) };
+    piece.spin = b.spin;
+    piece.turn = b.turn;
+    // Pieces are born touching.
+    piece.shy = T.merge.shy;
+    world.bubbles.push(piece);
   }
   if (pieces > 0) trim(world);
 }
@@ -117,6 +136,14 @@ export function chargeAt(seconds: number) {
 export function radiusAt(seconds: number) {
   'worklet';
   return T.grow.minRadius + (T.grow.maxRadius - T.grow.minRadius) * chargeAt(seconds);
+}
+
+/** The living bubble with this id, or the one it is sinking into. */
+function wholeOf(world: World, id: number) {
+  'worklet';
+  const b = world.bubbles.find((o) => o.id === id && o.popping < 0);
+  const into = b?.join?.into;
+  return into ? world.bubbles.find((o) => o.id === into && o.popping < 0) : b;
 }
 
 /** Nearest bubble under a screen-plane point, or 0. */
@@ -176,7 +203,7 @@ export function finishTap(world: World, finger = 0) {
   const h = heldBy(world, finger);
   if (!h || !mayBeTap(h)) return false;
   drop(world, finger);
-  const target = world.bubbles.find((b) => b.id === h.over);
+  const target = wholeOf(world, h.over);
   if (target) popApart(world, target);
   return true;
 }
@@ -211,7 +238,7 @@ export function finishFlick(world: World, box: Box, feels: Feel[], finger = 0) {
   const F = T.flick;
   const h = heldBy(world, finger);
   if (!h || !h.flicking || !mayBeFlick(h)) return false;
-  const b = world.bubbles.find((o) => o.id === h.over && o.popping < 0);
+  const b = wholeOf(world, h.over);
   const swipe = swipeOf(h);
   const speed = Math.hypot(swipe.x, swipe.y);
   if (!b || speed < F.least) return false;
@@ -297,21 +324,8 @@ export function beginHold(
   'worklet';
   release(world, 0, 0, 1, finger);
   const r = radiusAt(0);
-  const id = world.nextId++;
-  const bubble: Bubble = {
-    id,
-    style,
-    seed: (id * 0.61803) % 1,
-    r,
-    p: { x: unproject(box, sx, r), y: unproject(box, sy, r), z: r },
-    v: { x: 0, y: 0, z: 0 },
-    d: { x: 0, y: 0, z: 0 },
-    dv: { x: 0, y: 0, z: 0 },
-    spin: 0,
-    turn: 0,
-    popping: -1,
-    popFx: '',
-  };
+  const at = { x: unproject(box, sx, r), y: unproject(box, sy, r), z: r };
+  const bubble = newBubble(world, style, r, at);
   const over = bubbleAt(world, box, sx, sy);
   const under = world.bubbles.find((b) => b.id === over);
   const grip = { x: 0, y: 0 };
@@ -488,6 +502,102 @@ function meet(
   });
 }
 
+function smooth(t: number) {
+  'worklet';
+  const k = clamp(t, 0, 1);
+  return k * k * (3 - 2 * k);
+}
+
+/** Lets the smaller of two touching bubbles sink into the larger. Returns whether it did. */
+function startMerge(world: World, a: Bubble, b: Bubble) {
+  'worklet';
+  if (a.shy > 0 || b.shy > 0) return false;
+  const lo = Math.min(a.id, b.id);
+  const hi = Math.max(a.id, b.id);
+  const verdict = (lo * 0.61803 + hi * 0.75488) % 1;
+  if (!world.merges[Math.floor(verdict * world.merges.length)]) return false;
+  // The older keeps its look when they are the same size.
+  const aStays = a.r === b.r ? a.id < b.id : a.r > b.r;
+  const large = aStays ? a : b;
+  const small = aStays ? b : a;
+  let volume = a.r ** 3 + b.r ** 3;
+  for (const o of world.bubbles) {
+    // One that is still taking another in finishes first.
+    if (o.join?.into === small.id) return false;
+    if (o.join?.into === large.id) volume += o.r ** 3;
+  }
+  if (volume > T.merge.maxRadius ** 3) return false;
+  small.join = { into: large.id, seconds: 0 };
+  return true;
+}
+
+/**
+ * Moves a sinking bubble on. It passes its volume over bit by bit, taking momentum and the centre of
+ * mass with it, so nothing jumps.
+ */
+function sink(world: World, b: Bubble, feels: Feel[], dt: number) {
+  'worklet';
+  const M = T.merge;
+  const join = b.join;
+  if (!join || join.seconds >= M.seconds) return;
+  const a = world.bubbles.find((o) => o.id === join.into && o.popping < 0);
+  if (!a) {
+    startPop(world, b);
+    return;
+  }
+  const before = smooth(join.seconds / M.seconds);
+  join.seconds += dt;
+  const u = Math.min(1, join.seconds / M.seconds);
+  b.fade = 1 - smooth((u - 0.2) / 0.8);
+  const ma = a.r ** 3;
+  const mb = b.r ** 3;
+  const dx = b.p.x - a.p.x;
+  const dy = b.p.y - a.p.y;
+  const dz = b.p.z - a.p.z;
+  const vx = b.v.x - a.v.x;
+  const vy = b.v.y - a.v.y;
+  const vz = b.v.z - a.v.z;
+  const dist = Math.hypot(dx, dy, dz);
+  const nx = dist > 1e-6 ? dx / dist : 0;
+  const ny = dist > 1e-6 ? dy / dist : 0;
+  const nz = dist > 1e-6 ? dz / dist : 0;
+  // Drawn together without overshooting.
+  const ka = (M.pull * dt) / (ma + mb);
+  const ax = (M.pull * dx + 2 * vx) * ka;
+  const ay = (M.pull * dy + 2 * vy) * ka;
+  const az = (M.pull * dz + 2 * vz) * ka;
+  a.v.x += ax * mb;
+  a.v.y += ay * mb;
+  a.v.z += az * mb;
+  b.v.x -= ax * ma;
+  b.v.y -= ay * ma;
+  b.v.z -= az * ma;
+  const given = u >= 1 ? mb : (mb * (smooth(u) - before)) / (1 - before);
+  const share = given / (ma + given);
+  a.p.x += dx * share;
+  a.p.y += dy * share;
+  a.p.z += dz * share;
+  a.v.x += (b.v.x - a.v.x) * share;
+  a.v.y += (b.v.y - a.v.y) * share;
+  a.v.z += (b.v.z - a.v.z) * share;
+  a.r = Math.cbrt(ma + given);
+  b.r = Math.cbrt(Math.max(0, mb - given));
+  const orbit = (dx * vy - dy * vx) / (0.4 * a.r * a.r);
+  a.spin += (b.spin - a.spin) * share + orbit * share * M.twist;
+  a.spin = clamp(a.spin, -T.spin.max, T.spin.max);
+  const k = share * M.stretch * feelOf(a, feels).wobble;
+  a.dv.x += k * (1.5 * nx * nx - 0.5);
+  a.dv.y += k * (1.5 * ny * ny - 0.5);
+  a.dv.z += k * (1.5 * nz * nz - 0.5);
+  // Both edges swell into a neck, then relax. A small one moves a large edge less.
+  const swell = M.reach * Math.sin(Math.PI * Math.sqrt(u)) * (1 - Math.exp(-M.ease * dt));
+  const little = Math.min(1, b.r / a.r);
+  a.reach.x += nx * swell * little;
+  a.reach.y += ny * swell * little;
+  b.reach.x -= nx * swell;
+  b.reach.y -= ny * swell;
+}
+
 /** Equal-density collision. A held bubble has infinite mass. */
 function collide(
   world: World,
@@ -507,6 +617,11 @@ function collide(
   const nx = dist > 1e-6 ? dx / dist : 0;
   const ny = dist > 1e-6 ? dy / dist : 0;
   const nz = dist > 1e-6 ? dz / dist : 1;
+  if (!aHeld && startMerge(world, a, b)) {
+    const rate = (a.v.x - b.v.x) * nx + (a.v.y - b.v.y) * ny + (a.v.z - b.v.z) * nz;
+    meet(world, a, b, nx, ny, nz, rate);
+    return;
+  }
   const ia = aHeld ? 0 : 1 / (a.r * a.r * a.r);
   const ib = 1 / (b.r * b.r * b.r);
   // Overlap eases apart, so soft things press rather than snap.
@@ -589,6 +704,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     const feel = feelOf(b, feels);
     const fade = Math.exp(-feel.drag * dt);
     if (b.popping >= 0) b.popping += dt;
+    b.shy = Math.max(0, b.shy - dt);
     const ph = b.seed * 40;
     b.v.x += Math.sin(t * 0.43 + ph) * feel.wander * dt;
     b.v.y += (Math.sin(t * 0.37 + ph * 1.7) * feel.wander - feel.buoyancy) * dt;
@@ -617,15 +733,29 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     b.p.z += b.v.z * dt;
     relaxShape(b, dt);
   }
+  const settle = Math.exp(-T.merge.ease * dt);
+  for (const b of world.bubbles) {
+    b.reach.x *= settle;
+    b.reach.y *= settle;
+  }
+  for (const b of world.bubbles) sink(world, b, feels, dt);
+  for (const b of world.bubbles) {
+    const reach = Math.hypot(b.reach.x, b.reach.y);
+    if (reach <= T.merge.maxReach) continue;
+    b.reach.x *= T.merge.maxReach / reach;
+    b.reach.y *= T.merge.maxReach / reach;
+  }
   const solid = heldBubbles(world);
   const n = world.bubbles.length;
   for (let i = 0; i < n; i++) {
     const a = world.bubbles[i]!;
-    if (a.popping >= 0) continue;
+    if (a.popping >= 0 || a.join) continue;
     for (const h of solid) collide(world, h, a, true, bounceScale, feels);
     for (let j = i + 1; j < n; j++) {
       const b = world.bubbles[j]!;
-      if (b.popping < 0) collide(world, a, b, false, bounceScale, feels);
+      // A sinking bubble passes through others; either of these may have just begun to.
+      if (a.join) break;
+      if (b.popping < 0 && !b.join) collide(world, a, b, false, bounceScale, feels);
     }
   }
   for (const { bubble: b } of world.holds) {
@@ -671,5 +801,7 @@ export function advance(
     step(world, box, feels, bounceScale, T.step);
     world.leftover -= T.step;
   }
-  world.bubbles = world.bubbles.filter((b) => b.popping < T.popSeconds);
+  world.bubbles = world.bubbles.filter(
+    (b) => b.popping < T.popSeconds && !(b.join && b.join.seconds >= T.merge.seconds),
+  );
 }

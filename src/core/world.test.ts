@@ -7,6 +7,8 @@ import {
   createWorld,
   feelOf,
   heldBubbles,
+  newBubble,
+  popApart,
   finishFlick,
   finishTap,
   moveHold,
@@ -378,4 +380,114 @@ test('swipe speed follows the finger and fades when it rests', () => {
   expect(swipeOf(w.holds[0]!).x).toBeCloseTo(3, 0);
   run(w, 0.3);
   expect(swipeOf(w.holds[0]!)).toEqual({ x: 0, y: 0 });
+});
+
+/** Two bubbles approaching each other in the middle of the box. */
+const approach = (ra: number, rb: number, merges = [true]) => {
+  const w = createWorld(pools);
+  w.merges = merges;
+  for (const [style, r, side] of [
+    ['soap', ra, -1],
+    ['ink', rb, 1],
+  ] as const) {
+    const b = newBubble(w, style, r, { x: side * (r + 0.01), y: side * 0.05, z: 2 });
+    b.v.x = -side * 0.4;
+    w.bubbles.push(b);
+  }
+  return w;
+};
+const still: Feel = { ...FEELS.weightless, minSpeed: 0 };
+const volume = (w: ReturnType<typeof createWorld>) =>
+  w.bubbles.reduce((sum, b) => sum + b.r ** 3, 0);
+
+test('merging keeps volume, momentum and centre of mass, and never jumps', () => {
+  const w = approach(0.3, 0.4);
+  const drift = () => w.bubbles.reduce((sum, b) => sum + b.v.x * b.r ** 3, 0);
+  const centre = () => w.bubbles.reduce((sum, b) => sum + b.p.x * b.r ** 3, 0);
+  const before = { volume: volume(w), drift: drift(), centre: centre() };
+  let last = w.bubbles.map((b) => ({ id: b.id, r: b.r, x: b.p.x }));
+  for (let i = 0; i < 120; i++) {
+    run(w, 1 / 60, still);
+    for (const b of w.bubbles) {
+      const was = last.find((o) => o.id === b.id)!;
+      expect(Math.abs(b.p.x - was.x)).toBeLessThan(0.06);
+      if (b.fade > 0.1) expect(Math.abs(b.r - was.r)).toBeLessThan(0.06);
+    }
+    last = w.bubbles.map((b) => ({ id: b.id, r: b.r, x: b.p.x }));
+  }
+  expect(w.bubbles.map((b) => b.style)).toEqual(['ink']);
+  expect(volume(w)).toBeCloseTo(before.volume);
+  expect(drift()).toBeCloseTo(before.drift);
+  expect(centre()).toBeCloseTo(before.centre + before.drift * w.time, 3);
+  expect(Math.abs(w.bubbles[0]!.spin)).toBeGreaterThan(0);
+  expect(Math.hypot(w.bubbles[0]!.reach.x, w.bubbles[0]!.reach.y)).toBeLessThan(0.02);
+});
+
+test('bubbles bounce when merging is off, when too large together, or when held', () => {
+  for (const w of [approach(0.3, 0.4, [false]), approach(0.7, 0.7)]) {
+    run(w, 2, still);
+    expect(w.bubbles).toHaveLength(2);
+  }
+  const w = approach(0.3, 0.4);
+  beginHold(w, box, 0, 0, 'soap');
+  w.bubbles = w.bubbles.slice(0, 1);
+  w.bubbles[0]!.p = { x: 0, y: 0, z: 0.3 };
+  run(w, 0.5, still);
+  expect(w.bubbles[0]!.join).toBeNull();
+});
+
+test('popping the larger bubble pops what is sinking into it', () => {
+  const w = approach(0.3, 0.4);
+  run(w, 0.4, still);
+  expect(w.bubbles[0]!.join?.into).toBe(w.bubbles[1]!.id);
+  popApart(w, w.bubbles[1]!);
+  run(w, 0.1, still);
+  expect(w.bubbles[0]!.popping).toBeGreaterThan(0);
+});
+
+test('pieces of a pop wait before they merge', () => {
+  const w = approach(0.4, 0.4);
+  w.bubbles.pop();
+  popApart(w, w.bubbles[0]!);
+  run(w, 0.5, still);
+  expect(w.bubbles.filter((b) => b.popping < 0 && !b.join)).toHaveLength(5);
+});
+
+test('a merging crowd stays finite, inside the box and within the largest size', () => {
+  const w = createWorld();
+  w.merges = [true];
+  let most = 0;
+  for (let i = 0; i < 24; i++) {
+    beginHold(w, box, Math.sin(i) * 0.9, Math.cos(i * 3) * 2, 'soap');
+    run(w, 0.2 + (i % 4) * 0.5);
+    release(w, Math.sin(i * 5) * 10, Math.cos(i * 7) * 10, 1);
+    for (const b of w.bubbles) {
+      if (![b.r, b.p.x, b.p.y, b.p.z, b.spin, b.d.x].every(Number.isFinite)) throw new Error('NaN');
+      expect(b.r).toBeLessThanOrEqual(TUNING.merge.maxRadius + 1e-9);
+      expect(Math.abs(b.p.x) + b.r).toBeLessThanOrEqual(1 + 1e-9);
+      most = Math.max(most, b.r);
+    }
+  }
+  expect(most).toBeGreaterThan(TUNING.grow.maxRadius);
+});
+
+test('a touch on a sinking bubble reaches the one it is joining', () => {
+  const w = approach(0.3, 0.4);
+  run(w, 0.3, still);
+  const [small, large] = w.bubbles;
+  beginHold(w, box, 0, 0, 'soap', true);
+  w.holds[0]!.over = small!.id;
+  expect(finishTap(w)).toBe(true);
+  expect(large!.popping).toBe(0);
+});
+
+test('with Random, a pair keeps to one verdict and both kinds occur', () => {
+  const merged = [1, 2, 3, 4, 5, 6, 7, 8].map((first) => {
+    const w = approach(0.3, 0.4, [false, true]);
+    w.bubbles[0]!.id = first;
+    w.bubbles[1]!.id = first + 1;
+    run(w, 2, still);
+    return w.bubbles.length === 1;
+  });
+  expect(new Set(merged).size).toBe(2);
 });

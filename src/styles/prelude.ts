@@ -2,6 +2,7 @@
  * Shared SkSL. A style supplies `half4 style(vec2 p, vec3 n, float rim)` (premultiplied) and
  * `half4 halo()` (rgb, strength). `p` is -1..1 across the bubble, `n` the surface normal facing
  * the viewer, `rim` 0 at the centre and 1 at the edge. Draw area reaches 1.5 for the halo.
+ * `reach` is already undone in `p`.
  * Uniform order must match `drawBubble` in scene/drawScene.ts.
  */
 export const PRELUDE = `
@@ -12,6 +13,7 @@ uniform float fade;
 uniform float pop;
 uniform float fog;
 uniform float turn;
+uniform float2 reach;
 `;
 
 /** Helpers shared with effects. */
@@ -58,7 +60,15 @@ vec2 skin(vec3 n, float speed) {
 `;
 
 export const MAIN = `
+// Draws one side of the edge out towards a merging bubble.
+vec2 drawn(vec2 p) {
+  float k = length(reach);
+  float l = length(p);
+  if (k < 0.001 || l < 0.001) return p;
+  return p / (1.0 + k * pow(max(dot(p, reach) / (k * l), 0.0), 5.0));
+}
 half4 main(vec2 p) {
+  p = drawn(p);
   float d = length(p);
   float grain = (hash(p * 913.0 + seed) - 0.5) / 160.0;
   vec4 c = vec4(0.0);

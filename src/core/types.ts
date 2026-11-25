@@ -20,6 +20,14 @@ export type Bubble = {
   popping: number;
   /** Effect chosen when it began popping. */
   popFx: string;
+  /** The larger bubble it is sinking into, and for how long. */
+  join: { into: number; seconds: number } | null;
+  /** Opacity, 1 unless it is sinking into another. */
+  fade: number;
+  /** How far its edge bulges towards a bubble it is merging with, in radii. */
+  reach: { x: number; y: number };
+  /** Seconds before it may merge. */
+  shy: number;
 };
 
 export type Axis = 'x' | 'y' | 'z';
@@ -83,6 +91,8 @@ export type World = {
   waves: Wave[];
   bursts: Burst[];
   fx: FxPools;
+  /** Whether touching bubbles merge; each pair keeps to one entry. */
+  merges: boolean[];
   /** A two-finger swipe in progress. Bubbles born or launched during it are spared. */
   sweep: { firstSpared: number; launched: number[] } | null;
   /** One per finger that is growing a bubble. */
