@@ -3,6 +3,7 @@ import { compileFx, compileStyles } from './effects';
 import { compileGlass } from './glassFilter';
 import { compileLiquid } from './liquid';
 import { compileRoomContact } from './roomContact';
+import { compileTrails } from './trails';
 import { compileWalls } from './walls';
 
 function make() {
@@ -20,6 +21,7 @@ function make() {
     ripplePaint,
     liquid: compileLiquid(),
     roomContact: compileRoomContact(),
+    trails: compileTrails(),
     walls: compileWalls(),
     lightPaint: Skia.Paint(),
   };

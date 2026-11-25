@@ -11,40 +11,9 @@ import {
   moustache,
   mouths,
 } from './parts';
-import {
-  both,
-  fill,
-  glow,
-  line,
-  oval,
-  poly,
-  rect,
-  scatter,
-  shape,
-  star,
-  type Shape,
-} from './shapes';
+import { lamp, mist, ridge, shaft, spire, wash } from './scenery';
+import { both, fill, glow, line, oval, poly, rect, scatter, shape, star } from './shapes';
 import type { Theme } from './types';
-
-const tower = (x: number, y: number, w: number, h: number, c: string): Shape[] => [
-  fill(rect(x, y - h, w, h), c),
-  ...[0, 1, 2].map((i) =>
-    fill(rect(x - 0.02 + (i * (w + 0.04)) / 2.6, y - h - 0.06, w / 4, 0.08), c),
-  ),
-  fill(rect(x + w / 2 - 0.02, y - h * 0.75, 0.04, 0.1), '#ffd27a'),
-];
-const pennant = (x: number, y: number, c: string): Shape[] => [
-  line(`M${x} ${y}V${y - 0.24}`, '#3a2740', 0.015),
-  fill(poly(x, y - 0.24, x + 0.2, y - 0.18, x, y - 0.11), c),
-];
-const tent = (x: number, y: number, a: string, b: string): Shape[] => [
-  shape(poly(x - 0.3, y, x - 0.24, y - 0.26, x + 0.24, y - 0.26, x + 0.3, y), a, 0.015),
-  fill(poly(x - 0.12, y, x - 0.1, y - 0.26, x + 0.02, y - 0.26, x + 0.02, y), b),
-  fill(poly(x + 0.17, y, x + 0.13, y - 0.26, x + 0.24, y - 0.26, x + 0.3, y), b),
-  shape(poly(x - 0.3, y - 0.24, x, y - 0.62, x + 0.3, y - 0.24), b, 0.015),
-  fill(poly(x - 0.1, y - 0.24, x, y - 0.62, x + 0.1, y - 0.24), a),
-  ...pennant(x, y - 0.6, a),
-];
 
 export const medieval: Theme = {
   name: 'Medieval',
@@ -56,53 +25,27 @@ export const medieval: Theme = {
   backdrop: ['#5a3650', '#170b20'],
   ink: [255, 208, 150],
   mural: ({ horizon: h, top, bottom }) => [
-    glow(oval(0.45, h - 0.75, 0.28), '#ffe0a055', 0.12),
-    fill(oval(0.45, h - 0.75, 0.2), '#ffeec4'),
-    fill(
-      `M-1 ${h}V${h - 0.5}Q-.5 ${h - 0.85} 0 ${h - 0.4}Q.5 ${h - 0.7} 1 ${h - 0.35}V${h}Z`,
-      '#6c4675',
+    // Evening behind a keep on a far crag, and lanterns in the valley.
+    wash(rect(-1, h - 1.9, 2, 1.9), '#ffb07000', '#ffb0708c'),
+    ...lamp(0.42, h - 0.95, 0.17, '#ffe6b8'),
+    ...spire(-0.5, h - 0.2, 0.15, 0.86, '#573a66'),
+    ...spire(-0.3, h - 0.2, 0.2, 1.2, '#4b315c'),
+    ...spire(-0.1, h - 0.2, 0.14, 0.72, '#573a66'),
+    ...spire(0.05, h - 0.2, 0.09, 0.52, '#644872'),
+    ...spire(-0.64, h - 0.2, 0.09, 0.58, '#644872'),
+    fill(rect(-0.64, h - 0.62, 0.7, 0.3), '#4b315c'),
+    ...[-0.31, -0.5, -0.1].map((x, i) =>
+      glow(rect(x, h - [1.18, 0.86, 0.74][i]!, 0.022, 0.07), '#ffd58a', 0.008),
     ),
-    ...tower(-0.75, h, 0.2, 1.25, '#4a3260'),
-    ...tower(-0.1, h, 0.24, 1.1, '#4a3260'),
-    ...tower(-0.42, h, 0.2, 1.5, '#523768'),
-    fill(rect(-0.75, h - 0.65, 0.85, 0.65), '#4a3260'),
-    fill(`M-.36 ${h}V${h - 0.25}Q-.28 ${h - 0.4} -.2 ${h - 0.25}V${h}Z`, '#2a1a3c'),
-    ...pennant(-0.65, h - 1.28, '#ff5d5d'),
-    ...pennant(-0.32, h - 1.54, '#ffcf5a'),
-    ...pennant(0.02, h - 1.12, '#5db6ff'),
-    ...tent(0.62, h + 0.04, '#e9e2d0', '#c93b4a'),
-    ...tent(-0.8, h + 0.06, '#e9e2d0', '#3768b5'),
-    // The crowd behind the barrier.
-    ...scatter(46, (a, b, c) =>
-      fill(
-        oval(a * 2 - 1, h + 0.06 - b * 0.06, 0.035 + c * 0.015),
-        ['#3a2740', '#5a2f45', '#7c3f48'][Math.floor(c * 3)]!,
-      ),
-    ),
-    shape(rect(-1.1, h + 0.06, 2.2, 0.1), '#b2413e', 0.012),
-    ...[-5, -3, -1, 1, 3, 5].map((i) =>
-      fill(
-        poly(
-          i / 5 - 0.1,
-          h + 0.06,
-          i / 5,
-          h + 0.06,
-          i / 5 + 0.06,
-          h + 0.16,
-          i / 5 - 0.04,
-          h + 0.16,
-        ),
-        '#f0e3c0',
-      ),
-    ),
-    ...both(
-      shape(`M.78 ${top}H1.1V${top + 0.95}L.94 ${top + 0.8}L.78 ${top + 0.95}Z`, '#8a2438', 0.02),
-      line(`M.83 ${top}V${top + 0.86}`, '#ffcf5a', 0.015),
-      fill(star(0.94, top + 0.55, 0.1, 4, 0.35), '#ffcf5a'),
-      line(`M.9 ${bottom}V${h + 0.1}`, '#3b2417', 0.06),
-      glow(oval(0.9, h + 0.02, 0.2), '#ff9a3c88', 0.08),
-      fill(`M.83 ${h + 0.1}Q.8 ${h} .9 ${h - 0.16}Q1 ${h} .97 ${h + 0.1}Z`, '#ffb347'),
-    ),
+    ridge(h - 0.35, 0.5, 0.5, 1, '#8a5c7c'),
+    mist(0, h - 0.35, 0.9, 0.07, '#ffd0a866'),
+    mist(-0.3, h - 0.2, 0.7, 0.07, '#ffd8b888'),
+    ridge(h + 0.05, 0.34, 0.5, 3.2, '#54365f'),
+    ridge(h + 0.2, 0.22, bottom - h, 5, '#2e1c3c'),
+    ...scatter(9, (a, b, c) =>
+      lamp(a * 2 - 1, h + 0.06 + b * 0.16, 0.008 + c * 0.008, '#ffcf80'),
+    ).flat(),
+    ...[-0.5, 0.1, 0.62].map((x, i) => shaft(x, top, 2.2, -0.35, 0.16 + i * 0.05, '#ffdcae2e')),
   ],
   motes: { color: '#ffb866', size: 0.012, rise: 0.14 },
   cast: [

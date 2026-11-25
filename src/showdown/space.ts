@@ -1,5 +1,6 @@
 import { cateyes, embers, eyes, mouths } from './parts';
-import { both, fill, glow, line, oval, poly, rect, scatter, shape, star } from './shapes';
+import { lamp, mist, wash } from './scenery';
+import { both, fill, glow, line, n, oval, poly, rect, scatter, shape, star } from './shapes';
 import type { Theme } from './types';
 
 const ray = (i: number, n: number, r: number, R: number, w: number) => {
@@ -23,54 +24,63 @@ export const space: Theme = {
   verbs: ['vaporises', 'out-orbits', 'beams up', 'ejects'],
   backdrop: ['#2a1c68', '#060314'],
   ink: [140, 225, 255],
-  mural: ({ horizon: h, top }) => [
-    glow(oval(-0.4, -0.2, 0.7, 0.4), '#ff4fa033', 0.3),
-    glow(oval(0.5, 0.4, 0.6, 0.5), '#3fa7ff33', 0.3),
-    ...scatter(110, (a, b, c) =>
-      fill(oval(a * 2 - 1, top + b * (h - top), 0.003 + c * c * 0.009), '#ffffffcc'),
+  mural: ({ horizon: h, top, bottom }) => [
+    // Clouds of gas, and a ringed world over a lit horizon.
+    glow(oval(-0.35, -0.5, 0.75, 0.22), '#ff5fae55', 0.2),
+    glow(oval(0.1, -0.15, 0.6, 0.16), '#b06cff55', 0.16),
+    glow(oval(0.5, 0.3, 0.6, 0.3), '#3fb0ff55', 0.22),
+    ...scatter(16, (a, b, c) =>
+      mist(
+        a * 2 - 1,
+        -0.75 + a * 0.75 + b * 0.5,
+        0.12 + c * 0.3,
+        0.03 + c * 0.05,
+        ['#ff9ad044', '#9ac8ff44', '#c8a0ff44'][Math.floor(c * 3)]!,
+      ),
     ),
-    ...scatter(6, (a, b) =>
-      fill(star(b * 2 - 1, top + a * (h - top) * 0.8, 0.04, 4, 0.16), '#ffffff'),
+    ...scatter(150, (a, b, c) =>
+      fill(
+        oval(a * 2 - 1, top + b * (h - top), 0.002 + c ** 4 * 0.008),
+        ['#ffffff', '#ffe2c0', '#b8d8ff'][Math.floor(a * 3)]!,
+      ),
     ),
-    glow(oval(-0.5, h - 0.95, 0.44), '#ffb37033', 0.1),
-    line(`M-.02 ${h - 1.12}A.5.14-18 0 0-.98 ${h - 0.78}`, '#ffd9a8', 0.035),
-    fill(oval(-0.5, h - 0.95, 0.34), '#e8794f'),
-    fill(
-      `M-.82 ${h - 1.06}Q-.5 ${h - 1.0} -.2 ${h - 1.12}L-.17 ${h - 1.0}Q-.5 ${h - 0.9} -.84 ${h - 0.96}Z`,
-      '#f7a86a',
+    ...scatter(7, (a, b, c) =>
+      lamp(b * 2 - 1, top + a * (h - top) * 0.9, 0.008 + c * 0.006, '#ffffff'),
+    ).flat(),
+    // Its far ring, the world, its night side, then the near ring.
+    glow(oval(-0.36, h - 0.95, 0.4), '#ffb88044', 0.16),
+    ...[0.6, 0.53, 0.49].map((r, i) => ({
+      ...line(
+        `M${n(-0.36 - r)} ${n(h - 0.95)}A${r} ${n(r * 0.2)} 0 0 1 ${n(-0.36 + r)} ${n(h - 0.95)}`,
+        ['#ffd9b088', '#ffe6cca0', '#e8b8a866'][i]!,
+        [0.02, 0.035, 0.012][i]!,
+      ),
+      blur: 0.004,
+    })),
+    wash(oval(-0.36, h - 0.95, 0.35), '#ffd0a0', '#7a3c78'),
+    ...scatter(5, (a, b, c) =>
+      mist(-0.36 + (a - 0.5) * 0.1, h - 1.14 + b * 0.4, 0.22, 0.012 + c * 0.014, '#fff0d855'),
     ),
-    fill(
-      `M-.8 ${h - 0.82}Q-.5 ${h - 0.76} -.18 ${h - 0.86}L-.24 ${h - 0.74}Q-.5 ${h - 0.68} -.74 ${h - 0.72}Z`,
-      '#b84a44',
+    glow(
+      `M-.2 ${n(h - 1.26)}A.35 .35 0 0 1 -.5 ${n(h - 0.63)}Q-.1 ${n(h - 0.78)} -.2 ${n(h - 1.26)}Z`,
+      '#180a3ccc',
+      0.06,
     ),
-    line(`M-.98 ${h - 0.78}A.5.1-18 0 0-.02 ${h - 1.12}`, '#ffe9c8', 0.05),
-    fill(oval(0.66, h - 1.35, 0.13), '#9ad0ff'),
-    fill(oval(0.7, h - 1.38, 0.12), '#1b0f46aa'),
-    fill(
-      `M-1 ${h + 0.01}V${h - 0.1}Q-.7 ${h - 0.2} -.4 ${h - 0.05}Q0 ${h - 0.14} .4 ${h - 0.04}Q.8 ${h - 0.2} 1 ${h - 0.08}V${h + 0.01}Z`,
-      '#6d6790',
-    ),
-    // The base: domes, a dish and a landed rocket.
-    shape(`M.28 ${h + 0.06}A.22.22 0 0 1 .72 ${h + 0.06}Z`, '#5ad1e8', 0.014),
-    line(
-      `M.5 ${h - 0.16}V${h + 0.06}M.34 ${h - 0.06}Q.5 ${h - 0.02} .66 ${h - 0.06}`,
-      '#2b5c86',
-      0.012,
-    ),
-    shape(rect(0.22, h + 0.04, 0.56, 0.07), '#c9cbe0', 0.014),
-    shape(
-      `M-.2 ${h + 0.06}V${h - 0.28}Q-.1 ${h - 0.55} 0 ${h - 0.28}V${h + 0.06}Z`,
-      '#f2f2fa',
-      0.014,
-    ),
-    shape(poly(-0.2, h - 0.08, -0.3, h + 0.1, -0.2, h + 0.06), '#ff5470', 0.014),
-    shape(poly(0, h - 0.08, 0.1, h + 0.1, 0, h + 0.06), '#ff5470', 0.014),
-    fill(oval(-0.1, h - 0.22, 0.05), '#3fa7ff'),
-    fill(`M-.19 ${h - 0.3}Q-.1 ${h - 0.55} -.01 ${h - 0.3}Z`, '#ff5470'),
-    ...both(
-      line(`M.92 ${h + 0.3}V${h - 0.35}`, '#8f8bb0', 0.03),
-      glow(oval(0.92, h - 0.38, 0.12), '#7df9ff88', 0.06),
-      fill(oval(0.92, h - 0.38, 0.05), '#d6fdff'),
+    ...[0.6, 0.53, 0.49].map((r, i) => ({
+      ...line(
+        `M${n(-0.36 - r)} ${n(h - 0.95)}A${r} ${n(r * 0.2)} 0 0 0 ${n(-0.36 + r)} ${n(h - 0.95)}`,
+        ['#ffd9b0aa', '#fff0dccc', '#e8b8a888'][i]!,
+        [0.02, 0.035, 0.012][i]!,
+      ),
+      blur: 0.004,
+    })),
+    ...lamp(0.62, h - 1.4, 0.06, '#a8dcff'),
+    // The edge of the moon we stand over.
+    glow(oval(0, h + 1.62, 2.1, 1.75), '#7fc8ff66', 0.07),
+    wash(
+      `M-1 ${n(h + 0.18)}A2.1 1.75 0 0 1 1 ${n(h + 0.18)}V${n(bottom)}H-1Z`,
+      '#b4c4ff',
+      '#1a1248',
     ),
   ],
   motes: { color: '#b8c7ff', size: 0.01, rise: -0.02 },

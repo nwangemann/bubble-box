@@ -1,4 +1,13 @@
-import { feelPool, fxPools, mergePool, ROWS, stylePool, tapPool } from '../config/defaults';
+import {
+  feelPool,
+  fxPools,
+  mergePool,
+  pullPool,
+  ROWS,
+  stylePool,
+  tapPool,
+  trailPool,
+} from '../config/defaults';
 import { TUNING } from '../config/tuning';
 import { layoutCells } from './layout';
 import { createStage, play, playToStill, type Part } from './scripts';
@@ -11,6 +20,8 @@ const part = (kind: Part['kind'], id: string): Part => ({
   taps: tapPool(kind === 'tap' ? id : 'grow'),
   fx: fxPools(kind === 'meet' ? id : 'none', kind === 'pop' ? id : 'none'),
   merges: mergePool(kind === 'contact' ? id : 'bounce'),
+  pulls: pullPool(kind === 'pull' ? id : 'none'),
+  trails: trailPool(kind === 'trail' ? id : 'none'),
   bounce: 1,
   delay: 0.2,
 });

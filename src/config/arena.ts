@@ -7,8 +7,10 @@ export const ARENA = {
   wallOpacity: 1,
   softness: 0,
   /** How plainly the mural shows on the back wall, and its horizon: 1 is the floor, 0 the middle. */
-  mural: 0.16,
+  mural: 0.3,
   horizon: 0.8,
+  /** How far the mural takes on the colours of a thin film. */
+  sheen: 0.22,
 };
 
 /**

@@ -3,12 +3,14 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { ENTRANTS, RULES, type RuleId } from '@/config/rules';
+import { MODE_SWITCH } from '@/config/modes';
 import { SHOWDOWN_UI as U } from '@/config/showdownUi';
 import { TUNING } from '@/config/tuning';
 import { drawFigure, drawLiquid, showdownLook } from '@/scene/drawShowdown';
 import { getGpu } from '@/scene/gpu';
 import { arenaPicture, pictureShader } from '@/scene/showdownPictures';
 import { THEME_IDS, THEMES, type ThemeId } from '@/showdown';
+import { ModeSwitch } from './ModeSwitch';
 
 const C = U.card;
 const COLUMNS = 2;
@@ -20,11 +22,14 @@ type Props = {
   count: number;
   onCount: (count: number) => void;
   onPick: (theme: ThemeId) => void;
+  onRandom: () => void;
+  /** Back to the calm room's menu. */
+  onCalm: () => void;
   onClose: () => void;
 };
 
 /** Every arena as a card, and the rule they are fought under. */
-export function Lobby({ rule, onRule, count, onCount, onPick, onClose }: Props) {
+export function Lobby({ rule, onRule, count, onCount, onPick, onRandom, onCalm, onClose }: Props) {
   const { width, height } = useWindowDimensions();
   const step = (by: number) =>
     onCount(Math.max(ENTRANTS.least, Math.min(ENTRANTS.most, count + by)));
@@ -138,6 +143,14 @@ export function Lobby({ rule, onRule, count, onCount, onPick, onClose }: Props) 
             <Text style={styles.sign}>+</Text>
           </Pressable>
         </View>
+        <Pressable
+          onPress={onRandom}
+          accessibilityRole="button"
+          accessibilityLabel="Random arena"
+          style={({ pressed }) => [styles.random, pressed && styles.pressed]}
+        >
+          <Text style={styles.ruleText}>Random arena</Text>
+        </Pressable>
       </View>
       {cards.map(({ id, x, y, w, h }) => (
         <Pressable
@@ -166,6 +179,9 @@ export function Lobby({ rule, onRule, count, onCount, onPick, onClose }: Props) 
       >
         <View style={styles.dot} />
       </Pressable>
+      <View style={styles.modes} pointerEvents="box-none">
+        <ModeSwitch mode="showdown" onMode={onCalm} />
+      </View>
     </Animated.View>
   );
 }
@@ -196,6 +212,14 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   about: { color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 8 },
+  random: {
+    minHeight: 40,
+    paddingHorizontal: 18,
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  modes: { position: 'absolute', left: 0, right: 0, bottom: MODE_SWITCH.bottom },
   card: {
     position: 'absolute',
     borderRadius: C.corner,

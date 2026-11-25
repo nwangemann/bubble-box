@@ -50,6 +50,8 @@ export function Maker({ custom, mine, env, calm, onChange, onClose }: Props) {
       taps: tapPool(DEFAULTS.tap),
       fx: fxPools(NONE, NONE),
       merges: [false],
+      pulls: [],
+      trails: [],
       bounce: 1,
       delay: 0,
     }),

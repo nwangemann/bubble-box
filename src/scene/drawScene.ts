@@ -13,6 +13,8 @@ import { scaleAt } from '@/core/projection';
 import { heldBubbles } from '@/core/world';
 import type { Box, Bubble, Burst, Ripple, World } from '@/core/types';
 
+import { drawPiece, trailPieces, type TrailGpu } from './trails';
+
 export type Effects = Record<string, SkRuntimeEffect>;
 export type View = { cx: number; cy: number; ppu: number };
 
@@ -177,6 +179,7 @@ export function drawScene(
   bends: boolean[],
   /** How Custom bubbles look now. */
   mine: CustomLook,
+  trails?: TrailGpu,
 ) {
   'worklet';
   for (const r of world.ripples) {
@@ -186,6 +189,20 @@ export function drawScene(
   }
   const all = [...world.bubbles, ...heldBubbles(world)];
   all.sort((a, b) => b.p.z - a.p.z);
-  for (const b of all) drawBubble(canvas, bubblePaint, fx, b, world, box, view, mine);
+  const pieces = trails ? trailPieces(world, box) : [];
+  pieces.sort((a, b) => b.z - a.z);
+  let next = 0;
+  const trailsBeyond = (z: number) => {
+    'worklet';
+    for (; trails && next < pieces.length && pieces[next]!.z >= z; next++) {
+      const piece = pieces[next]!;
+      drawPiece(canvas, trails, piece, world, box, view, tintOf(piece.trail.style, mine));
+    }
+  };
+  for (const b of all) {
+    trailsBeyond(b.p.z);
+    drawBubble(canvas, bubblePaint, fx, b, world, box, view, mine);
+  }
+  trailsBeyond(-Infinity);
   for (const o of world.bursts) drawBurst(canvas, burstPaint, burstFx, o, box, view, mine);
 }

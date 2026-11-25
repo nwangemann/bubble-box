@@ -1,3 +1,4 @@
+import { ARENA_PULL } from '../config/pulls';
 import { TUNING } from '../config/tuning';
 import type { Rule } from '../config/rules';
 import type { Box } from './types';
@@ -24,6 +25,7 @@ export function createShowdown(box: Box, rule: Rule, count: number, cast = count
   'worklet';
   const S = TUNING.showdown;
   const world = createWorld();
+  world.pulls = [ARENA_PULL];
   const entrants = shuffled(cast).slice(0, count);
   world.duel = {
     absorb: rule.absorb,

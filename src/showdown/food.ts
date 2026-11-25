@@ -1,5 +1,6 @@
 import { cheeks, eyes, moustache, mouths } from './parts';
-import { both, fill, glow, line, oval, rect, scatter, shape } from './shapes';
+import { glass, mist, shaft, wash } from './scenery';
+import { both, fill, glow, line, n, oval, rect, scatter, shape } from './shapes';
 import type { Theme } from './types';
 
 export const food: Theme = {
@@ -11,52 +12,69 @@ export const food: Theme = {
   verbs: ['toasts', 'roasts', 'whisks away', 'devours'],
   backdrop: ['#37857b', '#0d2c2f'],
   ink: [255, 238, 212],
-  mural: ({ horizon: h, top }) => [
-    // Tiles.
-    ...Array.from({ length: 11 }, (_, i) =>
-      line(`M${-1 + i * 0.2} ${top}V${h}`, '#ffffff33', 0.012),
-    ),
-    ...Array.from({ length: Math.ceil((h - top) / 0.2) }, (_, i) =>
-      line(`M-1 ${h - i * 0.2}H1`, '#ffffff33', 0.012),
-    ),
-    // A window, a shelf of jars, and what is on the table.
-    shape(rect(-0.42, h - 1.5, 0.84, 0.62), '#bfeaff', 0.03),
-    fill(oval(0.18, h - 1.28, 0.12), '#fff6b0'),
-    fill(
-      `M-.4 ${h - 0.9}Q-.1 ${h - 1.15} .1 ${h - 0.98}Q.3 ${h - 1.08} .4 ${h - 0.94}V${h - 0.9}Z`,
-      '#7cc46a',
-    ),
-    line(`M0 ${h - 1.5}V${h - 0.88}M-.42 ${h - 1.19}H.42`, '#ffffff', 0.03),
-    ...both(shape(`M.42 ${h - 1.58}H.16Q.4 ${h - 1.35} .36 ${h - 1.1}H.46Z`, '#ff8a7a', 0.015)),
-    line(`M-.55 ${h - 1.58}H.55`, '#7a4a2a', 0.04),
-    line(`M-1 ${h - 0.62}H-.52M.52 ${h - 0.62}H1`, '#9a6236', 0.05),
-    ...[-0.92, -0.76, -0.6].map((x, i) =>
-      shape(rect(x - 0.055, h - 0.86, 0.11, 0.22), ['#e8b04a', '#c95f8a', '#7aa84a'][i]!, 0.012),
-    ),
-    ...[0.62, 0.78, 0.93].map((x, i) =>
-      shape(
-        `M${x - 0.06} ${h - 0.64}V${h - 0.8}Q${x} ${h - 0.92} ${x + 0.06} ${h - 0.8}V${h - 0.64}Z`,
-        ['#f2f2f2', '#6fa8dc', '#ffcf5a'][i]!,
+  mural: ({ horizon: h, top, bottom }) => [
+    // A still life in window light: clear vessels, fruit, and steam.
+    ...[-0.6, -0.1, 0.4].map((x) => shaft(x, top, h - top, 0.4, 0.22, '#fff0c83a')),
+    ...scatter(14, (a, b, c) =>
+      glow(
+        oval(a * 2 - 1, h - 1.9 + b * 1.3, 0.03 + c * 0.07),
+        ['#ffe0a044', '#ffb8a044', '#b8ffe044'][Math.floor(c * 3)]!,
         0.012,
       ),
     ),
-    fill(rect(-1, h - 0.04, 2, 0.06), '#b8744a'),
-    shape(
-      `M-.86 ${h + 0.14}V${h - 0.3}Q-.86 ${h - 0.42} -.77 ${h - 0.46}V${h - 0.58}H-.67V${h - 0.46}Q-.58 ${h - 0.42} -.58 ${h - 0.3}V${h + 0.14}Z`,
-      '#d6302f',
-      0.015,
+    mist(0, h - 0.1, 1.1, 0.24, '#fff0d055'),
+    wash(rect(-1, h - 0.02, 2, bottom - h), '#e8c8a0', '#6a504466'),
+    ...glass(
+      `M-.8 ${n(h)}V${n(h - 0.42)}Q-.8 ${n(h - 0.58)} -.7 ${n(h - 0.64)}V${n(h - 0.96)}H-.62V${n(h - 0.64)}Q-.52 ${n(h - 0.58)} -.52 ${n(h - 0.42)}V${n(h)}Q-.66 ${n(h + 0.04)} -.8 ${n(h)}Z`,
+      '#8fe0b8',
+      -0.765,
+      h - 0.46,
+      0.32,
     ),
-    fill(rect(-0.82, h - 0.24, 0.2, 0.2), '#ffffff'),
-    shape(
-      `M.62 ${h + 0.14}V${h - 0.26}Q.62 ${h - 0.36} .7 ${h - 0.4}L.74 ${h - 0.6}L.78 ${h - 0.4}Q.86 ${h - 0.36} .86 ${h - 0.26}V${h + 0.14}Z`,
-      '#ffc93c',
-      0.015,
+    ...glass(
+      `M-.44 ${n(h + 0.03)}Q-.5 ${n(h - 0.3)} -.36 ${n(h - 0.36)}V${n(h - 0.5)}H-.24V${n(h - 0.36)}Q-.1 ${n(h - 0.3)} -.16 ${n(h + 0.03)}Q-.3 ${n(h + 0.07)} -.44 ${n(h + 0.03)}Z`,
+      '#ffb070',
+      -0.415,
+      h - 0.24,
+      0.18,
     ),
-    glow(oval(0, h + 0.1, 0.5, 0.05), '#00000022', 0.04),
-    shape(oval(0, h + 0.08, 0.4, 0.06), '#ffffff', 0.012),
-    ...[-0.2, 0, 0.2].map((x) => shape(oval(x, h + 0.03, 0.09, 0.07), '#c98a4a', 0.012)),
-    shape(oval(0.1, h - 0.04, 0.09, 0.07), '#d99a5a', 0.012),
-    shape(oval(-0.1, h - 0.04, 0.09, 0.07), '#d99a5a', 0.012),
+    ...glass(
+      `M.6 ${n(h - 0.62)}H.9Q.92 ${n(h - 0.36)} .77 ${n(h - 0.3)}V${n(h - 0.04)}L.87 ${n(h + 0.01)}H.63L.73 ${n(h - 0.04)}V${n(h - 0.3)}Q.58 ${n(h - 0.36)} .6 ${n(h - 0.62)}Z`,
+      '#ff8fa0',
+      0.64,
+      h - 0.56,
+      0.14,
+    ),
+    // Fruit in a bowl, each lit from above.
+    ...(
+      [
+        [0.06, 0.27, 0.11, '#ffb060', '#a8482c'],
+        [0.42, 0.27, 0.1, '#f0e08a', '#8a7a34'],
+        [0.24, 0.32, 0.13, '#ff9080', '#8c2c44'],
+      ] as const
+    ).flatMap(([x, y, r, a, b]) => [
+      wash(oval(x, h - y, r), a, b, 0.006),
+      glow(oval(x - 0.03, h - y - 0.05, 0.03), '#ffffff88', 0.02),
+    ]),
+    ...glass(
+      `M-.08 ${n(h - 0.26)}H.56Q.52 ${n(h + 0.04)} .34 ${n(h + 0.04)}H.14Q-.04 ${n(h + 0.04)} -.08 ${n(h - 0.26)}Z`,
+      '#c8f0f0',
+      0,
+      h - 0.2,
+      0.1,
+    ),
+    // Light the glass lets through on to the table, then steam.
+    glow(oval(-0.5, h + 0.12, 0.24, 0.03), '#8fe0b899', 0.03),
+    glow(oval(-0.12, h + 0.15, 0.2, 0.025), '#ffb07099', 0.03),
+    glow(oval(0.4, h + 0.13, 0.26, 0.03), '#ffffff66', 0.03),
+    ...[-0.36, -0.3, -0.24].map((x, i) => ({
+      ...line(
+        `M${x} ${n(h - 0.54)}q${n(0.1 - i * 0.05)} -.16 0 -.32t${n(0.04 * (i - 1))} -.34`,
+        '#ffffff55',
+        0.02,
+      ),
+      blur: 0.018,
+    })),
   ],
   motes: { color: '#ffffff', size: 0.012, rise: 0.05 },
   cast: [

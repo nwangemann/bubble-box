@@ -35,9 +35,17 @@ Add to `src/config/glass.ts`. Wave speed and life are in `TUNING.glass`; ring sp
 
 Add to `src/config/contacts.ts`. What merging does is `startMerge` and `sink` in `core/world.ts`.
 
+## Pull
+
+Add to `src/config/pulls.ts`. How it acts, and tires, is `attract` in `core/pull.ts`.
+
+## Trail
+
+Add to `src/config/trails.ts`, then write `vec3 trail(float v, float k, float born)` for it in `src/scene/trails.ts`. Spacing and tapering are `TUNING.trail`.
+
 ## Showdown theme
 
-Write a `Theme` in `src/showdown/` and register it in `index.ts`. A cast is twelve; `npm test` fails if two share a name, colours, face or hat. Draw a `Fighter` on a ball of radius 1 with the helpers in `shapes.ts` and `parts.ts`, staying within 2.2. Its box is the core Lattice in its `backdrop` and `ink`; keep it see-through. Place its `mural` from `horizon` up, so it fits any screen; it shows faintly on the back wall. A title for an unusual win is an entry in `src/config/feats.ts` and its test in `src/core/feats.ts`. A new rule is an entry in `src/config/rules.ts`.
+Write a `Theme` in `src/showdown/` and register it in `index.ts`. A cast is twelve; `npm test` fails if two share a name, colours, face or hat. Draw a `Fighter` on a ball of radius 1 with the helpers in `shapes.ts` and `parts.ts`, staying within 2.2. Its box is the core Lattice in its `backdrop` and `ink`; keep it see-through. Place its `mural` from `horizon` up, so it fits any screen; it shows faintly on the back wall. Paint it with `scenery.ts` in washes, light and mist, with no outlines. A title for an unusual win is an entry in `src/config/feats.ts` and its test in `src/core/feats.ts`. A new rule is an entry in `src/config/rules.ts`.
 
 ## Feel
 

@@ -1,7 +1,9 @@
 import type { Setting } from '../config/defaults';
 import { FEELS, type Feel } from '../config/feels';
+import type { Pull } from '../config/pulls';
 import { TUNING } from '../config/tuning';
 import type { Tap } from '../config/taps';
+import type { TrailLook } from '../config/trails';
 import {
   advance,
   beginHold,
@@ -26,6 +28,8 @@ export type Part = {
   taps: Tap[];
   fx: FxPools;
   merges: boolean[];
+  pulls: Pull[];
+  trails: TrailLook[];
   bounce: number;
   /** Seconds before it first moves, so neighbours do not act in unison. */
   delay: number;
@@ -105,6 +109,8 @@ export function play(stage: Stage, part: Part, seconds: number) {
   }
   // Random takes turns.
   w.merges = [part.merges[stage.turn % part.merges.length]!];
+  w.pulls = part.pulls.length ? [part.pulls[stage.turn % part.pulls.length]!] : [];
+  w.trailLooks = part.trails.length ? [part.trails[stage.turn % part.trails.length]!] : [];
   const now = stage.clock;
   const starts = before < 0 && now >= 0;
   const at = (t: number) => {
@@ -140,6 +146,12 @@ export function play(stage: Stage, part: Part, seconds: number) {
       const b = add(stage, part, 0, 0, P.z, P.radius[kind]);
       b.v = { x: 0.34, y: 0.26, z: 0.4 };
     }
+  } else if (kind === 'trail') {
+    // Always on its way, so the trail never ends.
+    const b = w.bubbles[0] ?? add(stage, part, 0, 0, P.z, P.radius.trail);
+    const { x, y, z, spin } = P.travel;
+    if (b.v.x === 0 && b.v.y === 0 && b.v.z === 0) b.v = { x, y, z };
+    b.spin = spin;
   } else if (kind === 'feel') {
     if (starts) beginHold(w, box, -0.2, 0.15, styleFor(part, stage.turn));
     if (at(P.act.feel) && w.holds[0]) {
@@ -147,23 +159,26 @@ export function play(stage: Stage, part: Part, seconds: number) {
       const feel = part.feels[Math.floor(((held.id * 0.75488) % 1) * part.feels.length)]!;
       release(w, 1.1, -0.8, feel.speed);
     }
-  } else if (kind === 'meet' || kind === 'contact') {
+  } else if (kind === 'meet' || kind === 'contact' || kind === 'pull') {
     const r = P.radius[kind];
     // Different sizes show which takes in which.
     const sizeOf = (x: number) => {
       'worklet';
-      return kind === 'contact' && x > 0 ? r * P.lesser : r;
+      return kind !== 'meet' && x > 0 ? r * P.lesser : r;
     };
     if (starts) {
-      add(stage, part, -0.62, 0.08, P.z, 0.001);
-      add(stage, part, 0.62, -0.08, P.z, 0.001, 1);
+      const aside = kind === 'pull' ? P.passing.aside : 0.08;
+      add(stage, part, -0.62, aside, P.z, 0.001);
+      add(stage, part, 0.62, -aside, P.z, 0.001, 1);
+      w.weary = {};
     }
     if (now >= 0 && now < P.grow)
       for (const b of w.bubbles) b.r = Math.max(0.001, sizeOf(b.p.x) * smooth(now / P.grow));
     if (at(P.grow))
       for (const b of w.bubbles) {
         b.r = sizeOf(b.p.x);
-        b.v.x = b.p.x < 0 ? P.closing : -P.closing;
+        const speed = kind === 'pull' ? P.passing.speed : P.closing;
+        b.v.x = b.p.x < 0 ? speed : -speed;
       }
   } else {
     const r = P.radius[kind];
@@ -188,6 +203,7 @@ export function play(stage: Stage, part: Part, seconds: number) {
     (kind === 'feel' ||
       kind === 'meet' ||
       kind === 'contact' ||
+      kind === 'pull' ||
       kind === 'pop' ||
       kind === 'tap') &&
     at(P.clear[kind])

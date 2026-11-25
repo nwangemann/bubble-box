@@ -10,5 +10,5 @@ export const SHOWDOWN_UI = {
   /** Pixels per point of the scene that films bend. */
   backdrop: 1,
   /** Chooser cards. */
-  card: { gap: 12, top: 214, bottom: 88, corner: 18, name: 40, ball: 0.3 },
+  card: { gap: 12, top: 262, bottom: 158, corner: 18, name: 40, ball: 0.3 },
 };

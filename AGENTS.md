@@ -4,39 +4,43 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 
 ## Where things are
 
-| To change                                | Open                                       |
-| ---------------------------------------- | ------------------------------------------ |
-| Any feel number (growth, launch, wobble) | `src/config/tuning.ts`                     |
-| Physics presets                          | `src/config/feels.ts`                      |
-| Box looks and bounce                     | `src/config/environments.ts`               |
-| Bubble looks                             | `src/styles/`                              |
-| Motion, collisions, launch               | `src/core/world.ts`                        |
-| Gravity from tilting the phone           | `src/core/tilt.ts`                         |
-| Perspective                              | `src/core/projection.ts`                   |
-| Frame loop, touch, haptics               | `src/scene/Scene.tsx`                      |
-| Drawing bubbles and ripples              | `src/scene/drawScene.ts`                   |
-| Drawing the room                         | `src/scene/roomPicture.ts`                 |
-| Wall materials and light on walls        | `src/scene/walls.ts`                       |
-| Screen-side ripple strength and options  | `src/config/glass.ts`                      |
-| Screen-side ripple shader                | `src/scene/glassFilter.ts`                 |
-| What a tap on a bubble does              | `src/config/taps.ts`                       |
-| Whether touching bubbles merge           | `src/config/contacts.ts`                   |
-| Meet and pop effects                     | `src/fx/`                                  |
-| Default settings, tray rows, Random      | `src/config/defaults.ts`                   |
-| Saved settings, Reduce Motion            | `src/services/`                            |
-| Options tray                             | `src/ui/Tray.tsx`                          |
-| Preview picker                           | `src/ui/Picker.tsx`                        |
-| Custom bubble: choices, then its screen  | `src/config/custom.ts`, `src/ui/Maker.tsx` |
-| What each preview acts out               | `src/preview/`                             |
-| Showdown casts and arenas                | `src/showdown/`                            |
-| Showdown grid, mural, haze, wall contact | `src/config/arena.ts`                      |
-| Showdown rules and entrant count         | `src/config/rules.ts`                      |
-| Showdown titles for unusual wins         | `src/config/feats.ts`, `src/core/feats.ts` |
-| Showdown physics: odds, hunting, ringing | `src/core/duel.ts`                         |
-| Showdown bubble and merge shader         | `src/scene/liquid.ts`                      |
-| Drawing a showdown                       | `src/scene/drawShowdown.ts`                |
-| Showdown shadows, reflections on walls   | `src/scene/roomContact.ts`                 |
-| Showdown screen, and its chooser         | `src/ui/Showdown.tsx`, `src/ui/Lobby.tsx`  |
+| To change                                | Open                                                               |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| Any feel number (growth, launch, wobble) | `src/config/tuning.ts`                                             |
+| Physics presets                          | `src/config/feels.ts`                                              |
+| Box looks and bounce                     | `src/config/environments.ts`                                       |
+| Bubble looks                             | `src/styles/`                                                      |
+| Motion, collisions, launch               | `src/core/world.ts`                                                |
+| Gravity from tilting the phone           | `src/core/tilt.ts`                                                 |
+| Perspective                              | `src/core/projection.ts`                                           |
+| Frame loop, touch, haptics               | `src/scene/Scene.tsx`                                              |
+| Drawing bubbles and ripples              | `src/scene/drawScene.ts`                                           |
+| Drawing the room                         | `src/scene/roomPicture.ts`                                         |
+| Wall materials and light on walls        | `src/scene/walls.ts`                                               |
+| Screen-side ripple strength and options  | `src/config/glass.ts`                                              |
+| Screen-side ripple shader                | `src/scene/glassFilter.ts`                                         |
+| What a tap on a bubble does              | `src/config/taps.ts`                                               |
+| Whether touching bubbles merge           | `src/config/contacts.ts`                                           |
+| How bubbles draw each other              | `src/config/pulls.ts`, `src/core/pull.ts`                          |
+| Trails bubbles leave                     | `src/config/trails.ts`, `src/core/trail.ts`, `src/scene/trails.ts` |
+| Meet and pop effects                     | `src/fx/`                                                          |
+| Default settings, tray rows, Random      | `src/config/defaults.ts`                                           |
+| Saved settings, Reduce Motion            | `src/services/`                                                    |
+| Options tray                             | `src/ui/Tray.tsx`                                                  |
+| Calm and Showdown switch                 | `src/config/modes.ts`, `src/ui/ModeSwitch.tsx`                     |
+| Preview picker                           | `src/ui/Picker.tsx`                                                |
+| Custom bubble: choices, then its screen  | `src/config/custom.ts`, `src/ui/Maker.tsx`                         |
+| What each preview acts out               | `src/preview/`                                                     |
+| Showdown casts and arenas                | `src/showdown/`                                                    |
+| What murals are painted with             | `src/showdown/scenery.ts`                                          |
+| Showdown grid, mural, haze, wall contact | `src/config/arena.ts`                                              |
+| Showdown rules and entrant count         | `src/config/rules.ts`                                              |
+| Showdown titles for unusual wins         | `src/config/feats.ts`, `src/core/feats.ts`                         |
+| Showdown physics: odds, hunting, ringing | `src/core/duel.ts`                                                 |
+| Showdown bubble and merge shader         | `src/scene/liquid.ts`                                              |
+| Drawing a showdown                       | `src/scene/drawShowdown.ts`                                        |
+| Showdown shadows, reflections on walls   | `src/scene/roomContact.ts`                                         |
+| Showdown screen, and its chooser         | `src/ui/Showdown.tsx`, `src/ui/Lobby.tsx`                          |
 
 ## Read before working
 
@@ -53,7 +57,14 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 - Tunable numbers live in `src/config`, not inline.
 - Nothing in the frame loop goes through React state.
 - No new dependency without an ADR in `docs/adr`. No physics or 3D engine (ADR 1).
-- Update the matching doc in the same change, and tick the step in `docs/plan.md`.
-- Run `npm run check` before finishing. Look at shader changes on a simulator; tests cannot see them.
+- Update the matching doc in the same change.
+- Look at shader changes on a simulator; tests cannot see them.
 - Expo changes every SDK. Read installed types in `node_modules` before using an API. Add packages with `npx expo install`.
 - `ios/` and `android/` are generated. Configure through `app.json`.
+
+## Finishing a session
+
+1. Remove temporary probes and logging, then run `npm run check`.
+2. Delete the simulators, servers and scratch files this session made. Leave any it did not make: other sessions may be using them. Need a simulator while all are in use? Create one, and delete it here.
+3. Tick the step in `docs/plan.md` and move **Next**.
+4. End with one line to start the next session, such as "Execute step 2.2 from docs/plan.md", and say what is uncommitted, unfinished or unverified.

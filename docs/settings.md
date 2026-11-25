@@ -11,10 +11,12 @@ The tray opens from the dot. Defaults live in `src/config/defaults.ts`; change t
 | Glass   | Ripple     | Still                                                                                       | Each hit on the screen side                     |
 | Tap     | New bubble | Pop                                                                                         | Each touch                                      |
 | Contact | Bounce     | Merge                                                                                       | Each pair, every time they touch                |
+| Pull    | Near       | None, Far, Heavy                                                                            | Each pair, for life                             |
+| Trail   | None       | Ribbon                                                                                      | Each bubble, for life                           |
 | Meet    | None       | Sparks, Chiral, Sunflower, Frost, Kali, Julia, Chord, Apollo                                | Each meeting                                    |
 | Pop     | None       | Film, Droplets, Mist, Shatter, Starlight, Implode, Brood, Chiral, Sunflower, Julia          | Each pop                                        |
 
-Random never picks None. Pop None fades the bubble away quickly with no effect. Two-finger swipe always clears bubbles.
+Pull draws bubbles towards each other: Near is strong but short, Far is soft and long, Heavy grows with size. Trail leaves a film ribbon where a bubble has been. Random never picks None for either. Pop None fades the bubble away quickly with no effect. Two-finger swipe always clears bubbles.
 
 ## Previews
 
@@ -22,7 +24,7 @@ A white title button in the tray opens every option of that setting, alive. Tapp
 
 ## Showdown
 
-Not a setting: a name in its row starts that showdown, and its white button opens the chooser, with the rule and how many enter. Both are saved. Fewer than 12 are drawn at random from the cast; nobody appears twice.
+Not a setting: the switch at the foot of the menu turns from Calm to Showdown, which opens the chooser, with the rule, how many enter and every arena. The same switch there turns back to the calm menu. Random arena starts any of them. Both are saved. Fewer than 12 are drawn at random from the cast; nobody appears twice.
 
 | Rule   | Default | What happens                                                                                |
 | ------ | ------- | ------------------------------------------------------------------------------------------- |
@@ -47,4 +49,4 @@ Choices are saved as they change and restored at launch (`src/services/savedSett
 
 ## Reduce Motion
 
-While the system setting is on, bubbles move slower and wobble less, tilting does nothing, Glass acts as Still, and Meet and Pop act as None. Saved choices are untouched. The amounts are in `calmFeel` in `src/config/defaults.ts`.
+While the system setting is on, bubbles move slower and wobble less, tilting does nothing, Glass acts as Still, and Pull, Trail, Meet and Pop act as None. Saved choices are untouched. The amounts are in `calmFeel` in `src/config/defaults.ts`.

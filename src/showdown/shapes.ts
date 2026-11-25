@@ -2,6 +2,8 @@
 export type Shape = {
   d: string;
   fill?: string;
+  /** The fill runs to this at the bottom of the shape. */
+  to?: string;
   line?: string;
   w?: number;
   /** Mirrored left to right. */
@@ -24,7 +26,7 @@ export const glow = (d: string, color: string, blur = 0.08): Shape => ({ d, fill
 /** Shapes, then the same mirrored. */
 export const both = (...s: Shape[]): Shape[] => [...s, ...s.map((o) => ({ ...o, flip: !o.flip }))];
 
-const n = (v: number) => String(Math.round(v * 1000) / 1000);
+export const n = (v: number) => String(Math.round(v * 1000) / 1000);
 export const oval = (x: number, y: number, rx: number, ry = rx) =>
   `M${n(x - rx)} ${n(y)}A${n(rx)} ${n(ry)} 0 1 1 ${n(x + rx)} ${n(y)}A${n(rx)} ${n(ry)} 0 1 1 ${n(x - rx)} ${n(y)}Z`;
 export const rect = (x: number, y: number, w: number, h: number) =>

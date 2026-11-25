@@ -15,9 +15,11 @@ import {
   glassPool,
   lightPool,
   mergePool,
+  pullPool,
   ROWS,
   stylePool,
   tapPool,
+  trailPool,
   type Setting,
   type Settings,
 } from '@/config/defaults';
@@ -104,6 +106,8 @@ export function Picker({
         taps: tapPool(chosen('tap')),
         fx: fxPools(chosen('meet'), chosen('pop')),
         merges: mergePool(chosen('contact')),
+        pulls: pullPool(chosen('pull')),
+        trails: trailPool(chosen('trail')),
         bounce: setting === 'box' || setting === 'light' ? envs[0]!.bounce : 1,
         // Feels start together, to be compared.
         delay: setting === 'feel' ? 0 : i * P.stagger,
@@ -117,7 +121,11 @@ export function Picker({
         glasses,
         bends: setting === 'glass' ? glasses.map((g) => g.bend > 0) : [false],
         rooms:
-          setting === 'box' || setting === 'light' || setting === 'feel' || setting === 'glass'
+          setting === 'box' ||
+          setting === 'light' ||
+          setting === 'feel' ||
+          setting === 'glass' ||
+          setting === 'trail'
             ? envs.map((e) => roomPicture(box, local, e))
             : [],
         view: { cx: rect.x + rect.width / 2, cy: rect.y + rect.height / 2, ppu },
@@ -197,6 +205,7 @@ export function Picker({
             e,
             a.bends,
             mine,
+            gpu.trails,
           );
         };
         canvas.save();

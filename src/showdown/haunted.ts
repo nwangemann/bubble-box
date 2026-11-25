@@ -1,24 +1,7 @@
 import { batwings, cape, cateyes, cheeks, embers, eyes, mouths } from './parts';
-import { both, fill, glow, line, oval, poly, rect, scatter, shape, type Shape } from './shapes';
+import { lamp, mist, ridge, spire, tree, wash } from './scenery';
+import { both, fill, glow, line, oval, poly, rect, scatter, shape } from './shapes';
 import type { Theme } from './types';
-
-const bat = (x: number, y: number, s: number): Shape =>
-  fill(
-    `M${x} ${y}q${s * 0.3} ${-s * 0.5} ${s} ${-s * 0.35}q${-s * 0.2} ${s * 0.2}${-s * 0.1} ${s * 0.45}q${-s * 0.45} ${-s * 0.1}${-s * 0.9} ${s * 0.3}q${-s * 0.45} ${-s * 0.4}${-s * 0.9} ${-s * 0.3}q${s * 0.1} ${-s * 0.25}${-s * 0.1} ${-s * 0.45}q${s * 0.7} ${-s * 0.15} ${s} ${s * 0.35}Z`,
-    '#120a24',
-  );
-const grave = (x: number, y: number, s: number): Shape[] => [
-  shape(
-    `M${x - s} ${y}V${y - s * 1.4}A${s} ${s} 0 0 1 ${x + s} ${y - s * 1.4}V${y}Z`,
-    '#6f6a88',
-    0.014,
-  ),
-  line(
-    `M${x} ${y - s * 1.7}V${y - s * 0.6}M${x - s * 0.4} ${y - s * 1.35}H${x + s * 0.4}`,
-    '#3d3856',
-    0.02,
-  ),
-];
 
 export const haunted: Theme = {
   name: 'Haunted',
@@ -30,48 +13,39 @@ export const haunted: Theme = {
   backdrop: ['#35285a', '#090511'],
   ink: [185, 255, 145],
   mural: ({ horizon: h, top, bottom }) => [
-    ...scatter(40, (a, b, c) =>
-      fill(oval(a * 2 - 1, top + b * (h - top) * 0.7, 0.003 + c * 0.005), '#ffffff88'),
+    // A haloed moon, bare trees, and one house still lit in the fog.
+    wash(rect(-1, h - 2, 2, 2), '#b8ff9000', '#c8ffb04d'),
+    ...scatter(60, (a, b, c) =>
+      fill(oval(a * 2 - 1, top + b * (h - top) * 0.7, 0.002 + c ** 3 * 0.005), '#ffffffaa'),
     ),
-    glow(oval(0.38, h - 1.25, 0.5), '#fff2b04d', 0.16),
-    fill(oval(0.38, h - 1.25, 0.33), '#fff2c4'),
-    fill(oval(0.28, h - 1.32, 0.07), '#e6d49a'),
-    fill(oval(0.48, h - 1.15, 0.1), '#e6d49a'),
-    bat(0.2, h - 1.3, 0.13),
-    bat(0.62, h - 1.5, 0.09),
-    bat(-0.4, h - 1.7, 0.1),
-    bat(-0.7, h - 1.3, 0.07),
-    fill(
-      `M-1 ${h}V${h - 0.25}Q-.4 ${h - 0.45} 0 ${h - 0.28}Q.5 ${h - 0.5} 1 ${h - 0.2}V${h}Z`,
-      '#24173f',
+    { ...line(oval(0.34, h - 1.3, 0.56), '#e8ffd044', 0.04), blur: 0.03 },
+    ...lamp(0.34, h - 1.3, 0.26, '#f6ffdc'),
+    ...scatter(6, (a, b, c) =>
+      glow(oval(0.2 + a * 0.28, h - 1.44 + b * 0.28, 0.02 + c * 0.035), '#b8cc9c77', 0.02),
     ),
-    // The house.
-    fill(poly(-0.66, h + 0.02, -0.62, h - 0.62, -0.12, h - 0.66, -0.06, h + 0.02), '#160d2a'),
-    fill(poly(-0.7, h - 0.58, -0.4, h - 0.95, -0.04, h - 0.62), '#1d1136'),
-    fill(poly(-0.6, h - 0.5, -0.58, h - 1.1, -0.4, h - 1.1, -0.38, h - 0.5), '#160d2a'),
-    fill(poly(-0.64, h - 1.06, -0.48, h - 1.5, -0.34, h - 1.06), '#1d1136'),
+    mist(0.1, h - 1.22, 0.5, 0.03, '#8878a888'),
+    mist(0.6, h - 1.42, 0.4, 0.022, '#8878a877'),
+    ridge(h - 0.2, 0.4, 0.4, 4, '#544880'),
+    mist(0, h - 0.24, 1, 0.05, '#d0ffc866'),
+    ...spire(-0.5, h + 0.05, 0.17, 0.85, '#241844'),
+    ...spire(-0.2, h + 0.05, 0.12, 0.62, '#2a1c4c'),
+    wash(
+      poly(-0.62, h - 0.5, -0.36, h - 0.76, -0.1, h - 0.5, -0.08, h + 0.05, -0.64, h + 0.05),
+      '#241844',
+      '#24184400',
+    ),
     ...[
-      [-0.53, h - 0.98],
-      [-0.53, h - 0.42],
-      [-0.28, h - 0.46],
-    ].flatMap(([x, y]) => [
-      glow(rect(x!, y!, 0.1, 0.14), '#ffb84a88', 0.04),
-      fill(rect(x!, y!, 0.1, 0.14), '#ffc95c'),
-    ]),
-    fill(`M-.42 ${h + 0.02}V${h - 0.16}Q-.36 ${h - 0.26} -.3 ${h - 0.16}V${h + 0.02}Z`, '#ff8a3c'),
-    ...both(
-      line(`M.95 ${bottom}Q.98 ${h} .9 ${h - 0.4}Q.86 ${h - 0.7} .98 ${h - 1}`, '#120a24', 0.1),
-      line(
-        `M.9 ${h - 0.4}Q.75 ${h - 0.6} .62 ${h - 0.62}M.75 ${h - 0.55}L.66 ${h - 0.75}M.93 ${h - 0.75}Q.8 ${h - 0.95} .74 ${h - 1.15}`,
-        '#120a24',
-        0.035,
-      ),
-    ),
-    ...grave(0.2, h + 0.1, 0.07),
-    ...grave(0.46, h + 0.16, 0.085),
-    ...grave(-0.14, h + 0.18, 0.06),
-    ...grave(0.68, h + 0.05, 0.05),
-    glow(oval(0, h + 0.12, 1.1, 0.07), '#c9ffd855', 0.08),
+      [-0.515, 0.78],
+      [-0.4, 0.46],
+      [-0.215, 0.5],
+    ].map(([x, y]) => glow(rect(x!, h - y!, 0.03, 0.08), '#ffc870', 0.01)),
+    mist(-0.35, h - 0.02, 0.6, 0.06, '#d8ffd088'),
+    ...tree(0.82, h + 0.3, 0.42, -0.12, '#140c2a'),
+    ...tree(-0.94, h + 0.35, 0.5, 0.1, '#140c2a'),
+    ...tree(0.3, h + 0.1, 0.16, 0.08, '#2e2254'),
+    ridge(h + 0.16, 0.16, bottom - h, 1.5, '#1c1238'),
+    mist(0.3, h + 0.12, 0.8, 0.05, '#c9ffd866'),
+    mist(-0.5, h + 0.26, 0.6, 0.05, '#c9ffd84d'),
   ],
   motes: { color: '#b6ff8a', size: 0.013, rise: 0.06 },
   cast: [

@@ -1,5 +1,6 @@
 import { beard, cheeks, eyes, moustache, mouths } from './parts';
-import { both, fill, glow, line, oval, poly, rect, scatter, shape, star } from './shapes';
+import { glitter, lamp, mist, wash } from './scenery';
+import { both, fill, glow, line, n, oval, poly, rect, scatter, shape, star } from './shapes';
 import type { Theme } from './types';
 
 const skull = (x: number, y: number, s: number) => [
@@ -18,55 +19,66 @@ export const pirates: Theme = {
   verbs: ['plunders', 'sinks', 'maroons', 'keelhauls'],
   backdrop: ['#166072', '#031820'],
   ink: [165, 240, 230],
-  mural: ({ horizon: h, top }) => [
-    glow(oval(-0.5, h - 1.75, 0.34), '#fff6c866', 0.14),
-    fill(oval(-0.5, h - 1.75, 0.17), '#fff6c8'),
+  mural: ({ horizon: h, bottom }) => [
+    // Moonlight on open water, and a ship half lost in mist.
+    wash(rect(-1, h - 2, 2, 1.6), '#7fe0dc00', '#a8f0e466'),
+    ...lamp(0.34, h - 1.5, 0.17, '#f4fff0'),
+    ...scatter(8, (a, b, c) =>
+      mist(a * 2 - 1, h - 1.85 + b * 0.9, 0.2 + c * 0.35, 0.018 + c * 0.02, '#c8fff455'),
+    ),
+    wash(
+      poly(
+        1,
+        h - 0.95,
+        0.9,
+        h - 0.9,
+        0.84,
+        h - 0.7,
+        0.72,
+        h - 0.62,
+        0.66,
+        h - 0.44,
+        0.5,
+        h - 0.4,
+        1,
+        h - 0.4,
+      ),
+      '#2c7480',
+      '#2c748033',
+    ),
+    wash(rect(-1, h - 0.4, 2, bottom - h + 0.4), '#3fa0a8', '#06303c'),
+    mist(0, h - 0.4, 1.1, 0.04, '#d0fff488'),
+    ...glitter(0.34, h - 0.38, 0.7, 0.2, '#e8fff4'),
+    // Her sails are full, and thin enough to glow.
+    line(
+      `M-.64 ${n(h - 0.38)}V${n(h - 1.06)}M-.4 ${n(h - 0.38)}V${n(h - 1.22)}M-.16 ${n(h - 0.38)}V${n(h - 1)}M-.12 ${n(h - 0.46)}L.1 ${n(h - 0.62)}`,
+      '#0e3a46',
+      0.012,
+    ),
     ...[
-      [0.5, h - 1.5],
-      [-0.2, h - 1.15],
-      [0.75, h - 0.95],
-    ].flatMap(([x, y]) => [
-      fill(oval(x!, y!, 0.22, 0.06), '#ffffffaa'),
-      fill(oval(x! + 0.1, y! - 0.06, 0.13, 0.08), '#ffffffaa'),
-    ]),
-    fill(rect(-1, h - 0.5, 2, 0.52), '#16708a'),
-    ...scatter(24, (a, b, c) =>
-      line(`M${a * 2 - 1} ${h - 0.46 + b * 0.4}h${0.06 + c * 0.12}`, '#7fe0dc99', 0.01),
+      [-0.64, 1.02, 0.19],
+      [-0.4, 1.17, 0.23],
+      [-0.16, 0.96, 0.18],
+    ].flatMap(([x, y, w]) =>
+      [0, 1, 2].map((i) => {
+        const t = h - y! + i * 0.18;
+        const half = w! * (0.34 + i * 0.1);
+        return wash(
+          `M${n(x! - half)} ${n(t)}H${n(x! + half)}Q${n(x! + half + 0.07)} ${n(t + 0.09)} ${n(x! + half)} ${n(t + 0.16)}Q${n(x!)} ${n(t + 0.12)} ${n(x! - half)} ${n(t + 0.16)}Q${n(x! - half + 0.05)} ${n(t + 0.08)} ${n(x! - half)} ${n(t)}Z`,
+          '#f0fff4d8',
+          '#5fb0b0c0',
+        );
+      }),
     ),
-    // An island and a rival ship.
-    fill(`M.35 ${h - 0.48}Q.6 ${h - 0.66} .95 ${h - 0.48}Z`, '#e8cf8a'),
-    line(`M.62 ${h - 0.56}Q.64 ${h - 0.75} .7 ${h - 0.86}`, '#6b4420', 0.03),
-    ...[-0.2, -0.1, 0.1, 0.2].map((x) =>
-      line(`M.7 ${h - 0.86}Q${0.7 + x / 2} ${h - 0.98} ${0.7 + x} ${h - 0.84}`, '#2f8a4d', 0.035),
+    wash(
+      `M-.86 ${n(h - 0.56)}Q-.8 ${n(h - 0.46)} -.66 ${n(h - 0.46)}H-.02Q-.08 ${n(h - 0.34)} -.18 ${n(h - 0.3)}H-.7Q-.82 ${n(h - 0.36)} -.86 ${n(h - 0.56)}Z`,
+      '#0c3440',
+      '#0c344066',
     ),
-    fill(`M-.78 ${h - 0.56}H-.14L-.24 ${h - 0.36}H-.66Z`, '#4a2618'),
-    line(`M-.58 ${h - 0.56}V${h - 1.12}M-.34 ${h - 0.56}V${h - 1.04}`, '#3a1c10', 0.02),
-    fill(
-      `M-.74 ${h - 1.06}H-.44Q-.38 ${h - 0.85} -.46 ${h - 0.66}H-.72Q-.64 ${h - 0.86} -.74 ${h - 1.06}Z`,
-      '#2a2233',
-    ),
-    fill(
-      `M-.44 ${h - 0.99}H-.2Q-.16 ${h - 0.82} -.2 ${h - 0.66}H-.42Q-.36 ${h - 0.82} -.44 ${h - 0.99}Z`,
-      '#362c42',
-    ),
-    ...skull(-0.57, h - 0.88, 0.06),
-    // Our own rail, masts and rigging.
-    line(`M-1 ${h - 0.16}H1`, '#5c3219', 0.06),
-    ...[-0.8, -0.4, 0, 0.4, 0.8].map((x) => line(`M${x} ${h - 0.16}V${h + 0.04}`, '#5c3219', 0.05)),
-    ...both(
-      line(`M.94 ${top}V${h + 0.55}`, '#4a2814', 0.13),
-      line(`M.91 ${top}V${h + 0.55}`, '#7a4726', 0.04),
-      line(
-        `M.92 ${top + 0.25}L.45 ${h - 0.16}M.92 ${top + 0.7}L.62 ${h - 0.16}`,
-        '#e8d3a055',
-        0.012,
-      ),
-      shape(
-        `M.66 ${h + 0.3}Q.62 ${h + 0.14} .66 ${h}H.86Q.9 ${h + 0.14} .86 ${h + 0.3}Z`,
-        '#8a5228',
-        0.014,
-      ),
-      line(`M.65 ${h + 0.08}H.87M.65 ${h + 0.22}H.87`, '#2a2233', 0.025),
+    ...lamp(-0.82, h - 0.6, 0.014, '#ffd88a'),
+    mist(-0.42, h - 0.29, 0.6, 0.035, '#d8fff488'),
+    ...scatter(26, (a, b, c) =>
+      glow(oval(a * 2 - 1, h - 0.3 + b * 0.7, 0.04 + c * 0.1, 0.004), '#a8f0e466', 0.004),
     ),
   ],
   motes: { color: '#e9ffff', size: 0.011, rise: 0.05 },

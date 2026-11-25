@@ -9,7 +9,9 @@ import type { CustomLook } from '@/config/custom';
 import type { Environment } from '@/config/environments';
 import type { Feel } from '@/config/feels';
 import type { Glass } from '@/config/glass';
+import type { Pull } from '@/config/pulls';
 import type { Tap } from '@/config/taps';
+import type { TrailLook } from '@/config/trails';
 import { TUNING } from '@/config/tuning';
 import { lean, settleTilt } from '@/core/tilt';
 import type { Box, FxPools, Vec3 } from '@/core/types';
@@ -47,6 +49,10 @@ type Props = {
   fx: FxPools;
   /** Whether touching bubbles merge. */
   merges: boolean[];
+  /** How bubbles draw each other; empty for not at all. */
+  pulls: Pull[];
+  /** What bubbles leave behind; empty for nothing. */
+  trails: TrailLook[];
   /** Increment to pop everything. */
   popSignal: number;
   /** Holds everything still while something covers the room. */
@@ -68,6 +74,8 @@ export function Scene({
   taps,
   fx,
   merges,
+  pulls,
+  trails,
   popSignal,
   paused,
   onTouch,
@@ -102,6 +110,7 @@ export function Scene({
       w.bubbles.length === 0 &&
       w.ripples.length === 0 &&
       w.waves.length === 0 &&
+      w.trails.length === 0 &&
       w.bursts.length === 0;
     const wet = env.wall === 'water';
     stir.value += ((empty ? 0 : 1) - stir.value) * (1 - Math.exp(-dt / TUNING.walls.settle));
@@ -112,6 +121,8 @@ export function Scene({
     wallTime.value += dt * stir.value;
     w.fx = fx;
     w.merges = merges;
+    w.pulls = pulls;
+    w.trailLooks = trails;
     if (empty) settleTilt(w);
     else lean(w, gravity.value, dt);
     advance(w, box, feels, env.bounce, dt);
@@ -149,6 +160,7 @@ export function Scene({
           env,
           bends,
           mine,
+          gpu.trails,
         );
       };
       // The full-screen pass runs only while a wave is alive, and bends the room too.

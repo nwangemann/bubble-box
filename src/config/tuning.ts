@@ -84,6 +84,33 @@ export const TUNING = {
     twist: 0.5,
     shy: 1.2,
   },
+  /**
+   * Bubbles drawing each other. It speeds nothing past `fastest`. A pair right beside each other
+   * tires in `tire` seconds, at once on touching, and is fresh again after `rest`. `usual` is the
+   * radius at which size makes no difference.
+   */
+  pull: { fastest: 0.6, tire: 2.5, rest: 7, usual: 0.3 },
+  /**
+   * Trails. A point is laid each `spacing`, no more often than `interval` seconds, but always at a
+   * turn sharper than cosine `corner` once `least` has passed. `hold` is how firmly a trail keeps
+   * the way it lies. It is drawn in pieces of `piece` points, narrowing by the power `taper` to
+   * `thinnest` pixels, hidden within `hidden` radii of its bubble and full from `shown`.
+   * Its first end comes to a point over `open` seconds.
+   */
+  trail: {
+    spacing: 0.12,
+    interval: 1 / 10,
+    least: 0.012,
+    corner: 0.99,
+    maxPoints: 64,
+    hold: 0.6,
+    piece: 6,
+    taper: 0.8,
+    thinnest: 0.8,
+    hidden: 0.95,
+    shown: 1.7,
+    open: 0.45,
+  },
   /** Popping into pieces. */
   brood: { minRadius: 0.16, size: 0.42, speed: 0.9 },
   /**
@@ -124,7 +151,7 @@ export const TUNING = {
     start: 0.32,
     least: 0,
     gain: 0.4,
-    patience: 1.6,
+    patience: 2.4,
     most: 3,
     chase: 0.85,
     slow: { gap: 0.45, pace: 0.35, blow: 0.25, after: 0.25 },
@@ -174,6 +201,10 @@ export const TUNING = {
     breath: 0.025,
     grow: 0.7,
     closing: 0.5,
+    /** In Trail, how it sets off and bends. */
+    travel: { x: 0.8, y: 0.62, z: 0.7, spin: 1.4 },
+    /** In Pull, speed and how far each passes from the middle. */
+    passing: { speed: 0.3, aside: 0.36 },
     press: 0.14,
     /** The smaller bubble in Contact, against the larger. */
     lesser: 0.7,
@@ -188,6 +219,8 @@ export const TUNING = {
       pop: 0.34,
       tap: 0.4,
       contact: 0.4,
+      pull: 0.24,
+      trail: 0.2,
     },
     /** Length of each loop, and when its event happens, when it clears and where it stands still. */
     loop: {
@@ -200,9 +233,11 @@ export const TUNING = {
       meet: 4.4,
       pop: 4.4,
       contact: 4.8,
+      pull: 5.4,
+      trail: 5,
     },
     act: { feel: 0.9, glass: 0.3, tap: 1.5, pop: 1.5 },
-    clear: { feel: 5.8, contact: 3.8, meet: 2.8, pop: 3.3, tap: 3.4 },
+    clear: { feel: 5.8, contact: 3.8, pull: 4.5, meet: 2.8, pop: 3.3, tap: 3.4 },
     still: {
       bubble: 1.5,
       box: 1.5,
@@ -211,6 +246,8 @@ export const TUNING = {
       glass: 1,
       tap: 1.85,
       contact: 1.6,
+      pull: 2.4,
+      trail: 2.4,
       meet: 1.75,
       pop: 2,
     },

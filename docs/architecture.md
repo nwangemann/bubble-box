@@ -28,9 +28,13 @@ Each finger has its own `Held`, keyed by touch id. Two fingers down less than `T
 
 With Contact on Merge, two free bubbles that touch become one over `TUNING.merge.seconds`. The smaller (`join`) is drawn in, fades and passes its volume over bit by bit; momentum and centre of mass go with it, so nothing jumps. It passes through other bubbles, can be popped, and pops with the larger. `reach` bulges both edges towards each other in the style shader's `main`. A pair that would pass `maxRadius` bounces, and held bubbles never merge. `merges` on the world works like the other lists: each pair keeps one entry.
 
+`attract` in `core/pull` draws pairs together before each step, with equal and opposite force, rising from nothing at `reach`. It bends fast bubbles but speeds none past `TUNING.pull.fastest`. `weary` holds how tired each pair is: closeness tires it, touching at once, and time apart restores it. So none clump, circle for ever or gain speed without end. Held, joining and shy bubbles feel nothing. In a showdown it acts only during the fight, beneath the hunting.
+
+With a Trail chosen, `layTrails` in `core/trail` ends each step by laying points behind free bubbles: every so often on straights, exactly at turns. Each point keeps the way a ribbon lies there, which faces the eye, never flips, and holds when flying straight away. A trail outlives its bubble and fades where it hangs. `scene/trails` draws it as triangle strips cut into short pieces, sorted among the bubbles by depth. A strip's texture coordinates are age and place across, so colours stay where they were laid; it is hidden where it would cross its own bubble's disc.
+
 Meetings and pops add a `Burst`: contact normal, sideways rub (`spin`), strength and both styles. `drawBurst` draws it as one additive shader rect aimed along the normal.
 
-Options reach the scene as lists: one entry, or all for Random. `feelOf` gives each bubble a feel from its id; `variant` on a wave and its ring picks the glass.
+Options reach the scene as lists: one entry, or all for Random. `feelOf` and `trailOf` give each bubble a feel and a trail from its id; `variant` on a wave and its ring picks the glass.
 
 Past `maxBubbles`, the oldest pops.
 
@@ -46,7 +50,11 @@ Each preview is a small `World` in its own box, driven by `preview/scripts` and 
 
 `strike` sets a surface ringing in modes 2 and 3 about an axis, with Rayleigh's stiffness and damping, so large bubbles ring slow and long.
 
-`scene/liquid` draws a bubble and whatever it is taking in as one smooth union, marched per pixel; a lone calm bubble is a plain sphere. The arena is `roomPicture` with a faint mural, both static. Distance (`AIR`, `awayAt`) hazes, dims and softens: in the film's shader for each part of a surface by its own depth, and for figures by fading to a second painting as seen at the back wall. `scene/roomContact` is one full-screen pass beneath the bubbles: it finds the wall behind each pixel, as `walls` does, and adds every bubble's shadow, thrown light and mirror image; `drawRipple` then rings the walls. Films bend a picture of the arena painted once on the CPU. Figures are images painted once. An entrant's cast number picks one of twelve vapours.
+`scene/liquid` draws a bubble and whatever it is taking in as one smooth union, marched per pixel; a lone calm bubble is a plain sphere. The arena is `roomPicture` with a faint mural under a film's colours, both static. Distance (`AIR`, `awayAt`) hazes, dims and softens: in the film's shader for each part of a surface by its own depth, and for figures by fading to a second painting as seen at the back wall. `scene/roomContact` is one full-screen pass beneath the bubbles: it finds the wall behind each pixel, as `walls` does, and adds every bubble's shadow, thrown light and mirror image; `drawRipple` then rings the walls. Films bend a picture of the arena painted once on the CPU. Figures are images painted once. An entrant's cast number picks one of twelve vapours.
+
+## Mode switch
+
+`ui/ModeSwitch` shows the calm room and a showdown as two static pictures, drawn by the real bubble shaders and kept for a width. It sits at the same place in the tray and the chooser, so it reads as one switch.
 
 ## Maker
 

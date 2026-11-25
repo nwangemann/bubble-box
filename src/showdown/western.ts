@@ -1,37 +1,7 @@
 import { beard, cheeks, eyes, horns, medal, moustache, mouths, specs } from './parts';
-import { both, fill, glow, line, oval, poly, rect, shape, scatter, type Shape } from './shapes';
+import { lamp, mist, ridge, wash } from './scenery';
+import { both, fill, line, n, oval, poly, rect, scatter, shape } from './shapes';
 import type { Theme } from './types';
-
-const cactus = (x: number, y: number, s: number): Shape[] => [
-  line(
-    `M${x} ${y}V${y - s}M${x} ${y - s * 0.4}H${x - s * 0.3}V${y - s * 0.72}M${x} ${y - s * 0.3}H${x + s * 0.3}V${y - s * 0.6}`,
-    '#2f5c3f',
-    s * 0.17,
-  ),
-  line(`M${x - s * 0.03} ${y}V${y - s}`, '#4b8757', s * 0.04),
-];
-/** A false-fronted building on the right; mirrored for the left. */
-const front = (h: number, wall: string, trim: string, rise: number): Shape[] => [
-  fill(poly(1.1, h - rise - 0.3, 0.66, h - rise + 0.02, 0.66, h + 0.06, 1.1, h + 0.42), wall),
-  ...[0.2, 0.4, 0.6, 0.8].map((t) =>
-    line(
-      `M1.1 ${h - rise - 0.3 + t * (rise + 0.72)}L.66 ${h - rise + 0.02 + t * (rise + 0.04)}`,
-      trim,
-      0.012,
-    ),
-  ),
-  fill(
-    poly(1.1, h - rise - 0.44, 0.63, h - rise - 0.06, 0.63, h - rise + 0.04, 1.1, h - rise - 0.26),
-    trim,
-  ),
-  fill(poly(0.94, h - 0.42, 0.82, h - 0.36, 0.82, h + 0.16, 0.94, h + 0.27), '#2a130f'),
-  fill(
-    poly(0.93, h - rise * 0.75, 0.8, h - rise * 0.68, 0.8, h - rise * 0.48, 0.93, h - rise * 0.5),
-    '#ffcf7a',
-  ),
-  fill(poly(1.1, h - 0.6, 0.56, h - 0.38, 0.56, h - 0.33, 1.1, h - 0.5), trim),
-  line(`M.58 ${h - 0.36}V${h + 0.04}`, trim, 0.025),
-];
 
 export const western: Theme = {
   name: 'Western',
@@ -42,25 +12,84 @@ export const western: Theme = {
   verbs: ['outdraws', 'runs off', 'lassos', 'outfoxes'],
   backdrop: ['#86422f', '#260e14'],
   ink: [255, 205, 140],
-  mural: ({ horizon: h }) => [
-    glow(oval(0, h - 0.28, 0.62), '#fff0a855', 0.2),
-    fill(oval(0, h - 0.28, 0.42), '#fff0b0'),
-    fill(`M-1 ${h}V${h - 0.5}H-.72L-.64 ${h - 0.72}H-.4L-.34 ${h - 0.45}L-.2 ${h}Z`, '#b1493f'),
-    fill(`M1 ${h}V${h - 0.35}L.8 ${h - 0.62}H.46L.4 ${h - 0.35}L.28 ${h}Z`, '#b1493f'),
-    fill(`M.05 ${h}L.1 ${h - 0.3}H.22L.3 ${h}Z`, '#9a3b3c'),
-    fill(rect(-1, h - 0.03, 2, 0.04), '#8e4030'),
-    ...cactus(-0.36, h + 0.1, 0.4),
-    ...cactus(0.4, h + 0.06, 0.28),
-    ...front(h, '#6e3a26', '#452015', 0.85).map((s) => ({ ...s, flip: true })),
-    ...front(h, '#824a30', '#54281a', 1.05),
-    line(
-      `M-.62 ${h + 0.13}H-.3M-.58 ${h + 0.05}V${h + 0.22}M-.34 ${h + 0.05}V${h + 0.22}`,
-      '#452015',
-      0.03,
+  mural: ({ horizon: h, bottom }) => [
+    // A wide low sun through dust, and mesas fading away.
+    wash(rect(-1, h - 2.1, 2, 2.1), '#ff9a5000', '#ffb060a0'),
+    ...lamp(0.12, h - 0.42, 0.4, '#ffe9b0'),
+    ...scatter(7, (a, b, c) =>
+      mist(a * 2 - 1, h - 1.75 + b * 0.95, 0.25 + c * 0.35, 0.014 + c * 0.014, '#ffd0a088'),
     ),
-    ...scatter(3, (a, b) =>
-      line(`M${a * 1.4 - 0.8} ${h - 1.7 + b * 0.5}q.05-.06.1 0q.05-.06.1 0`, '#4a1c30', 0.014),
+    wash(
+      poly(
+        -1,
+        h - 0.42,
+        -0.86,
+        h - 0.45,
+        -0.8,
+        h - 0.62,
+        -0.5,
+        h - 0.64,
+        -0.45,
+        h - 0.44,
+        -0.3,
+        h - 0.3,
+        -0.2,
+        h,
+        -1,
+        h,
+      ),
+      '#c2664e',
+      '#c2664e00',
     ),
+    wash(
+      poly(
+        0.34,
+        h,
+        0.42,
+        h - 0.3,
+        0.5,
+        h - 0.36,
+        0.53,
+        h - 0.74,
+        0.62,
+        h - 0.76,
+        0.65,
+        h - 0.4,
+        0.8,
+        h - 0.3,
+        1,
+        h - 0.26,
+        1,
+        h,
+      ),
+      '#a94f46',
+      '#a94f4600',
+    ),
+    mist(0, h - 0.12, 1.1, 0.05, '#ffd8a499'),
+    wash(
+      poly(-1, h - 0.92, -0.84, h - 0.94, -0.8, h - 0.5, -0.7, h - 0.38, -0.62, h, -1, h + 0.1),
+      '#7d3540',
+      '#7d354000',
+    ),
+    wash(
+      poly(1, h - 1.16, 0.9, h - 1.18, 0.87, h - 0.6, 0.78, h - 0.4, 0.72, h, 1, h + 0.1),
+      '#7d3540',
+      '#7d354000',
+    ),
+    ridge(h + 0.08, 0.12, 0.4, 2, '#8a4038'),
+    ridge(h + 0.2, 0.14, bottom - h, 6, '#4a1c26'),
+    ...[
+      [-0.36, 0.17],
+      [0.42, 0.12],
+      [-0.62, 0.08],
+    ].map(([x, s]) =>
+      line(
+        `M${x} ${n(h + 0.16)}V${n(h + 0.16 - s!)}M${x} ${n(h + 0.16 - s! * 0.4)}q${n(-s! * 0.26)} ${n(s! * 0.02)} ${n(-s! * 0.26)} ${n(-s! * 0.32)}M${x} ${n(h + 0.16 - s! * 0.3)}q${n(s! * 0.24)} 0 ${n(s! * 0.24)} ${n(-s! * 0.3)}`,
+        '#3c1522',
+        s! * 0.09,
+      ),
+    ),
+    mist(0.2, h + 0.16, 0.8, 0.04, '#ffc08a66'),
   ],
   motes: { color: '#ffd9a0', size: 0.014, rise: 0.03 },
   cast: [

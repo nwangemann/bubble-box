@@ -43,7 +43,22 @@ export function drawShapes(canvas: SkCanvas, shapes: Shape[]) {
     }
     if (s.fill) {
       paint.setColor(Skia.Color(s.fill));
+      if (s.to) {
+        const { x, y, height } = p.getBounds();
+        const colors = [Skia.Color(s.fill), Skia.Color(s.to)];
+        paint.setShader(
+          Skia.Shader.MakeLinearGradient(
+            { x, y },
+            { x, y: y + height },
+            colors,
+            null,
+            TileMode.Clamp,
+          ),
+        );
+        paint.setDither(true);
+      }
       canvas.drawPath(p, paint);
+      paint.setShader(null);
     }
     if (s.line) {
       paint.setStyle(PaintStyle.Stroke);
@@ -161,9 +176,12 @@ export function pictureShader(picture: SkPicture, width: number, height: number,
     .makeShaderOptions(TileMode.Clamp, TileMode.Clamp, FilterMode.Linear, MipmapMode.None);
 }
 
+/** A film's colours from thin to thick. */
+const FILM = ['#ffd9a0', '#ff9ecb', '#9aa8ff', '#8cf0e0', '#ffe9a8', '#ffa0c8', '#90b8ff'];
+
 /** The core room in a theme's colours, with its mural showing faintly through the back wall. */
 export function arenaPicture(theme: Theme, box: Box, view: View): SkPicture {
-  const { mural, horizon, ...look } = ARENA;
+  const { mural, horizon, sheen, ...look } = ARENA;
   const env = { ...look, backdrop: theme.backdrop, ink: theme.ink };
   const room = roomPicture(box, view, env);
   const { hw, hh } = box;
@@ -178,6 +196,20 @@ export function arenaPicture(theme: Theme, box: Box, view: View): SkPicture {
     ghost.setAlphaf(mural);
     canvas.saveLayer(ghost);
     drawShapes(canvas, theme.mural({ horizon: hh * horizon, top: -hh, bottom: hh }));
+    // The colours of a thin film drift over what is painted, and over nothing else.
+    const film = Skia.Paint();
+    film.setAlphaf(sheen);
+    film.setBlendMode(BlendMode.SrcATop);
+    film.setShader(
+      Skia.Shader.MakeLinearGradient(
+        { x: -hw, y: -hh },
+        { x: hw, y: hh },
+        FILM.map((c) => Skia.Color(c)),
+        null,
+        TileMode.Clamp,
+      ),
+    );
+    canvas.drawRect({ x: -hw, y: -hh, width: hw * 2, height: hh * 2 }, film);
     canvas.restore();
     canvas.restore();
   });

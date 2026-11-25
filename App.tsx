@@ -9,11 +9,13 @@ import {
   mergePool,
   pickBox,
   pickLight,
+  pullPool,
   RANDOM,
   NONE,
   ROWS,
   stylePool,
   tapPool,
+  trailPool,
   type Setting,
   type Settings,
 } from '@/config/defaults';
@@ -56,12 +58,14 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [settings, walls, custom, rule, count]);
 
-  const { bubble, feel, glass, tap, contact, meet, pop } = settings;
+  const { bubble, feel, glass, tap, contact, pull, trail, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
   const feels = useMemo(() => (calm ? feelPool(feel).map(calmFeel) : feelPool(feel)), [feel, calm]);
   const glasses = useMemo(() => glassPool(calm ? 'still' : glass), [glass, calm]);
   const taps = useMemo(() => tapPool(tap), [tap]);
   const merges = useMemo(() => mergePool(contact), [contact]);
+  const pulls = useMemo(() => pullPool(calm ? NONE : pull), [pull, calm]);
+  const trails = useMemo(() => trailPool(calm ? NONE : trail), [trail, calm]);
   const fx = useMemo(() => (calm ? fxPools(NONE, NONE) : fxPools(meet, pop)), [meet, pop, calm]);
 
   const pick = (key: Setting, id: string) => {
@@ -96,6 +100,8 @@ export default function App() {
         taps={taps}
         fx={fx}
         merges={merges}
+        pulls={pulls}
+        trails={trails}
         popSignal={popSignal}
         paused={covered}
         onTouch={close}
@@ -104,7 +110,6 @@ export default function App() {
         open={open && !covered}
         onToggle={() => setOpen((o) => !o)}
         onLobby={() => setLobby(true)}
-        onFight={(id) => (id === RANDOM ? anotherArena() : fight(id as ThemeId))}
         walls={walls}
         onWalls={setWalls}
         onPopAll={() => setPopSignal((n) => n + 1)}
@@ -151,6 +156,11 @@ export default function App() {
           count={count}
           onCount={setCount}
           onPick={fight}
+          onRandom={() => anotherArena()}
+          onCalm={() => {
+            setLobby(false);
+            setOpen(true);
+          }}
           onClose={() => setLobby(false)}
         />
       )}

@@ -2,6 +2,8 @@ import { TUNING as T } from '../config/tuning';
 import type { Feel } from '../config/feels';
 import { direct, grown, oddsOf, sizeOf, strike } from './duel';
 import { scaleAt, unproject } from './projection';
+import { attract, pairOf, refresh } from './pull';
+import { layTrails } from './trail';
 import type { Axis, Box, Bubble, Burst, FxPools, Held, Vec3, World } from './types';
 
 export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces: {} }): World {
@@ -13,6 +15,10 @@ export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces
     bursts: [],
     fx,
     merges: [false],
+    pulls: [],
+    weary: {},
+    trailLooks: [],
+    trails: [],
     sweep: null,
     holds: [],
     tilt: { rest: null, pull: { x: 0, y: 0, z: 0 } },
@@ -480,7 +486,7 @@ function meet(
 ) {
   'worklet';
   if (closing < T.burst.minClosing || world.fx.meet.length === 0) return;
-  const pair = Math.min(a.id, b.id) * 4096 + Math.max(a.id, b.id);
+  const pair = pairOf(a, b);
   // Bubbles that stay pressed together flash once, not every step.
   for (const o of world.bursts) if (o.pair === pair && o.age < T.burst.pairPause) return;
   const rx = a.v.x - b.v.x;
@@ -737,6 +743,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
   world.time += dt;
   const t = world.time;
   direct(world, box, dt);
+  attract(world, dt);
   for (const held of world.holds) {
     const b = held.bubble;
     held.seconds += dt;
@@ -827,6 +834,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     bounce(world, b, 'y', -box.hh, box.hh, e, feel);
     bounce(world, b, 'z', 0, box.depth, e, feel);
   }
+  layTrails(world, box.focal);
 }
 
 /** Advances by real elapsed seconds using fixed steps. */
@@ -851,6 +859,7 @@ export function advance(
   world.bursts = world.bursts.filter((o) => o.age < (world.fx.lives[o.fx] ?? 0));
   for (const w of world.waves) w.age += dt;
   world.waves = world.waves.filter((w) => w.age < T.glass.seconds);
+  refresh(world, dt);
   world.leftover += dt;
   while (world.leftover >= T.step) {
     step(world, box, feels, bounceScale, T.step);

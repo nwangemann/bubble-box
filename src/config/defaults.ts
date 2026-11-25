@@ -11,7 +11,9 @@ import {
 import { CONTACTS, type Contact } from './contacts';
 import { FEELS, type Feel } from './feels';
 import { GLASS, type Glass } from './glass';
+import { PULLS, type Pull } from './pulls';
 import { TAPS, type Tap } from './taps';
+import { TRAILS, type TrailLook } from './trails';
 
 export const RANDOM = 'random';
 export const NONE = 'none';
@@ -25,6 +27,8 @@ export const DEFAULTS = {
   glass: 'ripple',
   tap: 'grow',
   contact: 'bounce',
+  pull: 'near',
+  trail: NONE,
   meet: NONE,
   pop: NONE,
 };
@@ -50,6 +54,16 @@ export const ROWS: { key: Setting; label: string; options: Option[] }[] = [
   { key: 'glass', label: 'Glass', options: [...named(GLASS), last] },
   { key: 'tap', label: 'Tap', options: [...named(TAPS), last] },
   { key: 'contact', label: 'Contact', options: [...named(CONTACTS), last] },
+  {
+    key: 'pull',
+    label: 'Pull',
+    options: [{ id: NONE, name: 'None' }, ...named(PULLS), last],
+  },
+  {
+    key: 'trail',
+    label: 'Trail',
+    options: [{ id: NONE, name: 'None' }, ...named(TRAILS), last],
+  },
   { key: 'meet', label: 'Meet', options: [...fxNamed('meet'), last] },
   { key: 'pop', label: 'Pop', options: [...fxNamed('pop'), last] },
 ];
@@ -99,6 +113,8 @@ export const feelPool = (s: string) => pool<Feel>(FEELS, s);
 export const glassPool = (s: string) => pool<Glass>(GLASS, s);
 export const tapPool = (s: string) => pool<Tap>(TAPS, s);
 export const mergePool = (s: string) => pool<Contact>(CONTACTS, s).map((c) => c.merges);
+export const pullPool = (s: string) => (s === NONE ? [] : pool<Pull>(PULLS, s));
+export const trailPool = (s: string) => (s === NONE ? [] : pool<TrailLook>(TRAILS, s));
 
 /** There is one room, so Random picks one now, and another when chosen again. */
 function pickOne<T>(record: Record<string, T>, choice: string, avoid?: T): T {

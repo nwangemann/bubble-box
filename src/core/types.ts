@@ -1,3 +1,6 @@
+import type { Pull } from '../config/pulls';
+import type { TrailLook } from '../config/trails';
+
 export type Vec3 = { x: number; y: number; z: number };
 
 /** The room. The screen is z = 0; x and y are centred on it, y down. */
@@ -28,6 +31,20 @@ export type Bubble = {
   reach: { x: number; y: number };
   /** Seconds before it may merge. */
   shy: number;
+};
+
+/** Where a bubble was, which way it was going, and which way its trail lies across its path. */
+export type TrailPoint = { p: Vec3; v: Vec3; side: Vec3; r: number; t: number };
+
+/** What a bubble has left behind it, oldest first. It outlives its bubble. */
+export type Trail = {
+  bubble: number;
+  look: TrailLook;
+  seed: number;
+  style: string;
+  /** When it began. */
+  born: number;
+  points: TrailPoint[];
 };
 
 export type Axis = 'x' | 'y' | 'z';
@@ -136,6 +153,13 @@ export type World = {
   fx: FxPools;
   /** Whether touching bubbles merge; each pair keeps to one entry. */
   merges: boolean[];
+  /** How bubbles draw each other; each pair keeps to one entry, and none means no pull. */
+  pulls: Pull[];
+  /** How tired each pair is of being drawn together, 0 to 1. */
+  weary: Record<number, number>;
+  /** Trails bubbles may leave; each bubble keeps to one, and none means no trail. */
+  trailLooks: TrailLook[];
+  trails: Trail[];
   /** A two-finger swipe in progress. Bubbles born or launched during it are spared. */
   sweep: { firstSpared: number; launched: number[] } | null;
   /** One per finger that is growing a bubble. */
