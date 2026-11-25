@@ -10,7 +10,8 @@ import type { Feel } from '@/config/feels';
 import type { Glass } from '@/config/glass';
 import type { Tap } from '@/config/taps';
 import { TUNING } from '@/config/tuning';
-import type { Box, FxPools } from '@/core/types';
+import { lean, settleTilt } from '@/core/tilt';
+import type { Box, FxPools, Vec3 } from '@/core/types';
 import {
   advance,
   beginHold,
@@ -18,6 +19,7 @@ import {
   createWorld,
   endSweep,
   feelOf,
+  finishFlick,
   finishTap,
   heldBy,
   moveHold,
@@ -30,6 +32,7 @@ import { drawScene } from './drawScene';
 import { throughGlass } from './glassFilter';
 import { getGpu } from './gpu';
 import { roomPicture } from './roomPicture';
+import { Tilt } from './Tilt';
 import { drawWallLight } from './walls';
 
 type Props = {
@@ -81,6 +84,8 @@ export function Scene({
   const stir = useSharedValue(0);
   const wallTime = useSharedValue(0);
   const lastBuzz = useSharedValue(0);
+  const gravity = useSharedValue<Vec3 | null>(null);
+  const tilts = useMemo(() => feels.some((f) => f.tilt > 0), [feels]);
 
   useFrameCallback((frame) => {
     if (paused) return;
@@ -100,6 +105,8 @@ export function Scene({
     quiet.value = still;
     wallTime.value += dt * stir.value;
     w.fx = fx;
+    if (empty) settleTilt(w);
+    else lean(w, gravity.value, dt);
     advance(w, box, feels, env.bounce, dt);
     if (w.impact > TUNING.hapticMinImpact && w.time - lastBuzz.value > 0.06) {
       lastBuzz.value = w.time;
@@ -154,6 +161,10 @@ export function Scene({
     if (finishTap(w, finger)) return;
     const h = heldBy(w, finger);
     if (!h) return;
+    if (swiped && finishFlick(w, box, feels, finger)) {
+      scheduleOnRN(buzz, 0.5);
+      return;
+    }
     const v = swiped ? swipeOf(h) : { x: 0, y: 0 };
     release(w, v.x, v.y, feelOf(h.bubble, feels).speed, finger);
   };
@@ -225,6 +236,7 @@ export function Scene({
 
   return (
     <RNView style={StyleSheet.absoluteFill}>
+      {tilts && !paused && <Tilt gravity={gravity} />}
       <Canvas style={StyleSheet.absoluteFill}>
         <Picture picture={room} />
       </Canvas>

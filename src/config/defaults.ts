@@ -81,6 +81,7 @@ export const calmFeel = (f: Feel): Feel => ({
   wander: f.wander * 0.4,
   buoyancy: f.buoyancy * 0.5,
   wobble: f.wobble * 0.25,
+  tilt: 0,
 });
 
 /** The choices a setting stands for: one, or all of them for Random. */

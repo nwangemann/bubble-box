@@ -11,6 +11,8 @@ Zen simplicity and beauty. Every action is simple, organic and calm.
 5. Meeting the glass sends a gentle refracting ripple across the screen (the Glass option).
 6. Bubbles that meet throw light shaped by the collision (the Meet option).
 7. A quick two-finger swipe pops what it crosses (the Pop option chooses how). A tap can also pop (the Tap option).
+8. A quick swipe that starts on a bubble flicks it: it is nudged that way, and spins if caught near its edge.
+9. Tilting the phone lets bubbles drift gently to the low side, until the hand settles into its new hold.
 
 ## Spirit
 

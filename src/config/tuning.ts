@@ -40,6 +40,31 @@ export const TUNING = {
   glass: { seconds: 3, speed: 0.95, maxWaves: 4, minImpact: 0.15 },
   /** A touch this short and still is a tap. `reach` is the smallest target radius. */
   tap: { seconds: 0.22, slop: 0.08, reach: 0.12 },
+  /**
+   * A flick starts on a bubble, travels `slop` within `decide` seconds and lifts within `seconds`,
+   * still moving at `least` or more. `gain` is how much of the finger's speed the bubble takes,
+   * `forward` how much of that goes deeper, `heaviness` how much a large one resists, `twist` the
+   * spin from catching its edge, `wobble` how much it gives.
+   */
+  flick: {
+    decide: 0.12,
+    seconds: 0.3,
+    slop: 0.08,
+    least: 0.6,
+    gain: 0.45,
+    max: 5,
+    forward: 0.2,
+    heaviness: 1.2,
+    twist: 1.2,
+    wobble: 0.6,
+  },
+  /**
+   * Gravity from tilting the phone away from how it rests. Tilts are in shares of gravity, about
+   * radians: below `slop` nothing, from `full` all of `pull`, in units per second squared. `ease`
+   * smooths it and `settle` is how slowly a kept tilt becomes the new rest, in seconds. `interval`
+   * is milliseconds between sensor readings.
+   */
+  tilt: { slop: 0.05, full: 0.6, pull: 0.7, ease: 0.15, settle: 10, interval: 33 },
   /** Light from bubbles meeting and popping. */
   burst: { max: 8, minClosing: 0.18, pairPause: 0.45 },
   /** Popping into pieces. */

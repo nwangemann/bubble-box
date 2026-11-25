@@ -6,6 +6,8 @@ import {
   beginHold,
   createWorld,
   feelOf,
+  heldBubbles,
+  finishFlick,
   finishTap,
   moveHold,
   radiusAt,
@@ -279,6 +281,91 @@ test('bubbles grown side by side press apart and stay in the box', () => {
     expect(Math.abs(b.p.x) + b.r).toBeLessThanOrEqual(1 + 1e-9);
     expect(Math.abs(b.p.y) + b.r).toBeLessThanOrEqual(2.17 + 1e-9);
   }
+});
+
+/** A touch at (x, y) that travels right for `frames`, after resting for `wait`. */
+const flick = (
+  w: ReturnType<typeof createWorld>,
+  { y = 0, wait = 0, frames = 6, style = 'ink', pops = false } = {},
+) => {
+  beginHold(w, box, 0, y, style, pops);
+  run(w, wait);
+  for (let i = 1; i <= frames; i++) {
+    run(w, 1 / 60);
+    moveHold(w, i * 0.05, y);
+  }
+  return finishFlick(w, box, [FEELS.drift]);
+};
+
+test('a quick swipe from a bubble nudges it and makes no new one', () => {
+  for (const pops of [false, true]) {
+    const w = launch(1);
+    run(w, 0.3);
+    expect(flick(w, { pops })).toBe(true);
+    expect(w.holds).toHaveLength(0);
+    expect(w.bubbles).toHaveLength(1);
+    expect(w.bubbles[0]!.v.x).toBeGreaterThan(0.5);
+  }
+});
+
+test('lingering, long or slow swipes and swipes from empty space still make a bubble', () => {
+  const ready = () => {
+    const w = launch(1);
+    run(w, 0.3);
+    return w;
+  };
+  expect(flick(ready(), { wait: 0.3 })).toBe(false);
+  expect(flick(ready(), { frames: 30 })).toBe(false);
+  expect(flick(ready(), { frames: 1 })).toBe(false);
+  expect(flick(ready(), { y: 1.8 })).toBe(false);
+  const w = ready();
+  expect(flick(w, { wait: 0.3 })).toBe(false);
+  release(w, 0, 0, 1);
+  expect(w.bubbles).toHaveLength(2);
+});
+
+test('a flick that rests before lifting, or whose bubble has popped, is not a flick', () => {
+  const w = launch(1);
+  run(w, 0.3);
+  beginHold(w, box, 0, 0, 'ink');
+  run(w, 1 / 60);
+  moveHold(w, 0.2, 0);
+  run(w, 0.15);
+  expect(finishFlick(w, box, [FEELS.drift])).toBe(false);
+  const p = launch(1);
+  run(p, 0.3);
+  p.bubbles[0]!.popping = 0;
+  expect(flick(p)).toBe(false);
+});
+
+test('a flick moves a large bubble less, and catching an edge spins it', () => {
+  const large = launch(3);
+  const small = launch(0.3);
+  for (const w of [large, small]) {
+    run(w, 0.2);
+    expect(flick(w)).toBe(true);
+  }
+  // Compared at one depth, since deeper bubbles travel further to keep pace on the screen.
+  const pace = (w: ReturnType<typeof createWorld>) =>
+    (w.bubbles[0]!.v.x * box.focal) / (box.focal + w.bubbles[0]!.p.z);
+  expect(pace(small)).toBeGreaterThan(pace(large));
+  expect(Math.abs(large.bubbles[0]!.spin)).toBeLessThan(0.3);
+  for (const side of [1, -1]) {
+    const w = launch(3);
+    run(w, 0.2);
+    expect(flick(w, { y: 0.3 * side })).toBe(true);
+    // Pushed right above its centre, it turns clockwise.
+    expect(Math.sign(w.bubbles[0]!.spin)).toBe(-side);
+  }
+});
+
+test('a touch on a bubble soon grows its own if it stays', () => {
+  const w = launch(1);
+  run(w, 0.3);
+  beginHold(w, box, 0, 0, 'ink');
+  expect(heldBubbles(w)).toHaveLength(0);
+  run(w, TUNING.flick.decide + 0.05);
+  expect(heldBubbles(w)).toHaveLength(1);
 });
 
 test('swipe speed follows the finger and fades when it rests', () => {

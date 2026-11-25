@@ -14,6 +14,8 @@ export type Feel = {
   /** Strength of slow air currents. */
   wander: number;
   wobble: number;
+  /** How much it answers to tilting the phone. */
+  tilt: number;
 };
 
 export const FEELS = {
@@ -26,6 +28,7 @@ export const FEELS = {
     buoyancy: 0,
     wander: 0.12,
     wobble: 1,
+    tilt: 1,
   },
   weightless: {
     name: 'Weightless',
@@ -36,6 +39,7 @@ export const FEELS = {
     buoyancy: 0,
     wander: 0,
     wobble: 0.8,
+    tilt: 0,
   },
   lively: {
     name: 'Lively',
@@ -46,6 +50,7 @@ export const FEELS = {
     buoyancy: 0,
     wander: 0.1,
     wobble: 1.4,
+    tilt: 1.1,
   },
   syrup: {
     name: 'Syrup',
@@ -56,6 +61,7 @@ export const FEELS = {
     buoyancy: 0.02,
     wander: 0.08,
     wobble: 1.7,
+    tilt: 0.8,
   },
   ascend: {
     name: 'Ascend',
@@ -66,6 +72,7 @@ export const FEELS = {
     buoyancy: 0.45,
     wander: 0.25,
     wobble: 1,
+    tilt: 0.7,
   },
 } satisfies Record<string, Feel>;
 

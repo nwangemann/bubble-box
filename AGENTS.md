@@ -11,6 +11,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Box looks and bounce                     | `src/config/environments.ts` |
 | Bubble looks                             | `src/styles/`                |
 | Motion, collisions, launch               | `src/core/world.ts`          |
+| Gravity from tilting the phone           | `src/core/tilt.ts`           |
 | Perspective                              | `src/core/projection.ts`     |
 | Frame loop, touch, haptics               | `src/scene/Scene.tsx`        |
 | Drawing bubbles and ripples              | `src/scene/drawScene.ts`     |

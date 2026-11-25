@@ -29,4 +29,4 @@ Choices are saved as they change and restored at launch (`src/services/savedSett
 
 ## Reduce Motion
 
-While the system setting is on, bubbles move slower and wobble less, Glass acts as Still, and Meet and Pop act as None. Saved choices are untouched. The amounts are in `calmFeel` in `src/config/defaults.ts`.
+While the system setting is on, bubbles move slower and wobble less, tilting does nothing, Glass acts as Still, and Meet and Pop act as None. Saved choices are untouched. The amounts are in `calmFeel` in `src/config/defaults.ts`.

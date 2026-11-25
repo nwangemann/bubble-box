@@ -13,6 +13,7 @@ export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces
     fx,
     sweep: null,
     holds: [],
+    tilt: { rest: null, pull: { x: 0, y: 0, z: 0 } },
     time: 0,
     leftover: 0,
     nextId: 1,
@@ -147,14 +148,26 @@ function drop(world: World, finger: number) {
 /** True while a touch on a bubble could still turn out to be a tap. */
 export function mayBeTap(h: Held) {
   'worklet';
-  if (h.over === 0 || h.seconds > T.tap.seconds) return false;
+  if (!h.tapPops || h.over === 0 || h.seconds > T.tap.seconds) return false;
   return Math.hypot(h.target.x - h.start.x, h.target.y - h.start.y) <= T.tap.slop;
+}
+
+/** True while a touch on a bubble could still turn out to be a flick. */
+export function mayBeFlick(h: Held) {
+  'worklet';
+  return h.over !== 0 && h.seconds <= (h.flicking ? T.flick.seconds : T.flick.decide);
+}
+
+/** True while a touch may be meant for the bubble beneath it, so its own stays hidden. */
+export function undecided(h: Held) {
+  'worklet';
+  return mayBeTap(h) || mayBeFlick(h);
 }
 
 /** Held bubbles that can be seen and bumped into. */
 export function heldBubbles(world: World) {
   'worklet';
-  return world.holds.filter((h) => !mayBeTap(h)).map((h) => h.bubble);
+  return world.holds.filter((h) => !undecided(h)).map((h) => h.bubble);
 }
 
 /** Ends a touch as a tap if it was one. Returns whether it popped a bubble. */
@@ -174,6 +187,7 @@ export function moveHold(world: World, sx: number, sy: number, finger = 0) {
   if (!h) return;
   h.target.x = sx;
   h.target.y = sy;
+  if (mayBeFlick(h) && Math.hypot(sx - h.start.x, sy - h.start.y) > T.flick.slop) h.flicking = true;
   h.recent.push({ x: sx, y: sy, t: h.seconds });
   h.recent = h.recent.filter((p) => h.seconds - p.t <= T.swipe.window);
   const last = h.trail[h.trail.length - 1];
@@ -189,6 +203,37 @@ export function swipeOf(h: Held) {
   if (!from) return { x: 0, y: 0 };
   const dt = Math.max(T.swipe.least, h.seconds - from.t);
   return { x: (h.target.x - from.x) / dt, y: (h.target.y - from.y) / dt };
+}
+
+/** Ends a touch as a flick if it was one. Returns whether it nudged a bubble. */
+export function finishFlick(world: World, box: Box, feels: Feel[], finger = 0) {
+  'worklet';
+  const F = T.flick;
+  const h = heldBy(world, finger);
+  if (!h || !h.flicking || !mayBeFlick(h)) return false;
+  const b = world.bubbles.find((o) => o.id === h.over && o.popping < 0);
+  const swipe = swipeOf(h);
+  const speed = Math.hypot(swipe.x, swipe.y);
+  if (!b || speed < F.least) return false;
+  drop(world, finger);
+  const feel = feelOf(b, feels);
+  const limit = Math.min(1, F.max / speed);
+  const push = (F.gain * limit * feel.speed) / (1 + b.r * F.heaviness);
+  // Sideways it keeps pace as seen on the screen, however deep it is.
+  const s = scaleAt(box, b.p.z);
+  b.v.x += (swipe.x * push) / s;
+  b.v.y += (swipe.y * push) / s;
+  b.v.z += speed * push * F.forward;
+  const twist = h.grip.x * swipe.y - h.grip.y * swipe.x;
+  b.spin = clamp(b.spin + twist * limit * F.twist * feel.speed, -T.spin.max, T.spin.max);
+  // It gives along the push and swells across it.
+  const ux = swipe.x / speed;
+  const uy = swipe.y / speed;
+  const k = speed * push * F.wobble * feel.wobble;
+  b.dv.x += k * (0.5 - 1.5 * ux * ux);
+  b.dv.y += k * (0.5 - 1.5 * uy * uy);
+  b.dv.z += k * 0.5;
+  return true;
 }
 
 /** Spin from how far the finger's path bent just before letting go. */
@@ -267,7 +312,16 @@ export function beginHold(
     popping: -1,
     popFx: '',
   };
-  const over = tapPops ? bubbleAt(world, box, sx, sy) : 0;
+  const over = bubbleAt(world, box, sx, sy);
+  const under = world.bubbles.find((b) => b.id === over);
+  const grip = { x: 0, y: 0 };
+  if (under) {
+    const s = scaleAt(box, under.p.z);
+    // The reach is wider than a small bubble, so a touch may land outside its edge.
+    const span = Math.max(under.r * s, T.tap.reach);
+    grip.x = (sx - under.p.x * s) / span;
+    grip.y = (sy - under.p.y * s) / span;
+  }
   world.holds.push({
     finger,
     bubble,
@@ -277,6 +331,9 @@ export function beginHold(
     trail: [{ x: sx, y: sy, t: 0 }],
     recent: [{ x: sx, y: sy, t: 0 }],
     over,
+    grip,
+    tapPops,
+    flicking: false,
   });
 }
 
@@ -526,6 +583,7 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     relaxShape(b, dt);
   }
   pressHeld(world);
+  const { pull } = world.tilt;
   const spinFade = Math.exp(-dt / T.spin.fade);
   for (const b of world.bubbles) {
     const feel = feelOf(b, feels);
@@ -535,6 +593,9 @@ function step(world: World, box: Box, feels: Feel[], bounceScale: number, dt: nu
     b.v.x += Math.sin(t * 0.43 + ph) * feel.wander * dt;
     b.v.y += (Math.sin(t * 0.37 + ph * 1.7) * feel.wander - feel.buoyancy) * dt;
     b.v.z += Math.sin(t * 0.31 + ph * 2.3) * feel.wander * dt;
+    b.v.x += pull.x * feel.tilt * dt;
+    b.v.y += pull.y * feel.tilt * dt;
+    b.v.z += pull.z * feel.tilt * dt;
     let speed = Math.hypot(b.v.x, b.v.y, b.v.z);
     let k = fade;
     if (speed > T.maxSpeed) k = T.maxSpeed / speed;

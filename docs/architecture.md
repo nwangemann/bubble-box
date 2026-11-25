@@ -18,9 +18,11 @@ The whole loop (touch, physics, drawing) runs on the UI thread. React renders on
 
 Each step: grow and move held bubbles, integrate free bubbles, resolve bubble contacts, then walls last so nothing ends outside. Bubbles have equal density; a held bubble has infinite mass, and held bubbles only press each other apart along the glass. Squash is a damped spring per axis, visual only.
 
-A touch that starts on a bubble stays hidden and weightless for `TUNING.tap.seconds`. Released sooner without moving, it pops that bubble; held longer, it grows as usual.
+A touch that starts on a bubble stays hidden and weightless while it is `undecided`. With tap to pop, releasing within `TUNING.tap.seconds` without moving pops that bubble. Setting off within `TUNING.flick.decide` and lifting within `flick.seconds` flicks it: the bubble beneath takes a share of the finger's velocity, scaled by depth to keep pace on the screen, and nothing is born. Anything else grows as usual. A two-finger sweep can still claim an undecided touch.
 
 A curved swipe gives `spin` about the line of sight, from how far the finger's path bent in its last moments. Spin rotates the sideways velocity, kicks off side walls, fades, and turns the surface through the `turn` uniform.
+
+`Tilt` listens to Reanimated's gravity sensor while the room runs and some feel has `tilt`. `core/tilt` turns it into one pull, measured from how the phone rests; that rest follows the hand over `TUNING.tilt.settle` seconds, and starts afresh in an empty room. A feel's `tilt` says how much it answers.
 
 Each finger has its own `Held`, keyed by touch id. Two fingers down less than `TUNING.sweep.fresh` seconds that both travel start a sweep: what they began is taken back, and they pop what they cross, including the path so far. Other fingers keep their bubbles. Bubbles born or launched during the sweep are spared. `swipeOf` measures launch speed from the finger's last moments.
 

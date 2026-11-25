@@ -69,6 +69,12 @@ export type Held = {
   recent: { x: number; y: number; t: number }[];
   /** Bubble under the touch when it began, or 0. */
   over: number;
+  /** Where on that bubble it landed, from the centre; its edge is at 1. */
+  grip: { x: number; y: number };
+  /** Whether a quick tap pops that bubble. */
+  tapPops: boolean;
+  /** Set once the finger has set off quickly enough to be flicking that bubble. */
+  flicking: boolean;
 };
 
 export type World = {
@@ -81,6 +87,8 @@ export type World = {
   sweep: { firstSpared: number; launched: number[] } | null;
   /** One per finger that is growing a bubble. */
   holds: Held[];
+  /** Which way gravity points when the phone is at rest, and the pull from tilting away from it. */
+  tilt: { rest: Vec3 | null; pull: Vec3 };
   time: number;
   leftover: number;
   nextId: number;
