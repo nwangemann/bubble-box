@@ -2,27 +2,19 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2.
 
-**Next: 1.17, celebrating a pocketed ball** (1.2 first, with a phone).
+**Next: 1.2, judging 8-ball on a phone.** Without one, 3.2, mixed showdown casts.
 
-Without a phone, skip 2 and 7.1 to 7.3, and pass over 1.2, and in section 1 stop after 1.17. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
+Without a phone, skip 2 and 7.1 to 7.3, and pass over section 1: 1.2 decides whether it goes on. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
 
 ## 1. 8-ball in space
 
-A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in the calm room, with the cue ball made as a calm bubble is. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). Order: see the balls, then make a shot and a pot worth it, then the game, then its looks. The rules wait for 1.2: go on past 1.17 only if a shot is fun on a phone.
+A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in the calm room, with the cue ball made as a calm bubble is. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). Order: see the balls, then make a shot and a pot worth it, then the game, then its looks. The rules wait for 1.2: go on past B only if a shot is fun on a phone.
 
 **A. See and follow.** Done when depth and direction read at a glance, at rest and on a break, at 60 fps.
 
 - [ ] 1.2 Judge on a phone, by the questions at the end of [pool](pool.md): ball size, placing a shot, `mouth`, side pockets drawn wider than they take, power. Tune before going on
 
-**B. A pot worth it.** Done when each ball is told apart at any depth, and a pot feels like progress without stopping play.
-
-- [ ] 1.17 Celebrate a pocketed ball: explore how to mark it as a real step in the game, felt as well as seen. Today it only sinks, shrinks and gives a haptic. Try several, then reduce:
-  - The ball itself changes: glows, turns to film, pops as a bubble, or bursts into its colour (`src/fx`)
-  - The pocket and room answer: light spilling from the hole, a ripple over the far wall, a brief wash of the ball's colour
-  - It travels to its place in the row of potted balls, so the progress is seen
-  - A haptic shaped to the moment; a soft tone once there is sound (4.1)
-  - Scaled by meaning: more for a called or last ball, most for the 8, muted for a foul or the cue ball (with 1.6 to 1.11)
-  - Never hides balls still moving or delays the next shot; calmer with Reduce Motion
+**B. A pot worth it.** Built; 1.2 judges whether a pot feels like progress without stopping play.
 
 **C. True 8-ball.** Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won.
 
@@ -36,7 +28,7 @@ A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than wat
 - [ ] 1.7 Player 1 and player 2: whose turn it is, when it passes, what a foul gives
 - [ ] 1.8 Solids and stripes: the table is open until a first legal pot assigns them
 - [ ] 1.19 Whose balls: each player's potted and remaining, and whose turn, on the layout of 1.9
-- [ ] 1.10 True 8-ball mode: the 8 must be sunk last; early, or with a scratch, it loses
+- [ ] 1.10 True 8-ball mode: the 8 must be sunk last; early, or with a scratch, it loses. Scale the pot of 1.17 by meaning: more for a called or last ball, most for the 8, muted for a foul
 - [ ] 1.11 Win conditions and a win screen, with play again
 - [ ] 1.12 Win tracking: wins for each player, kept between games
 
@@ -74,7 +66,7 @@ Needs you and a phone, so that feel and frame time are known before more is buil
 One audio decision for the whole app. Off with the silent switch. Synthesised, unless licensed audio is chosen.
 
 - [ ] 4.1 Audio foundation: `expo-audio`, an ADR, a native rebuild
-- [ ] 4.2 Optional soft tones, pitched by size
+- [ ] 4.2 Optional soft tones, pitched by size; one for a pot in 8-ball
 
 ## 5. Showdown trails
 
@@ -182,6 +174,7 @@ Selectable, with Random available and None as the default.
 
 - 1.18, somewhere for pool's options: the dot opens a menu of its own with the mode switch, which leaves; tiles step through options over the live table, saved with the rest (`config/poolOptions`, `ui/Tray`). Empty until 1.16. Seen in the web preview with stand-in options; not on a simulator. Frame time not measured: nothing new is drawn per frame
 - 1.16, short trails behind balls, pool's first option: All balls, Cue ball or None (`POOL.trail`, `core/pool`, `scene/trails`). All by default. Pieces hidden behind their own ball are skipped, calm trails too. Development build, simulator, break of 15: 60 fps, about 4 ms a frame, 2.5 in 1.15. Judged on stills; not yet in play or on a phone (1.2). Calm trails not looked at again
+- 1.17, celebrating a pocketed ball: light from the pocket with a front that crosses the walls, a mote that carries it to its place in the row, a firm haptic as it drops and a soft one as it lands (`POOL.pot`, `scene/poolPots`). A wash of the whole room and a film at the pocket were tried and dropped ([pool](pool.md)). Cue ball unmarked. Reduce Motion: a dimmer light only. Development build, simulator: about 3 ms a frame on average with pots, up to five at once. Judged on frames of recordings; the 8's own pot not seen, haptics not felt, not yet judged in play or on a phone (1.2)
 - 1.9, telling balls apart: new colours, the 8 with its figure, and a place at the top for each ball, solids, the 8, stripes (`POOL.looks`, `POOL.row`, `core/poolRow`). Development build, simulator, shots through 14 and 15 balls: 60 fps, about 3.2 ms a frame. Judged on stills at the far wall and on breaks; not yet in play or on a phone (1.2), by a colour-blind person, or the mode switch's 8-ball side, which draws the same balls. Recheck on felt in 1.13
 
 ### Trails

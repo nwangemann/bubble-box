@@ -48,6 +48,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Showdown screen, and its chooser         | `src/ui/Showdown.tsx`, `src/ui/Lobby.tsx`                          |
 | 8-ball trial: numbers, physics           | `src/config/pool.ts`, `src/core/pool.ts`                           |
 | 8-ball trial: potted and remaining       | `src/core/poolRow.ts`                                              |
+| 8-ball trial: light of a pot             | `src/scene/poolPots.ts`                                            |
 | 8-ball trial: options                    | `src/config/poolOptions.ts`                                        |
 | 8-ball trial: shadows, light on walls    | `src/scene/poolWalls.ts`                                           |
 | 8-ball trial: drawing, screen            | `src/scene/drawPool.ts`, `src/ui/Pool.tsx`                         |

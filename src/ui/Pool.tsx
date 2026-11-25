@@ -26,8 +26,13 @@ const buzz = (strength: number) => {
   const s = Haptics.ImpactFeedbackStyle;
   Haptics.impactAsync(strength > 3 ? s.Medium : strength > 1 ? s.Light : s.Soft).catch(() => {});
 };
-const cheer = () => {
-  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+/** A ball falls into a pocket: the firmest thing in the game. */
+const drop = () => {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+};
+/** It settles into its place in the row. */
+const land = () => {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
 };
 
 const steadyHand = () => {
@@ -43,7 +48,7 @@ const HANDS = [FEELS.weightless];
 
 type Props = {
   settings: PoolSettings;
-  /** Reduce Motion: no trails. */
+  /** Reduce Motion: no trails, and calmer pots. */
   calm: boolean;
   onSettings: (settings: PoolSettings) => void;
   /** To the calm room's menu, or to showdowns. */
@@ -72,12 +77,15 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   const leaving = calm ? 0 : trailing(settings.trail);
   const trails = useSharedValue(leaving);
   useEffect(() => trails.set(leaving), [trails, leaving]);
+  const still = useSharedValue(calm);
+  useEffect(() => still.set(calm), [still, calm]);
 
   useFrameCallback((frame) => {
     const p = pool.value;
     const w = hand.value;
     const dt = Math.min((frame.timeSincePreviousFrame ?? 0) / 1000, TUNING.maxFrame);
     p.trailing = trails.value;
+    p.calm = still.value;
     const moved = advancePool(p, box, dt);
     const h = w.holds[0];
     const heldFor = h ? h.seconds : 0;
@@ -88,12 +96,14 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     // A still table draws nothing.
     if (!moved && !h && !dirty.value) return;
     dirty.value = moved || !!h;
-    if (p.potted > 0) scheduleOnRN(cheer);
+    if (p.potted > 0) scheduleOnRN(drop);
+    else if (p.landed > 0) scheduleOnRN(land);
     else if (p.knock > POOL.hapticLeast && p.time - lastBuzz.value > POOL.hapticGap) {
       lastBuzz.value = p.time;
       scheduleOnRN(buzz, p.knock);
     }
     p.potted = 0;
+    p.landed = 0;
     p.knock = 0;
     let sure = 0;
     if (h) {

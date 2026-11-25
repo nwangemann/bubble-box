@@ -10,6 +10,7 @@ import {
   traceAhead,
   type Pool,
 } from './pool';
+import { landsAt, potEnds } from './poolRow';
 import type { Box } from './types';
 import { advance, beginHold, createWorld, moveHold, newBubble, release } from './world';
 
@@ -313,7 +314,7 @@ test('only as many balls as chosen leave trails', () => {
   expect(run(Infinity)).toBeGreaterThan(10);
 });
 
-test('a still table is drawn until a potted ball has filled its place', () => {
+test('a still table is drawn until nothing of a pot is left to see', () => {
   const pool = table(
     [0, 1, 1],
     [0, 0, 0],
@@ -323,6 +324,30 @@ test('a still table is drawn until a potted ball has filled its place', () => {
     ],
   );
   pool.balls[1]!.sunk = POOL.sink;
-  expect(advancePool(pool, box, POOL.row.fill / 2)).toBe(true);
-  expect(advancePool(pool, box, POOL.row.fill)).toBe(false);
+  expect(advancePool(pool, box, potEnds(false) - POOL.sink - 0.01)).toBe(true);
+  expect(advancePool(pool, box, 1 / 60)).toBe(false);
+});
+
+test('a ball lands in its place once, after it drops', () => {
+  for (const calm of [false, true]) {
+    const pool = table([0, 1, 1], [0, 0, 0], [[0, 0, 2]]);
+    pool.balls.push({ ...pool.balls[1]!, p: at([0, 1, 4]) });
+    pool.calm = calm;
+    pool.balls[1]!.sunk = 0;
+    pool.balls[1]!.pocket = 0;
+    let when = 0;
+    for (let t = 0; t < 3; t += 1 / 60) {
+      advancePool(pool, box, 1 / 60);
+      if (pool.landed === 1 && !when) when = pool.balls[1]!.sunk;
+    }
+    expect(pool.landed).toBe(1);
+    expect(when).toBeCloseTo(landsAt(calm), 1);
+  }
+});
+
+test('a cue ball lands nowhere', () => {
+  const pool = table([0, 1, 1], [0, 0, 0], [[0, 0, 2]]);
+  retire(pool);
+  for (let t = 0; t < 3; t += 1 / 60) advancePool(pool, box, 1 / 60);
+  expect(pool.landed).toBe(0);
 });

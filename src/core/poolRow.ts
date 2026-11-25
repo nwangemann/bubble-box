@@ -31,9 +31,41 @@ export function poolRow(width: number): PoolRowLayout {
   return { groups, radius: radius * fit };
 }
 
-/** How far a ball has filled its place, 0 to 1, by its `sunk`. */
-export function filled(sunk: number) {
+/** Seconds from dropping to when a ball starts to fill its place: with Reduce Motion nothing flies. */
+export function landsAt(calm: boolean) {
   'worklet';
-  const k = Math.max(0, Math.min(1, (sunk - POOL.sink) / POOL.row.fill));
+  return calm ? POOL.sink : POOL.pot.lands;
+}
+
+/** Seconds from dropping until nothing of a pot is left to draw. */
+export function potEnds(calm: boolean) {
+  'worklet';
+  const { gone, blooms } = POOL.pot;
+  return Math.max(gone, landsAt(calm) + Math.max(blooms, POOL.row.fill));
+}
+
+/** How far a ball has filled its place, 0 to 1, by its `sunk`. */
+export function filled(sunk: number, calm: boolean) {
+  'worklet';
+  const k = Math.max(0, Math.min(1, (sunk - landsAt(calm)) / POOL.row.fill));
   return k * k * (3 - 2 * k);
+}
+
+/** The light of a pot, 0 to 1, by its ball's `sunk`: up quickly, then slowly away. */
+export function potLight(sunk: number) {
+  'worklet';
+  const { rise, gone } = POOL.pot;
+  if (sunk < 0 || sunk >= gone) return 0;
+  if (sunk < rise) return (sunk / rise) * (2 - sunk / rise);
+  const k = 1 - (sunk - rise) / (gone - rise);
+  return k * k;
+}
+
+/** Where a mote is between two places at `k`, 0 to 1 of its way, bowed towards the middle. */
+export function motePath(from: number[], to: number[], k: number) {
+  'worklet';
+  const e = k * k * (3 - 2 * k);
+  const bow = 4 * e * (1 - e) * POOL.pot.mote.bow;
+  const x = from[0]! + (to[0]! - from[0]!) * e;
+  return { x: x - from[0]! * bow, y: from[1]! + (to[1]! - from[1]!) * e };
 }

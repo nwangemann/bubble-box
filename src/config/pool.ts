@@ -38,6 +38,27 @@ export const POOL = {
   draw: { strength: 0.18, reach: 0.75 },
   /** How long a ball takes to sink into a pocket, or an old cue ball to fade. */
   sink: 0.5,
+  /**
+   * A potted ball, in seconds since it dropped. Its light `spill`s from the pocket over the walls,
+   * rising over `rise` and gone by `gone`; a front of it crosses the walls at `speed`; from `leaves` a
+   * mote carries it to its place in the row, `lands` there, and a ring `blooms` round it. `most` are
+   * lit at once, the latest. All of it ends before a cleared table is set again.
+   */
+  pot: {
+    spill: 1.9,
+    rise: 0.12,
+    gone: 1.1,
+    ripple: 0.4,
+    speed: 3.2,
+    leaves: 0.3,
+    lands: 0.95,
+    blooms: 0.5,
+    /** The mote's size in the row's radii, how far its path bows, and its tail: how many, how far behind. */
+    mote: { size: 2, bow: 0.22, tail: 18, lag: 0.007, strength: 0.55 },
+    most: 4,
+    /** With Reduce Motion there is only the light, this much of it, and the place fills. */
+    calm: 0.5,
+  },
   /** Seconds of stillness before a cleared table is set again. */
   again: 1.2,
   /**
@@ -71,7 +92,7 @@ export const POOL = {
   /**
    * A place for each ball to pot, at the top, in pixels: solids, the 8, stripes. `apart` is between
    * groups, `side` the least margin. One still on the table is a ring of its colour and a `ghost` of
-   * itself; once potted it fills in over `fill` seconds.
+   * itself; once its light lands it fills in over `fill` seconds.
    */
   row: { top: 84, gap: 23, apart: 10, side: 14, radius: 8.5, ghost: 0.3, ring: 0.85, fill: 0.35 },
   /** How balls look with distance, at the far wall: haze into the air, dimming, and duller shine. */

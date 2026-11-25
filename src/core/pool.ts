@@ -1,4 +1,5 @@
 import { POOL } from '../config/pool';
+import { landsAt, potEnds } from './poolRow';
 import { ageTrail, pointAt, sideOf } from './trail';
 import type { Box, Bubble, Trail, Vec3 } from './types';
 
@@ -28,6 +29,10 @@ export type Pool = {
   /** Hardest knock and number of balls potted since last asked. */
   knock: number;
   potted: number;
+  /** How many have reached their places in the row since last asked. */
+  landed: number;
+  /** Reduce Motion. */
+  calm: boolean;
   /** How many balls leave trails, the cue ball first. */
   trailing: number;
   /** Each with its ball's place in `balls`, or -1 once that has been replaced. */
@@ -132,6 +137,8 @@ export function createPool(box: Box): Pool {
     done: 0,
     knock: 0,
     potted: 0,
+    landed: 0,
+    calm: false,
     trailing: 0,
     trails: [],
   };
@@ -467,7 +474,12 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
   const busy = balls.some((b) =>
     b.sunk >= 0 ? b.sunk < POOL.sink : b.v.x !== 0 || b.v.y !== 0 || b.v.z !== 0,
   );
-  for (const b of balls) if (b.sunk >= 0) b.sunk += seconds;
+  const lands = landsAt(pool.calm);
+  balls.forEach((b, i) => {
+    if (b.sunk < 0) return;
+    if (i > 0 && b.sunk < lands && b.sunk + seconds >= lands) pool.landed++;
+    b.sunk += seconds;
+  });
   if (busy) {
     const holes = snugs(box);
     pool.leftover += seconds;
@@ -478,8 +490,9 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
     }
   } else pool.time += seconds;
   const fading = fadeTrails(pool);
-  // Until its place in the row has filled.
-  const filling = balls.some((b, i) => i > 0 && b.sunk >= 0 && b.sunk < POOL.sink + POOL.row.fill);
+  // Until nothing of a pot shows.
+  const ends = potEnds(pool.calm);
+  const filling = balls.some((b, i) => i > 0 && b.sunk >= 0 && b.sunk < ends);
   const settling = enliven(balls, seconds) || fading || filling;
   if (balls.some((b, i) => i > 0 && b.sunk < POOL.sink)) {
     pool.done = 0;

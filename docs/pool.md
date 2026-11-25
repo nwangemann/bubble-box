@@ -66,6 +66,12 @@ So a careful shot drops as often as before, and a careless one seldom. Before: b
 | 0.3 s            | 0.4    | 9 s         |
 | 0.8 s and longer | 0.6    | 9 s         |
 
+## A pot
+
+Marked as a step, without stopping play (`POOL.pot`, `scene/poolPots`). Its light spills from the pocket over the walls, beneath the balls, and a front of it runs out across them, bending at each edge, so it shows where the pocket is. Then a small mote carries it to its place in the row, which fills as a ring blooms round it, about a second after it dropped. A firm haptic as it drops, a soft one as it lands. The 8's light is pale. A cue ball only sinks. With Reduce Motion, only a dimmer light, and the place fills once the ball has sunk. All is over before a cleared table is set again, and it keeps no state but the ball's own (`sunk`).
+
+Tried and dropped: a wash of the whole room (hides colours and depth); a film swelling from the pocket (too small to see there). Not tried: bursts from `src/fx`, and scaling by meaning, which needs rules (1.10).
+
 ## Options
 
 The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. One row of tiles leaves the far wall clear; keep to three options. They are in `config/poolOptions`, saved together: so far only Trail.

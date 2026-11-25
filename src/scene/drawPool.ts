@@ -15,6 +15,7 @@ import type { Box, Bubble, Vec3 } from '@/core/types';
 import { LIB } from '@/styles/prelude';
 import type { View } from './drawScene';
 import { roomPicture } from './roomPicture';
+import { compilePots, drawMotes, drawPots } from './poolPots';
 import { compilePoolWalls, drawPoolWalls, LIGHTS } from './poolWalls';
 import { compileLooks, cutTrail, drawPiece, type Piece } from './trails';
 
@@ -78,7 +79,7 @@ function make() {
   }
   const { look } = POOL.trail;
   const trails = compileLooks({ [look.id]: look }, { [look.id]: WAKE });
-  return { line, ball, contact, effect, walls: compilePoolWalls(), trails };
+  return { line, ball, contact, effect, walls: compilePoolWalls(), pots: compilePots(), trails };
 }
 export type PoolGpu = ReturnType<typeof make>;
 let made: PoolGpu | null = null;
@@ -213,7 +214,7 @@ function drawRow(
   for (const { places } of row.groups)
     for (const { ball, x } of places) {
       const b = pool.balls[ball];
-      const k = b ? filled(b.sunk) : 0;
+      const k = b ? filled(b.sunk, pool.calm) : 0;
       const size = r * (0.8 + 0.2 * k);
       drawDisc(
         canvas,
@@ -258,6 +259,7 @@ export function drawPool(
     const s = scaleAt(box, p.z) * v.ppu;
     return { x: v.cx + p.x * s, y: v.cy + p.y * s, s };
   };
+  drawPots(canvas, gpu.pots, pool, box, v);
   drawPoolWalls(canvas, gpu.contact, gpu.walls, pool.balls, box, v);
   if (trace) {
     const a = at(trace.from);
@@ -316,4 +318,5 @@ export function drawPool(
     drawDisc(canvas, gpu.ball, effect, 0, c.x, c.y, rx, ry, POOL.cue.held, 0, 0.4);
   }
   drawRow(canvas, gpu, effect, pool, row, v);
+  drawMotes(canvas, gpu.pots, pool, row, box, v);
 }
