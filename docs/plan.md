@@ -61,6 +61,20 @@ Exploration. Everything below is selectable, with Surprise as the default; reduc
 - [ ] Measure frame time with several bursts on screen
 - [ ] Reduce to the preferred set and choose defaults
 
+## Phase 2c: preview picker
+
+Explore. Tapping a category title in the tray (such as Bubble) opens a modal showing a medium, gently moving preview of every option in that category. Tapping a preview selects it. The names in the row stay as the quick way to choose.
+
+- [ ] Bubble first: a grid of live bubbles, drawn with the real style shaders and a slow breathing drift
+- [ ] Decide how the modal looks and closes while staying calm (full screen or sheet; room still visible behind or not)
+- [ ] Draw all previews on one canvas, only while open; pause the room behind and measure frame time
+- [ ] Box: small rooms with a drifting bubble
+- [ ] Meet and Pop: the effect looping, with a pause between plays
+- [ ] Glass: a looping ripple
+- [ ] Feel: a bubble moving in a small box with that physics
+- [ ] Decide whether Tap needs previews, and what Surprise and None show
+- [ ] Make titles look tappable without adding clutter; Reduce Motion shows stills
+
 ## Phase 3: box
 
 - [ ] Frost, water, silk and stone walls
