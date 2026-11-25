@@ -312,3 +312,17 @@ test('only as many balls as chosen leave trails', () => {
   expect(run(1)).toBe(1);
   expect(run(Infinity)).toBeGreaterThan(10);
 });
+
+test('a still table is drawn until a potted ball has filled its place', () => {
+  const pool = table(
+    [0, 1, 1],
+    [0, 0, 0],
+    [
+      [0, 0, 2],
+      [0, 0, 3],
+    ],
+  );
+  pool.balls[1]!.sunk = POOL.sink;
+  expect(advancePool(pool, box, POOL.row.fill / 2)).toBe(true);
+  expect(advancePool(pool, box, POOL.row.fill)).toBe(false);
+});

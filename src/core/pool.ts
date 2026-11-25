@@ -478,7 +478,9 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
     }
   } else pool.time += seconds;
   const fading = fadeTrails(pool);
-  const settling = enliven(balls, seconds) || fading;
+  // Until its place in the row has filled.
+  const filling = balls.some((b, i) => i > 0 && b.sunk >= 0 && b.sunk < POOL.sink + POOL.row.fill);
+  const settling = enliven(balls, seconds) || fading || filling;
   if (balls.some((b, i) => i > 0 && b.sunk < POOL.sink)) {
     pool.done = 0;
     return busy || settling;

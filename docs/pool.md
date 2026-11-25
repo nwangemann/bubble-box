@@ -21,6 +21,13 @@ A break moves every ball. Collisions alone do not: pushes reach the middle ball 
 
 A ball drops when its middle comes within 0.2 of where it would sit snug in a pocket, touching every wall there (`POOL.mouth`), so corners and middles allow the same. The drawn corners follow from it; the middles are drawn wider than they take (`POOL.holes.side`), as true ones looked too small beside the corners. Pockets draw faintly what is within 0.75 (`POOL.draw`): only a ball stopped on the lip, within 0.25, tips in. Drag is a constant slowing of 0.12, so others truly stop and hang where they stop. Cushions keep 0.8 of the speed into them and grip.
 
+## Telling balls apart
+
+- **Colour**: yellow, blue, red, purple, orange, green, pink, one solid and one stripe of each. Pink stands for maroon, which looked red when far. Chosen by distance between colours (OKLab) as hazed at the far wall, in normal sight and two kinds of colour-blindness: the closest pair is 8.7 apart and 3.9 to the colour-blind, from 4.9 and 0.1.
+- **Solids and stripes**: a stripe has white caps, which stay pale in the haze, so it is told by shape as well as colour. Marks never turn with the ball.
+- **The 8**: black, with a pale rim and its figure on a white spot that always faces the viewer and hazes less. Its lines, in the aim and the row, are pale.
+- **Potted and remaining**: 15 places at the top, solids, the 8, stripes, each colour in the same order. A ball still on the table is a faint ghost in a ring of its colour; potted, it fills in. Three groups (`core/poolRow`), so 1.19 can give each player one. The row shrinks on a narrow screen.
+
 ## Aiming
 
 A faint line runs straight ahead, as a release without a swipe would go, with a ring where the cue ball would touch and a line to where the ball it meets would land, bolder if that drops. A quick swipe fades it, as it no longer tells the truth; once placing, it always shows. Because the shot starts at the finger and flies at the vanishing point, where you put your finger is how you cut the ball. The ball in the hand is translucent so as not to hide its target.
@@ -29,7 +36,7 @@ A faint line runs straight ahead, as a release without a swipe would go, with a 
 
 - **Shadows**, straight across from each ball. The far wall's carry all the way, so how far one sits from its ball is how deep the ball is. The rest show only on walls within 1.1, firmest where a ball presses.
 - **Light** of its own colour that a moving ball throws on walls within 1.1, brighter as it nears them. It follows the ball's speed, eased (`lively`), so a break does not flash and a resting ball throws none.
-- **Distance**: far balls are hazier, dimmer and without shine; near ones have a lit rim. Kept mild, so colours can still be told apart (1.9).
+- **Distance**: far balls are hazier, dimmer and without shine; near ones have a lit rim. Kept mild, so colours can still be told apart.
 - **Trails**, a soft streak of a moving ball's colour along its path, lasting 1.2 s (`POOL.trail`), so its length is the ball's speed. It narrows and hazes with depth, lies among the balls, and bends exactly where a ball bounces. All balls by default: even a break stays uncluttered, as most balls move slowly and slow ones show next to nothing. One flying straight away hides its own.
 
 Tried and dropped: a halo round each ball (easy to track, no depth, and it hides neighbours); a line on the walls at each ball's depth (thin ones cannot be placed, thick ones repeat the light); mirror images on the walls, as showdowns have (they read as ghost balls); light that reaches further (it greys the room and belongs to no ball). Shadows on all walls from anywhere give each ball five marks, too many to pair with their balls.
@@ -73,7 +80,7 @@ None in the trial. Planned (part C of section 1 in the [plan](plan.md)): standar
 
 ## Fit with the vision
 
-The balls left are the score; potted ones rest in a row at the top. No numbers, timer or words.
+The balls left are the score, shown one by one at the top. No timer or words, and no number but the 8's own.
 
 ## What the trial must answer, on a phone
 

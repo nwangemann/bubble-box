@@ -2,7 +2,7 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2.
 
-**Next: 1.9, telling balls apart** (1.2 first, with a phone).
+**Next: 1.17, celebrating a pocketed ball** (1.2 first, with a phone).
 
 Without a phone, skip 2 and 7.1 to 7.3, and pass over 1.2, and in section 1 stop after 1.17. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
 
@@ -16,7 +16,6 @@ A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than wat
 
 **B. A pot worth it.** Done when each ball is told apart at any depth, and a pot feels like progress without stopping play.
 
-- [ ] 1.9 Telling balls apart: each ball its own at any depth, solids from stripes first, the 8 unmistakable; potted and remaining shown one by one, laid out so it can be split between two players later (1.19). Before 1.17, which sends balls there
 - [ ] 1.17 Celebrate a pocketed ball: explore how to mark it as a real step in the game, felt as well as seen. Today it only sinks, shrinks and gives a haptic. Try several, then reduce:
   - The ball itself changes: glows, turns to film, pops as a bubble, or bursts into its colour (`src/fx`)
   - The pocket and room answer: light spilling from the hole, a ripple over the far wall, a brief wash of the ball's colour
@@ -183,6 +182,7 @@ Selectable, with Random available and None as the default.
 
 - 1.18, somewhere for pool's options: the dot opens a menu of its own with the mode switch, which leaves; tiles step through options over the live table, saved with the rest (`config/poolOptions`, `ui/Tray`). Empty until 1.16. Seen in the web preview with stand-in options; not on a simulator. Frame time not measured: nothing new is drawn per frame
 - 1.16, short trails behind balls, pool's first option: All balls, Cue ball or None (`POOL.trail`, `core/pool`, `scene/trails`). All by default. Pieces hidden behind their own ball are skipped, calm trails too. Development build, simulator, break of 15: 60 fps, about 4 ms a frame, 2.5 in 1.15. Judged on stills; not yet in play or on a phone (1.2). Calm trails not looked at again
+- 1.9, telling balls apart: new colours, the 8 with its figure, and a place at the top for each ball, solids, the 8, stripes (`POOL.looks`, `POOL.row`, `core/poolRow`). Development build, simulator, shots through 14 and 15 balls: 60 fps, about 3.2 ms a frame. Judged on stills at the far wall and on breaks; not yet in play or on a phone (1.2), by a colour-blind person, or the mode switch's 8-ball side, which draws the same balls. Recheck on felt in 1.13
 
 ### Trails
 

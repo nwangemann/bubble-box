@@ -1,3 +1,6 @@
+/** How a ball is marked. The cue ball is the plain one. */
+export type BallKind = 'plain' | 'solid' | 'stripe' | 'eight';
+
 /** The 8-ball trial, in the calm room's box. Lengths as in `tuning`; see docs/pool.md. */
 export const POOL = {
   /** Every ball, the cue ball too: about a third of the largest calm bubble. */
@@ -43,27 +46,34 @@ export const POOL = {
    * the middle ones, so the first touch also springs them apart, at `burst` of its speed.
    */
   rack: { z: 0.55, gap: 1e-6, burst: 0.18 },
-  /** Colour of each ball: the cue, then the rack from its tip to the 8 behind. `stripe` ones are banded. */
+  /**
+   * Each ball: the cue, then the rack from its tip to the 8 behind. Colours are as far apart as seven
+   * can be once hazed at the far wall, and to the colour-blind: check there before changing one.
+   */
   looks: [
-    { color: [0.93, 0.96, 1], stripe: 0 },
-    { color: [1, 0.75, 0.2], stripe: 1 },
-    { color: [1, 0.75, 0.2], stripe: 0 },
-    { color: [0.28, 0.55, 1], stripe: 1 },
-    { color: [1, 0.34, 0.34], stripe: 1 },
-    { color: [0.28, 0.55, 1], stripe: 0 },
-    { color: [1, 0.34, 0.34], stripe: 0 },
-    { color: [0.66, 0.42, 1], stripe: 1 },
-    { color: [0.66, 0.42, 1], stripe: 0 },
-    { color: [1, 0.52, 0.16], stripe: 1 },
-    { color: [1, 0.52, 0.16], stripe: 0 },
-    { color: [0.3, 0.85, 0.55], stripe: 1 },
-    { color: [0.3, 0.85, 0.55], stripe: 0 },
-    { color: [0.75, 0.2, 0.38], stripe: 1 },
-    { color: [0.75, 0.2, 0.38], stripe: 0 },
-    { color: [0.07, 0.08, 0.1], stripe: 0 },
-  ],
-  /** Where potted balls rest: pixels. */
-  row: { top: 78, gap: 24, radius: 9 },
+    { color: [0.93, 0.96, 1], kind: 'plain' },
+    { color: [1, 0.88, 0.2], kind: 'stripe' },
+    { color: [1, 0.88, 0.2], kind: 'solid' },
+    { color: [0.2, 0.5, 1], kind: 'stripe' },
+    { color: [0.9, 0.07, 0.12], kind: 'stripe' },
+    { color: [0.2, 0.5, 1], kind: 'solid' },
+    { color: [0.9, 0.07, 0.12], kind: 'solid' },
+    { color: [0.48, 0.15, 0.8], kind: 'stripe' },
+    { color: [0.48, 0.15, 0.8], kind: 'solid' },
+    { color: [1, 0.45, 0], kind: 'stripe' },
+    { color: [1, 0.45, 0], kind: 'solid' },
+    { color: [0.1, 0.75, 0.35], kind: 'stripe' },
+    { color: [0.1, 0.75, 0.35], kind: 'solid' },
+    { color: [1, 0.55, 0.82], kind: 'stripe' },
+    { color: [1, 0.55, 0.82], kind: 'solid' },
+    { color: [0.03, 0.03, 0.04], kind: 'eight' },
+  ] as { color: [number, number, number]; kind: BallKind }[],
+  /**
+   * A place for each ball to pot, at the top, in pixels: solids, the 8, stripes. `apart` is between
+   * groups, `side` the least margin. One still on the table is a ring of its colour and a `ghost` of
+   * itself; once potted it fills in over `fill` seconds.
+   */
+  row: { top: 84, gap: 23, apart: 10, side: 14, radius: 8.5, ghost: 0.3, ring: 0.85, fill: 0.35 },
   /** How balls look with distance, at the far wall: haze into the air, dimming, and duller shine. */
   far: { haze: 0.35, dim: 0.2, dull: 0.8 },
   /** Light of a ball's own colour round the near edge of each, gone at the far wall. */

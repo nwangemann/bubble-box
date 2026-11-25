@@ -8,6 +8,7 @@ import {
   type SkRuntimeEffect,
 } from '@shopify/react-native-skia';
 import { POOL } from '@/config/pool';
+import { filled, type PoolRowLayout } from '@/core/poolRow';
 import { pockets, type Ball, type Pool, type Trace } from '@/core/pool';
 import { scaleAt } from '@/core/projection';
 import type { Box, Bubble, Vec3 } from '@/core/types';
@@ -20,7 +21,7 @@ import { compileLooks, cutTrail, drawPiece, type Piece } from './trails';
 /** A film round a tinted middle. Uniform order matches `drawBall`. */
 const BALL = `
 uniform float3 color;
-uniform float stripe;
+uniform float2 kind; // stripe, eight
 uniform float px;
 uniform float fade;
 uniform float away;
@@ -35,7 +36,13 @@ half4 main(vec2 p) {
   float rim = 1.0 - n.z;
   vec3 body = color;
   float band = smoothstep(0.42, 0.36, abs(dot(n, normalize(vec3(0.35, 0.9, -0.2)))));
-  body = mix(body, mix(vec3(0.95, 0.96, 1.0), color, band), stripe);
+  body = mix(body, mix(vec3(0.95, 0.96, 1.0), color, band), kind.x);
+  // The 8: its figure on a pale spot, always facing.
+  float soft = max(0.03, 2.0 * px);
+  float spot8 = smoothstep(0.54 + soft, 0.54 - soft, d) * kind.y;
+  float loop = min(abs(length(p - vec2(0.0, -0.15)) - 0.14), abs(length(p - vec2(0.0, 0.17)) - 0.17));
+  float figure = smoothstep(0.055 + soft, 0.055 - soft, loop);
+  body = mix(body, mix(vec3(0.95, 0.96, 1.0), color, figure), spot8);
   float light = 0.5 + 0.5 * dot(n, normalize(vec3(-0.45, -0.75, 0.5)));
   vec3 c = body * (0.22 + 0.68 * light * light);
   c += body * 0.35 * pow(rim, 2.0) + film(0.8 + 1.3 * rim + 0.4 * p.y) * 0.16 * pow(rim, 1.5);
@@ -43,7 +50,10 @@ half4 main(vec2 p) {
   c *= 1.0 - far.y * away;
   c += body * far.w * (1.0 - away) * pow(rim, 3.0);
   c += vec3(shine(n)) * 0.8 * crisp + body * lit * (0.18 + 0.5 * pow(rim, 2.5));
-  c = mix(c, air, far.x * away);
+  // Black would be lost against the room.
+  c += vec3(0.55, 0.65, 0.75) * pow(rim, 1.5) * 0.9 * kind.y;
+  // Its spot stays bright in the haze.
+  c = mix(c, air, far.x * away * (1.0 - 0.6 * spot8));
   float a = smoothstep(1.0, 1.0 - 2.0 * px, d) * fade;
   return half4(half3(clamp(c, 0.0, 1.0)) * half(a), half(a));
 }
@@ -117,6 +127,8 @@ export function poolRoom(box: Box, view: View): SkPicture {
   });
 }
 
+/** A ball's colour as a line: the 8's is pale, as black would not show. */
+const MARKS = POOL.looks.map(({ color, kind }) => (kind === 'eight' ? [0.8, 0.85, 0.9] : color));
 const AIR = [0.05, 0.14, 0.22];
 const FAR = [POOL.far.haze, POOL.far.dim, POOL.far.dull, POOL.rim];
 
@@ -138,7 +150,17 @@ export function drawDisc(
   if (r < 0.3 || fade <= 0) return;
   const look = POOL.looks[which]!;
   paint.setShader(
-    effect.makeShader([...look.color, look.stripe, 1 / (2 * r), fade, away, lit, ...FAR, ...AIR]),
+    effect.makeShader([
+      ...look.color,
+      look.kind === 'stripe' ? 1 : 0,
+      look.kind === 'eight' ? 1 : 0,
+      1 / (2 * r),
+      fade,
+      away,
+      lit,
+      ...FAR,
+      ...AIR,
+    ]),
   );
   canvas.save();
   canvas.translate(x, y);
@@ -176,6 +198,43 @@ function drawWakes(
   return i;
 }
 
+/** Every ball to pot, in its place: potted ones whole, the rest as rings. */
+function drawRow(
+  canvas: SkCanvas,
+  gpu: PoolGpu,
+  effect: SkRuntimeEffect,
+  pool: Pool,
+  row: PoolRowLayout,
+  v: View,
+) {
+  'worklet';
+  const { top, ghost, ring } = POOL.row;
+  const r = row.radius;
+  for (const { places } of row.groups)
+    for (const { ball, x } of places) {
+      const b = pool.balls[ball];
+      const k = b ? filled(b.sunk) : 0;
+      const size = r * (0.8 + 0.2 * k);
+      drawDisc(
+        canvas,
+        gpu.ball,
+        effect,
+        ball,
+        v.cx + x,
+        top,
+        size,
+        size,
+        ghost + (1 - ghost) * k,
+        0,
+        0,
+      );
+      if (k >= 1) continue;
+      const t = MARKS[ball]!;
+      ink(gpu.line, true, t[0]!, t[1]!, t[2]!, ring * (1 - k), 1.2);
+      canvas.drawCircle(v.cx + x, top, r - 0.6, gpu.line);
+    }
+}
+
 export function drawPool(
   canvas: SkCanvas,
   gpu: PoolGpu,
@@ -187,6 +246,7 @@ export function drawPool(
   trace: Trace | null,
   /** How plainly that shows, 0 to 1. */
   sure: number,
+  row: PoolRowLayout,
   box: Box,
   v: View,
 ) {
@@ -243,7 +303,7 @@ export function drawPool(
     // Where the one it would meet goes.
     const a = at(pool.balls[trace.hit]!.p);
     const b = at(trace.lands);
-    const [r, g, bl] = POOL.looks[trace.hit]!.color as [number, number, number];
+    const [r, g, bl] = MARKS[trace.hit] as [number, number, number];
     ink(line, true, r, g, bl, 0.8 * sure, trace.drops ? 2.4 : 1.2);
     canvas.drawLine(a.x, a.y, b.x, b.y, line);
     canvas.drawCircle(b.x, b.y, POOL.radius * b.s, line);
@@ -255,12 +315,5 @@ export function drawPool(
     const ry = r * (1 + held.d.y - held.d.z * 0.3);
     drawDisc(canvas, gpu.ball, effect, 0, c.x, c.y, rx, ry, POOL.cue.held, 0, 0.4);
   }
-  const down = pool.balls
-    .map((b, i) => ({ b, i }))
-    .filter(({ b, i }) => i > 0 && b.sunk >= POOL.sink);
-  const R = POOL.row;
-  down.forEach(({ i }, n) => {
-    const x = v.cx + (n - (down.length - 1) / 2) * R.gap;
-    drawDisc(canvas, gpu.ball, effect, i, x, R.top, R.radius, R.radius, 0.85, 0, 0);
-  });
+  drawRow(canvas, gpu, effect, pool, row, v);
 }

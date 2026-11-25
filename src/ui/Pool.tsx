@@ -16,6 +16,7 @@ import { POOL_ROWS, stepPool, trailing, type PoolSettings } from '@/config/poolO
 import { TUNING } from '@/config/tuning';
 import { FEELS } from '@/config/feels';
 import { advancePool, createPool, enter, retire, traceAhead } from '@/core/pool';
+import { poolRow } from '@/core/poolRow';
 import type { Box } from '@/core/types';
 import { advance, beginHold, createWorld, heldBy, moveHold, release, swipeOf } from '@/core/world';
 import { drawPool, getPoolGpu, poolRoom } from '@/scene/drawPool';
@@ -58,6 +59,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   const view = useMemo(() => ({ cx: width / 2, cy: height / 2, ppu: width / 2 }), [width, height]);
   const box = useMemo<Box>(() => ({ hw: 1, hh: height / width, ...TUNING.box }), [width, height]);
   const room = useMemo(() => poolRoom(box, view), [box, view]);
+  const row = useMemo(() => poolRow(width), [width]);
   const [gpu] = useState(getPoolGpu);
   const [start] = useState(() => createPool(box));
   const pool = useSharedValue(start);
@@ -103,7 +105,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     const grown = h ? Math.min(1, h.seconds / POOL.cue.appear) : 0;
     picture.value = createPicture((canvas) => {
       'worklet';
-      drawPool(canvas, gpu, p, h ? h.bubble : null, grown, trace, sure, box, view);
+      drawPool(canvas, gpu, p, h ? h.bubble : null, grown, trace, sure, row, box, view);
     });
   });
 
