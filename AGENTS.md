@@ -68,5 +68,5 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 
 1. Remove temporary probes and logging, then run `npm run check`.
 2. Delete the simulators, servers and scratch files this session made. Leave any it did not make: other sessions may be using them. Need a simulator while all are in use? Create one, and delete it here.
-3. Tick the step in `docs/plan.md` and move **Next**.
-4. End with one line to start the next session, such as "Execute step 2.2 from docs/plan.md", and say what is uncommitted, unfinished or unverified.
+3. Move the step to **Built** in `docs/plan.md` and move **Next**.
+4. End with one line to start the next session, such as "Execute step 1.1 from docs/plan.md", and say what is uncommitted, unfinished or unverified.
