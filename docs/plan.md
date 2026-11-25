@@ -26,6 +26,7 @@ Behind moving bubbles, narrowing and fading with perspective. Explore, then redu
 - [ ] 2.4 A wake that bends the background like heat
 - [ ] 2.5 A themed trail per arena: embers, dust, stardust, sea foam, wisps, steam
 - [ ] 2.6 Trails that tell the story: longer and brighter with speed, two that braid where bubbles merge, the winner's whole path drawn once at the end
+- [ ] 2.7 Investigate, once the trails are in: does a fluid filling the box make motion easier to follow? Try a visible medium that bubbles push, drag and swirl, with drifting specks to show the flow; compare it with trails alone and with both, and check frame time. Keep it, fold it into trails or drop it
 
 ## 3. Liquid-filled bubbles
 
