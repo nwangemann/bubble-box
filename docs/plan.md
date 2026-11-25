@@ -2,18 +2,17 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2.
 
-**Next: 1.1, 8-ball on paper.**
+**Next: 1.2, 8-ball trial.**
 
 Without a phone, skip 2 and 7.1 to 7.3, and leave 1.3 to 1.5 until 1.2 has been judged on one. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
 
 ## 1. 8-ball in space
 
-A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in a weightless box. The aim is that it feels fun and engaging; if it does not, drop it. 1.1 and 1.2 are a trial: go on to 1.3 to 1.5 only if a shot is fun.
+A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in a weightless box. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). 1.2 is a trial: go on to 1.3 to 1.5 only if a shot is fun.
 
-- [ ] 1.1 Explore on paper: where pockets go in a box (corners, edges, faces), how the rack forms in space, what cushions and cloth become, how a ball comes to rest, and how to aim and judge depth through a flat screen. Settle the rules to keep, and how a game with scores and turns fits [vision](vision.md)
-- [ ] 1.2 Trial: cue ball, a few balls and pockets; aim, set power, shoot. True collisions, spin and rails, our own physics (ADR 1). Find the aim and camera that make a shot readable and satisfying, then judge on a phone
+- [ ] 1.2 Trial, as "What 1.2 must answer" in [pool](pool.md): cue ball, five balls, 12 pockets; aim with the cue's eye, pull to shoot. Exact collisions, cushions and cushion spin, our own physics (ADR 1). Then judge on a phone
 - [ ] 1.3 The full game: rack and break, solids and stripes, calling the 8, scratches and fouls, ball in hand, two players passing the phone
-- [ ] 1.4 English, draw and follow, chosen by where the cue strikes
+- [ ] 1.4 English, draw and follow, chosen in the cue's eye (draw and follow are a convention without a cloth)
 - [ ] 1.5 The mode itself: a third side to the mode switch, looks for table and balls, an opponent to play alone
 
 ## 2. First time on a phone
@@ -132,6 +131,10 @@ Selectable, with Random available and None as the default.
 - Attraction between bubbles: the Pull option (None, Near, Far, Heavy; Near by default; `config/pulls`) and a gentler one in showdowns (`ARENA_PULL`), with hunting held back (`patience` 2.4, was 1.6) so fights of 12 take about 12 to 16 s, going by nearby settings. Pairs tire when close or touching. Simulated Drift rooms: about 10 to 35% more near meetings, no faster, no clumps. Simulator: 60 fps with 9 fighting
 - A Calm and Showdown switch at the foot of the menu and the chooser, each side a window onto its own (`ui/ModeSwitch`). The Showdown row went; Random moved to the chooser
 - The menu as tiles: each shows a setting and what is chosen, and opens its previews (`ui/Tray`, `TUNING.menu`). Box's sliders moved under its previews
+
+### 8-ball in space
+
+- 1.1 on paper: table, rack, aiming, spin, rules, fit with the vision ([pool](pool.md)). Numbers are from a simulation, not play
 
 ### Trails
 

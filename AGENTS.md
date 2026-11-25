@@ -52,6 +52,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 4. [docs/vision.md](docs/vision.md): for any visible change.
 5. [docs/running.md](docs/running.md): before running npm, pod or simulator commands.
 6. [docs/settings.md](docs/settings.md): when touching options or defaults.
+7. [docs/pool.md](docs/pool.md): when working on 8-ball (section 1 of the plan).
 
 ## Rules
 
