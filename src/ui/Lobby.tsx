@@ -10,7 +10,7 @@ import { drawFigure, drawLiquid, showdownLook } from '@/scene/drawShowdown';
 import { getGpu } from '@/scene/gpu';
 import { arenaPicture, pictureShader } from '@/scene/showdownPictures';
 import { THEME_IDS, THEMES, type ThemeId } from '@/showdown';
-import { castFor, castName, stepCast, type CastChoice } from '@/showdown/casts';
+import { castFor, castName, mostOf, stepCast, type CastChoice } from '@/showdown/casts';
 import { ModeSwitch } from './ModeSwitch';
 
 const C = U.card;
@@ -45,8 +45,10 @@ export function Lobby({
   onClose,
 }: Props) {
   const { width, height } = useWindowDimensions();
-  const step = (by: number) =>
-    onCount(Math.max(ENTRANTS.least, Math.min(ENTRANTS.most, count + by)));
+  // The saved count waits for a cast that has as many.
+  const most = mostOf(cast);
+  const entering = Math.min(count, most);
+  const step = (by: number) => onCount(Math.max(ENTRANTS.least, Math.min(most, entering + by)));
   const [{ liquid }] = useState(getGpu);
   const cards = useMemo(() => {
     const rows = Math.ceil(THEME_IDS.length / COLUMNS);
@@ -77,7 +79,11 @@ export function Lobby({
           const { room, shader } = rooms[at]!;
           // Random promises no cast in particular, so each card shows another's.
           const guests = THEME_IDS[(at + 1) % THEME_IDS.length]!;
-          const { cast: who } = THEMES[cast === 'random' ? guests : castFor(cast, id)];
+          const one = castFor(cast, id);
+          const who =
+            one === 'mixed'
+              ? [0, 1, 2].map((i) => THEMES[THEME_IDS[(at + i) % THEME_IDS.length]!].cast[at]!)
+              : THEMES[cast === 'random' ? guests : one].cast.slice(0, 3);
           canvas.save();
           canvas.translate(x, y);
           canvas.clipRRect(
@@ -86,7 +92,7 @@ export function Lobby({
             true,
           );
           canvas.drawPicture(room);
-          const look = showdownLook(THEMES[id], who.slice(0, 3));
+          const look = showdownLook(THEMES[id], who);
           look.cast.forEach((f, i) => {
             const r = (w / 2) * C.ball;
             const at = { x: w * (0.2 + 0.3 * i), y: h * (i === 1 ? 0.32 : 0.52) };
@@ -149,14 +155,14 @@ export function Lobby({
           accessible
           accessibilityRole="adjustable"
           accessibilityLabel="Entrants"
-          accessibilityValue={{ min: ENTRANTS.least, max: ENTRANTS.most, now: count }}
+          accessibilityValue={{ min: ENTRANTS.least, max: most, now: entering }}
           accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
           onAccessibilityAction={(e) => step(e.nativeEvent.actionName === 'increment' ? 1 : -1)}
         >
           <Pressable onPress={() => step(-1)} hitSlop={4} style={styles.step}>
             <Text style={styles.sign}>−</Text>
           </Pressable>
-          <Text style={styles.number}>{count} bubbles</Text>
+          <Text style={styles.number}>{entering} bubbles</Text>
           <Pressable onPress={() => step(1)} hitSlop={4} style={styles.step}>
             <Text style={styles.sign}>+</Text>
           </Pressable>

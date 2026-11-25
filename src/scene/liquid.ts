@@ -2,6 +2,8 @@ import { Skia, type SkRuntimeEffect } from '@shopify/react-native-skia';
 import { LIB } from '@/styles/prelude';
 
 /** Most bubbles one can be taking in at once and still be drawn as one surface. */
+/** Kinds of vapour; see `vapour`. */
+export const MOTIFS = 12;
 export const PARTNERS = 3;
 
 /**
@@ -75,7 +77,7 @@ vec3 room(vec3 r, float blur) {
   w *= mix(panes(r.xy + vec2(0.52, 0.56), 0.012), 0.8, min(1.0, blur * 12.0));
   return c * 0.75 + vec3(1.0, 0.97, 0.92) * (w * 1.9 + 0.25 * pow(max(-r.y, 0.0), 6.0));
 }
-// What the vapour inside looks like: one of twelve, so no two in a cast match.
+// What the vapour inside looks like: one of MOTIFS, so no two in a theme's cast match.
 float vapour(vec2 s, vec3 n) {
   float t = time * 0.07;
   float f = fbm(s * 1.5 + seed * 17.0 + vec2(t, -t));

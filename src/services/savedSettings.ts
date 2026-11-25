@@ -2,6 +2,7 @@ import { cleanCustom, type Custom } from '@/config/custom';
 import { cleanPool, type PoolSettings } from '@/config/poolOptions';
 import { cleanCount, cleanRule, type RuleId } from '@/config/rules';
 import { cleanSettings, cleanWalls, type Settings } from '@/config/defaults';
+import { cleanTally, type Tally } from '@/config/tally';
 import type { Walls } from '@/config/environments';
 import { cleanCast, type CastChoice } from '@/showdown/casts';
 import { read, write } from './store';
@@ -13,6 +14,7 @@ type Saved = {
   rule: RuleId;
   count: number;
   cast: CastChoice;
+  tally: Tally;
   pool: PoolSettings;
   /** The first-time hint is no longer needed. */
   hinted: boolean;
@@ -25,6 +27,7 @@ const clean = (data: unknown): Saved => ({
   rule: cleanRule((data as { rule?: unknown } | null)?.rule),
   count: cleanCount((data as { count?: unknown } | null)?.count),
   cast: cleanCast((data as { cast?: unknown } | null)?.cast),
+  tally: cleanTally((data as { tally?: unknown } | null)?.tally),
   pool: cleanPool((data as { pool?: unknown } | null)?.pool),
   hinted: (data as { hinted?: unknown } | null)?.hinted === true,
 });

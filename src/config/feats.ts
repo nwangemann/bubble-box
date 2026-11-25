@@ -14,6 +14,8 @@ export const FEAT = {
 
 /** Titles for unusual wins, shared by every arena. All that fit are given, stacked in this order. */
 export const FEATS = {
+  called: 'You Called It',
+  rage: 'All the Rage',
   army: 'One-Bubble Army',
   quick: 'Blink and You Missed It',
   slow: 'The Long Simmer',

@@ -183,11 +183,27 @@ export const TUNING = {
     /** Share of its new size at which a winner can clash again. */
     grown: 0.95,
     columns: 3,
+    /** With more entrants than one theme's cast has: smaller, so fights last as long, and rows `gap` apart. */
+    crowd: { columns: 6, gap: 0.45, radius: 0.13 },
     /** Share of the arena's height the line-up fills, and the least between its rows. */
     spread: 0.6,
     gap: 0.56,
     ready: 2.8,
     start: 0.32,
+    /** Choosing a favourite: seconds of line-up left after, and least reach of a touch, in points. */
+    favourite: { look: 1.1, touch: 30 },
+    /**
+     * A raging favourite: how many times likelier to win, how often it changes its mind, and, from calm
+     * to fury, its speed and how hard it turns; how far it swerves; how it shivers.
+     */
+    rage: {
+      odds: 6,
+      mind: 0.8,
+      speed: [0.25, 2.1],
+      turn: [0.6, 7],
+      swerve: 0.8,
+      shiver: 30,
+    },
     least: 0,
     gain: 0.4,
     patience: 2.4,

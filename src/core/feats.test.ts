@@ -41,3 +41,16 @@ test('few entrants earn none', () => {
   expect(won('1')).toEqual([]);
   expect(won('0001')).toEqual([]);
 });
+
+test('a called win has a title, and a raging one another', () => {
+  const duel = createShowdown({ hw: 1, hh: 2.17, depth: 2.4, focal: 3.2 }, RULES.even, 12).duel!;
+  duel.phase = 'won';
+  duel.champion = duel.favourite = 1;
+  duel.log = [...'00100100101'].map((c) => ({ winner: c === '1' ? 1 : 2, seconds: 12, odds: 1 }));
+  duel.wins[1] = 4;
+  expect(featsOf(duel)).toEqual(['called']);
+  duel.rage = true;
+  expect(featsOf(duel)).toEqual(['rage']);
+  duel.favourite = 2;
+  expect(featsOf(duel)).toEqual([]);
+});

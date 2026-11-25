@@ -23,11 +23,12 @@ import { CUSTOM, customLook, type Custom } from '@/config/custom';
 import { dress, type Walls } from '@/config/environments';
 import type { Mode } from '@/config/modes';
 import { RULES, type RuleId } from '@/config/rules';
+import { addWin } from '@/config/tally';
 import { Scene } from '@/scene/Scene';
 import { loadSettings, saveSettings } from '@/services/savedSettings';
 import { useReduceMotion } from '@/services/useReduceMotion';
 import { THEME_IDS, THEMES, type ThemeId } from '@/showdown';
-import { castFor, type CastChoice } from '@/showdown/casts';
+import { castFor, mostOf, type CastChoice, type CastId } from '@/showdown/casts';
 import { Lobby } from '@/ui/Lobby';
 import { Maker } from '@/ui/Maker';
 import { Picker } from '@/ui/Picker';
@@ -51,10 +52,13 @@ export default function App() {
   const [rule, setRule] = useState<RuleId>(saved.rule);
   const [count, setCount] = useState(saved.count);
   const [cast, setCast] = useState<CastChoice>(saved.cast);
+  const [tally, setTally] = useState(saved.tally);
+  /** Name of the one rooted for, kept while they enter again. */
+  const [favourite, setFavourite] = useState<string | null>(null);
   const [hinted, setHinted] = useState(saved.hinted);
   const [bout, setBout] = useState<{
     arena: ThemeId;
-    cast: ThemeId;
+    cast: CastId;
     round: number;
   } | null>(null);
   const [pool, setPool] = useState(false);
@@ -75,13 +79,14 @@ export default function App() {
           rule,
           count,
           cast,
+          tally,
           pool: poolSettings,
           hinted,
         }),
       300,
     );
     return () => clearTimeout(timer);
-  }, [settings, walls, custom, rule, count, cast, poolSettings, hinted]);
+  }, [settings, walls, custom, rule, count, cast, tally, poolSettings, hinted]);
 
   const { bubble, feel, glass, tap, contact, pull, trail, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
@@ -201,10 +206,14 @@ export default function App() {
         <Showdown
           key={bout.round}
           arena={THEMES[bout.arena]}
-          cast={THEMES[bout.cast]}
+          cast={bout.cast}
           rule={RULES[rule]}
-          count={count}
+          count={Math.min(count, mostOf(bout.cast))}
           calm={calm}
+          favourite={favourite}
+          onFavourite={setFavourite}
+          tally={tally}
+          onWon={(name, called) => setTally((t) => addWin(t, name, called))}
           onAgain={() => fight(bout.arena, bout.cast)}
           onNext={() => anotherArena(bout.arena)}
           onLeave={() => setBout(null)}

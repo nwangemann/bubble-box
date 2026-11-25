@@ -1,17 +1,19 @@
 import {
   Skia,
+  TileMode,
   type SkCanvas,
   type SkPaint,
   type SkRuntimeEffect,
   type SkShader,
 } from '@shopify/react-native-skia';
-import { AIR, ROOM_CONTACT } from '@/config/arena';
+import { AIR, HALO, ROOM_CONTACT } from '@/config/arena';
 import { TUNING } from '@/config/tuning';
+import { furyOf } from '@/core/duel';
 import { awayAt, scaleAt } from '@/core/projection';
-import type { Box, Bubble, Clash, World } from '@/core/types';
+import type { Box, Bubble, Clash, Duel, Ringing, World } from '@/core/types';
 import type { Arena, Fighter } from '@/showdown/types';
 import { drawRipple, type View } from './drawScene';
-import { PARTNERS } from './liquid';
+import { MOTIFS, PARTNERS } from './liquid';
 import { drawRoomContact, type Touching } from './roomContact';
 import { fighterLook, type FighterLook } from './showdownPictures';
 
@@ -26,6 +28,9 @@ export type ShowdownLook = {
   layer: SkPaint;
   contact: SkPaint;
   ring: SkPaint;
+  /** The light round a favourite, on a circle of radius 1, and when it rages. */
+  halo: SkPaint;
+  hot: SkPaint;
   /** Rings on the walls, in the colour of the room's lines. */
   ink: [number, number, number];
 };
@@ -35,6 +40,23 @@ const GOLDEN = 0.61803;
 const FIGURE = { size: 0.5, drop: 0.16 };
 const NO_PARTNER = [0, 0, 0, 0];
 const NO_DYE = [0, 0, 0];
+
+/** Light that peaks at a bubble's rim, so films stay clear, and is gone at `HALO.reach`. */
+function haloPaint(rgb: number[]) {
+  const at = (a: number) => Skia.Color(`rgba(${rgb.join(',')},${a})`);
+  const rim = 1 / HALO.reach;
+  const paint = Skia.Paint();
+  paint.setShader(
+    Skia.Shader.MakeRadialGradient(
+      { x: 0, y: 0 },
+      1,
+      [at(0), at(0.16), at(0.95), at(0.34), at(0.1), at(0)],
+      [rim * 0.6, rim * 0.9, rim, rim + (1 - rim) * 0.2, rim + (1 - rim) * 0.55, 1],
+      TileMode.Clamp,
+    ),
+  );
+  return paint;
+}
 
 /** Plain data and painted images for the frame loop. Made once per showdown. */
 export function showdownLook(arena: Arena, fighters: Fighter[]): ShowdownLook {
@@ -53,12 +75,40 @@ export function showdownLook(arena: Arena, fighters: Fighter[]): ShowdownLook {
     layer: Skia.Paint(),
     contact: Skia.Paint(),
     ring,
+    halo: haloPaint(HALO.warm),
+    hot: haloPaint(HALO.hot),
     ink: arena.ink,
   };
 }
 
 /** What a film needs to see the scene behind it. */
 export type Backdrop = { shader: SkShader; scale: number };
+
+/** Round, or stretched with a ringing surface. */
+export function drawHalo(
+  canvas: SkCanvas,
+  paint: SkPaint,
+  x: number,
+  y: number,
+  r: number,
+  alpha: number,
+  ring?: Ringing,
+) {
+  'worklet';
+  if (alpha <= 0.01) return;
+  paint.setAlphaf(Math.min(1, alpha));
+  canvas.save();
+  canvas.translate(x, y);
+  if (ring) {
+    // As much of the axis as lies across the screen; see `own` in `liquid`.
+    const c = Math.hypot(ring.n.x, ring.n.y);
+    canvas.rotate((Math.atan2(ring.n.y, ring.n.x) * 180) / Math.PI, 0, 0);
+    canvas.scale(1 + ring.a2 * (1.5 * c * c - 0.5), 1 - ring.a2 * 0.5);
+  }
+  canvas.scale(r * HALO.reach, r * HALO.reach);
+  canvas.drawCircle(0, 0, 1, paint);
+  canvas.restore();
+}
 
 function tint(paint: SkPaint, c: number[], alpha: number) {
   'worklet';
@@ -81,7 +131,8 @@ function smooth(t: number) {
 function enterOf(w: World, b: Bubble) {
   'worklet';
   if (w.duel?.phase !== 'ready') return 1;
-  return smooth((w.duel.seconds - b.id * 0.06) / 0.9);
+  // By the world's clock: the line-up's own waits while a favourite is chosen.
+  return smooth((w.time - b.id * 0.06) / 0.9);
 }
 
 /** How far a burst film has torn open. */
@@ -232,6 +283,12 @@ function drawBubble(
   const dyes: number[][] = [];
   const sway = calm ? 0 : Math.sin(w.time * 1.1 + b.seed * 20) * 3;
   const lean = Math.max(-12, Math.min(12, b.v.x * 8)) + sway;
+  if (b.id === duel.favourite) {
+    const clear = 1 - AIR.haze * awayAt(box, b.p.z, AIR.from);
+    const surge = duel.rage && duel.phase === 'fight' && !calm ? 0.45 + 0.55 * furyOf(duel) : 1;
+    const strength = HALO.fight * clear * enter * surge * (1 - gone);
+    drawHalo(canvas, duel.rage ? look.hot : look.halo, x, y, r, strength, duel.ringing[b.id]);
+  }
   const inside = drawnInto(w, b);
   for (const o of inside) {
     const os = scaleAt(box, o.p.z) * v.ppu;
@@ -273,7 +330,7 @@ function drawBubble(
   drawLiquid(canvas, look.film, effect, back, f, look.room, x, y, rx, ry, {
     time: w.time,
     seed: b.seed,
-    motif: castOf(w, b.id),
+    motif: castOf(w, b.id) % MOTIFS,
     tear: gone,
     modes: ring ? [ring.a2, ring.a3] : [0, 0],
     axis: ring ? [ring.n.x, ring.n.y, -ring.n.z] : [1, 0, 0],
@@ -337,8 +394,42 @@ function drawSpray(canvas: SkCanvas, look: ShowdownLook, c: Clash, w: World, box
   }
 }
 
+/** A favourite that falls lets its light go: it opens, rises and fades. */
+function drawFall(
+  canvas: SkCanvas,
+  look: ShowdownLook,
+  c: Clash,
+  duel: Duel,
+  box: Box,
+  v: View,
+  calm: boolean,
+) {
+  'worklet';
+  const F = HALO.fall;
+  const life = c.age / TUNING.showdown.clash;
+  const s = scaleAt(box, c.at.z) * v.ppu;
+  const ease = calm ? 0 : 1 - (1 - life) * (1 - life);
+  const clear = 1 - AIR.haze * awayAt(box, c.at.z, AIR.from);
+  drawHalo(
+    canvas,
+    duel.rage ? look.hot : look.halo,
+    v.cx + c.at.x * s,
+    v.cy + (c.at.y - F.rise * ease) * s,
+    c.r * s * (1 + F.open * ease),
+    F.strength * (1 - life) * (1 - life) * clear,
+  );
+}
+
 /** The room falls away behind the winner and light gathers round it. */
-function drawGlory(canvas: SkCanvas, look: ShowdownLook, b: Bubble, w: World, box: Box, v: View) {
+function drawGlory(
+  canvas: SkCanvas,
+  look: ShowdownLook,
+  b: Bubble,
+  w: World,
+  box: Box,
+  v: View,
+  calm: boolean,
+) {
   'worklet';
   const t = w.duel!.seconds - TUNING.showdown.bask;
   if (t <= 0) return;
@@ -352,6 +443,17 @@ function drawGlory(canvas: SkCanvas, look: ShowdownLook, b: Bubble, w: World, bo
   for (let i = 14; i > 0; i--) {
     tint(look.fill, look.accent, 0.028 * k);
     canvas.drawCircle(x, y, r * (0.95 + i * 0.07), look.fill);
+  }
+  // A favourite's light spreads from it, wave after wave.
+  if (b.id === w.duel!.favourite && !calm) {
+    const W = HALO.win;
+    for (let i = 0; i < W.waves; i++) {
+      const age = t / W.period - i / W.waves;
+      if (age < 0) continue;
+      const p = age % 1;
+      const strength = W.strength * smooth(p * 5) * (1 - p) * (1 - p);
+      drawHalo(canvas, w.duel!.rage ? look.hot : look.halo, x, y, r * (1 + W.open * p), strength);
+    }
   }
   // Motes of light in slow orbits.
   for (let i = 0; i < 36; i++) {
@@ -404,8 +506,11 @@ export function drawShowdown(
     drawRipple(canvas, look.ring, r, box, v, { ink: look.ink, rippleOpacity });
   }
   const best = duel.phase === 'won' ? w.bubbles.find((b) => b.id === duel.champion) : undefined;
-  if (best) drawGlory(canvas, look, best, w, box, v);
+  if (best) drawGlory(canvas, look, best, w, box, v, calm);
   // A bubble being taken in is part of the surface that takes it.
   for (const b of all) if (!b.join) drawBubble(canvas, look, effect, back, b, w, box, v, calm);
-  for (const c of duel.clashes) drawSpray(canvas, look, c, w, box, v);
+  for (const c of duel.clashes) {
+    drawSpray(canvas, look, c, w, box, v);
+    if (c.loser === duel.favourite) drawFall(canvas, look, c, duel, box, v, calm);
+  }
 }

@@ -1,6 +1,6 @@
 import { Canvas, createPicture, Picture } from '@shopify/react-native-skia';
 import * as Haptics from 'expo-haptics';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -13,33 +13,44 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { ARENA_FEEL } from '@/config/feels';
 import { FEATS, type FeatId } from '@/config/feats';
 import type { Rule } from '@/config/rules';
+import { ordinal, winsOf, type Tally } from '@/config/tally';
+import { HALO } from '@/config/arena';
 import { TUNING } from '@/config/tuning';
 import { paceOf } from '@/core/duel';
 import { featsOf } from '@/core/feats';
-import { createShowdown } from '@/core/showdown';
+import { choose, createShowdown, entrantAt } from '@/core/showdown';
 import type { Box } from '@/core/types';
 import { advance } from '@/core/world';
 import {
   castOf,
   drawFigure,
+  drawHalo,
   drawLiquid,
   drawShowdown,
   showdownLook,
   type Backdrop,
 } from '@/scene/drawShowdown';
 import { getGpu } from '@/scene/gpu';
+import { MOTIFS } from '@/scene/liquid';
 import { arenaPicture, pictureShader } from '@/scene/showdownPictures';
-import type { Arena, Cast } from '@/showdown/types';
+import { crewOf, type CastId } from '@/showdown/casts';
+import type { Arena } from '@/showdown/types';
 import { SHOWDOWN_UI as U } from '@/config/showdownUi';
 
 type Props = {
   arena: Arena;
-  cast: Cast;
+  cast: CastId;
   rule: Rule;
   /** How many enter. */
   count: number;
   /** Reduce Motion. */
   calm: boolean;
+  /** Who was rooted for last, by name. Rooted for again if entering. */
+  favourite: string | null;
+  onFavourite: (name: string | null) => void;
+  tally: Tally;
+  /** Who won, and whether it was called. */
+  onWon: (name: string, called: boolean) => void;
   onAgain: () => void;
   onNext: () => void;
   onLeave: () => void;
@@ -65,7 +76,20 @@ const STILL = {
 const FEELS = [ARENA_FEEL];
 
 /** One showdown from line-up to winner. Remount it for another. */
-export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLeave }: Props) {
+export function Showdown({
+  arena,
+  cast,
+  rule,
+  count,
+  calm,
+  favourite,
+  onFavourite,
+  tally,
+  onWon,
+  onAgain,
+  onNext,
+  onLeave,
+}: Props) {
   const { width, height } = useWindowDimensions();
   const view = useMemo(() => ({ cx: width / 2, cy: height / 2, ppu: width / 2 }), [width, height]);
   const box = useMemo<Box>(
@@ -77,14 +101,29 @@ export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLe
     }),
     [width, height],
   );
-  const [look] = useState(() => showdownLook(arena, cast.cast));
+  const [crew] = useState(() => crewOf(cast, count));
+  const [look] = useState(() =>
+    showdownLook(
+      arena,
+      crew.map((m) => m.fighter),
+    ),
+  );
   const room = useMemo(() => arenaPicture(arena, box, view), [arena, box, view]);
   const [{ liquid, roomContact }] = useState(getGpu);
   const back = useMemo<Backdrop | null>(() => {
     const shader = pictureShader(room, width, height, U.backdrop);
     return shader && { shader, scale: U.backdrop };
   }, [room, width, height]);
-  const [start] = useState(() => createShowdown(box, rule, count, cast.cast.length));
+  const [start] = useState(() => {
+    const w = createShowdown(box, rule, count, crew.length);
+    const at = w.duel!.entrants.findIndex((i) => crew[i]!.fighter.name === favourite);
+    choose(w, at + 1, false);
+    return w;
+  });
+  // The one rooted for, by bubble id, and whether it rages. The frame loop hands them to the duel.
+  const [pick, setPick] = useState({ id: start.duel!.favourite, rage: false });
+  const picked = useSharedValue(pick);
+  const holding = useSharedValue(false);
   const world = useSharedValue(start);
   const picture = useSharedValue(createPicture(() => {}));
   const told = useSharedValue(0);
@@ -94,24 +133,33 @@ export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLe
   const [out, setOut] = useState<number[]>([]);
   const [news, setNews] = useState('');
   const [stage, setStage] = useState<'ready' | 'fight' | 'won'>('ready');
-  const [best, setBest] = useState<{ cast: number; wins: number; feats: FeatId[] } | null>(null);
+  const [best, setBest] = useState<{
+    cast: number;
+    wins: number;
+    feats: FeatId[];
+    called: boolean;
+  } | null>(null);
   const onClash = (winner: number, loser: number) => {
     thud();
     setOut((o) => [...o, loser]);
-    const verb = cast.verbs[loser % cast.verbs.length]!;
-    setNews(`${cast.cast[winner]!.name} ${verb} ${cast.cast[loser]!.name}`);
+    const { fighter, home } = crew[winner]!;
+    const verb = home.verbs[loser % home.verbs.length]!;
+    const mine = loser === start.duel!.entrants[pick.id - 1];
+    setNews(`${fighter.name} ${verb} ${crew[loser]!.fighter.name}${mine ? ', well fought' : ''}`);
   };
   const onPhase = (
     next: 'ready' | 'fight' | 'won',
     champion: number,
     wins: number,
     feats: FeatId[],
+    called: boolean,
   ) => {
     setStage(next);
     if (next !== 'won') return;
     cheer();
     setNews('');
-    setBest({ cast: champion, wins, feats });
+    setBest({ cast: champion, wins, feats, called });
+    onWon(crew[champion]!.fighter.name, called);
   };
 
   useFrameCallback((frame) => {
@@ -119,6 +167,9 @@ export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLe
     const duel = w.duel;
     if (!duel) return;
     const dt = ((frame.timeSincePreviousFrame ?? 0) / 1000) * (calm ? TUNING.showdown.calm : 1);
+    const { id: favoured, rage } = picked.value;
+    duel.hold = holding.value;
+    if (favoured !== duel.favourite || rage !== duel.rage) choose(w, favoured, rage);
     advance(w, box, FEELS, 1, Math.min(dt, TUNING.maxFrame) * paceOf(w));
     const fresh = duel.out - told.value;
     if (fresh > 0) {
@@ -130,7 +181,14 @@ export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLe
       phase.value = duel.phase;
       const id = duel.champion;
       const feats = duel.phase === 'won' ? featsOf(duel) : [];
-      scheduleOnRN(onPhase, duel.phase, castOf(w, id), duel.wins[id] ?? 0, feats);
+      scheduleOnRN(
+        onPhase,
+        duel.phase,
+        castOf(w, id),
+        duel.wins[id] ?? 0,
+        feats,
+        id > 0 && id === duel.favourite && !duel.rage,
+      );
     }
     picture.value = createPicture((canvas) => {
       'worklet';
@@ -139,28 +197,89 @@ export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLe
   });
 
   const [entrants] = useState(() => [...start.duel!.entrants]);
-  const cell = Math.min(U.cell, (width - U.side * 2) / count);
+  const rows = Math.ceil(count / U.perRow);
+  const perRow = Math.ceil(count / rows);
+  const cell = Math.min(U.cell, (width - U.side * 2) / perRow);
+  const pitch = rows > 1 ? cell * U.pitch : U.roster;
+  const rosterHeight = pitch * rows;
+  const placeOf = (at: number) => {
+    const row = Math.floor(at / perRow);
+    const across = Math.min(perRow, count - row * perRow);
+    return {
+      x: width / 2 + cell * (at - row * perRow + 0.5 - across / 2),
+      y: pitch * (row + 0.55),
+    };
+  };
+  const rootFor = (id: number, rage: boolean) => {
+    const next = { id, rage };
+    setPick(next);
+    picked.set(next);
+    onFavourite(id ? crew[entrants[id - 1]!]!.fighter.name : null);
+  };
+  /** Bubble id in the roster or the line-up beneath a touch, or 0. */
+  const under = (x: number, y: number) => {
+    const at = entrants.findIndex((_, i) => {
+      const p = placeOf(i);
+      return Math.abs(x - p.x) <= cell / 2 && Math.abs(y - U.top - p.y) <= pitch / 2;
+    });
+    if (at >= 0) return at + 1;
+    const reach = TUNING.showdown.favourite.touch / view.ppu;
+    return entrantAt(start, box, (x - view.cx) / view.ppu, (y - view.cy) / view.ppu, reach);
+  };
+  // A tap on the one already chosen makes it rage, and another lets it go.
+  const again = useRef(false);
+  const touch = (x: number, y: number, begins: boolean) => {
+    const id = under(x, y);
+    if (begins) again.current = id > 0 && id === pick.id;
+    if (!id || id === pick.id) return;
+    again.current = false;
+    rootFor(id, false);
+  };
+  const release = () => {
+    holding.set(false);
+    if (again.current) rootFor(pick.rage ? 0 : pick.id, !pick.rage);
+    again.current = false;
+  };
+  const name = pick.id ? crew[entrants[pick.id - 1]!]!.fighter.name : null;
+  const step = (by: number) => rootFor((pick.id + by + count + 1) % (count + 1), false);
   const roster = useMemo(
     () =>
       createPicture((canvas) => {
-        const left = width / 2 - U.side - (cell * count) / 2;
         entrants.forEach((i, at) => {
           const f = look.cast[i]!;
-          const x = left + cell * (at + 0.5);
-          const y = U.roster * 0.55;
+          const row = Math.floor(at / perRow);
+          const across = Math.min(perRow, count - row * perRow);
+          const x = width / 2 + cell * (at - row * perRow + 0.5 - across / 2);
+          const y = U.bleed + pitch * (row + 0.55);
           const r = cell * 0.44;
           const gone = out.includes(i);
+          if (at + 1 === pick.id)
+            drawHalo(
+              canvas,
+              pick.rage ? look.hot : look.halo,
+              x,
+              y,
+              r,
+              gone ? HALO.gone : HALO.roster,
+            );
           drawFigure(canvas, look.layer, f, x, y, r * 1.2, 0, gone ? 0.2 : 1, 0);
           if (gone || !liquid || !back) return;
           drawLiquid(canvas, look.film, liquid, back, f, look.room, x, y, r, r, {
             ...STILL,
-            motif: i,
+            motif: i % MOTIFS,
             seed: (at * 0.61803) % 1,
           });
         });
       }),
-    [look, out, cell, entrants, count, width, liquid, back],
+    [look, out, cell, pitch, perRow, entrants, count, width, liquid, back, pick],
   );
+
+  const rooting = !name
+    ? 'Tap one to root for it'
+    : pick.rage
+      ? `${name} is raging`
+      : `Rooting for ${name}, tap again to enrage`;
+  const crowns = best ? winsOf(tally, crew[best.cast]!.fighter.name) : 0;
 
   return (
     <Animated.View
@@ -178,11 +297,16 @@ export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLe
       </Canvas>
       {stage !== 'won' && (
         <Animated.View exiting={FadeOut.duration(400)} style={styles.top} pointerEvents="none">
-          <Canvas style={{ width: width - U.side * 2, height: U.roster }}>
+          <Canvas style={{ width, height: rosterHeight + U.bleed * 2, marginVertical: -U.bleed }}>
             <Picture picture={roster} />
           </Canvas>
-          <Text style={styles.news} numberOfLines={1} accessibilityLiveRegion="polite">
-            {news || `${count} bubbles`}
+          <Text
+            style={styles.news}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            accessibilityLiveRegion="polite"
+          >
+            {news || (stage === 'ready' ? rooting : `${count} bubbles`)}
           </Text>
         </Animated.View>
       )}
@@ -190,7 +314,7 @@ export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLe
         <Animated.View
           entering={FadeIn.duration(700)}
           exiting={FadeOut.duration(400)}
-          style={styles.card}
+          style={[styles.card, { top: U.top + rosterHeight + 34 }]}
           pointerEvents="none"
         >
           <Text style={[styles.big, { fontFamily: arena.font, color: arena.accent }]}>
@@ -200,6 +324,28 @@ export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLe
           <Text style={styles.faint}>{rule.about}</Text>
         </Animated.View>
       )}
+      {stage === 'ready' && (
+        <View
+          style={StyleSheet.absoluteFill}
+          accessible
+          accessibilityRole="adjustable"
+          accessibilityLabel="Favourite"
+          accessibilityValue={{ text: name ?? 'None' }}
+          accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+          onAccessibilityAction={(e) => step(e.nativeEvent.actionName === 'increment' ? 1 : -1)}
+          onStartShouldSetResponder={() => true}
+          onResponderGrant={(e) => {
+            holding.set(true);
+            touch(e.nativeEvent.pageX, e.nativeEvent.pageY, true);
+          }}
+          onResponderMove={(e) => touch(e.nativeEvent.pageX, e.nativeEvent.pageY, false)}
+          onResponderRelease={release}
+          onResponderTerminate={() => {
+            again.current = false;
+            holding.set(false);
+          }}
+        />
+      )}
       {best && (
         <>
           <Animated.View
@@ -207,17 +353,23 @@ export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLe
             style={styles.crown}
             pointerEvents="none"
           >
-            <Text style={[styles.title, { color: arena.accent }]}>{cast.title}</Text>
+            <Text style={[styles.title, { color: arena.accent }]}>
+              {crew[best.cast]?.home.title}
+            </Text>
             <Text
               style={[styles.big, { fontFamily: arena.font }]}
               numberOfLines={1}
               adjustsFontSizeToFit
             >
-              {cast.cast[best.cast]?.name}
+              {crew[best.cast]?.fighter.name}
             </Text>
             <Text style={styles.small}>
               {best.wins === 1 ? '1 knock-out' : `${best.wins} knock-outs`}
+              {crowns > 1 && `, ${ordinal(crowns)} crown`}
             </Text>
+            {best.called && tally.called > 1 && (
+              <Text style={styles.faint}>Your {ordinal(tally.called)} right call</Text>
+            )}
           </Animated.View>
           {best.feats.length > 0 && (
             <Animated.View
@@ -286,7 +438,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    top: U.top + U.roster + 34,
     alignItems: 'center',
     paddingHorizontal: 20,
   },

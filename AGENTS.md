@@ -41,6 +41,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Whose cast fights in an arena            | `src/showdown/casts.ts`                                            |
 | Showdown rules and entrant count         | `src/config/rules.ts`                                              |
 | Showdown titles for unusual wins         | `src/config/feats.ts`, `src/core/feats.ts`                         |
+| Showdown favourite: its light, tally     | `HALO` in `src/config/arena.ts`, `src/config/tally.ts`             |
 | Showdown physics: odds, hunting, ringing | `src/core/duel.ts`                                                 |
 | Showdown bubble and merge shader         | `src/scene/liquid.ts`                                              |
 | Drawing a showdown                       | `src/scene/drawShowdown.ts`                                        |
@@ -70,6 +71,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 - Nothing in the frame loop goes through React state.
 - No new dependency without an ADR in `docs/adr`. No physics or 3D engine (ADR 1).
 - Update the matching doc in the same change.
+- Manual verification (anything a person or phone must judge) goes last, in all work: put it in section 10 of `docs/plan.md`, rank every other step above it, and never wait for it or name it **Next** while another step is open. What you can check yourself, with tests or a simulator, is not manual: do it in the same session.
 - Look at shader changes on a simulator; tests cannot see them.
 - Expo changes every SDK. Read installed types in `node_modules` before using an API. Add packages with `npx expo install`.
 - `ios/` and `android/` are generated. Configure through `app.json`.
@@ -78,5 +80,5 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 
 1. Remove temporary probes and logging, then run `npm run check`.
 2. Delete the simulators, servers and scratch files this session made. Leave any it did not make: other sessions may be using them. Need a simulator while all are in use? Create one, and delete it here.
-3. Move the step to **Built** in `docs/plan.md` and move **Next**.
+3. Move the step to **Built** in `docs/plan.md`, add what only a person can verify to section 10, and move **Next**.
 4. End with one line to start the next session, such as "Execute step 1.1 from docs/plan.md", with one short sentence on what that step is and its phase, and say what is uncommitted, unfinished or unverified.

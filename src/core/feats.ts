@@ -17,7 +17,10 @@ export function featsOf(duel: Duel): FeatId[] {
     streak = Math.max(streak, run);
     if (mine) first = Math.min(first, i);
   }
+  const mine = champion === duel.favourite;
   const fits: Record<FeatId, boolean> = {
+    called: mine && !duel.rage,
+    rage: mine && duel.rage,
     army: wins >= FEAT.army * log.length,
     quick: last.seconds <= FEAT.quick,
     slow: last.seconds >= FEAT.slow,

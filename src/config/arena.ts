@@ -42,3 +42,18 @@ export const ROOM_CONTACT = {
   mirror: 0.42,
   ripple: 0.8,
 };
+
+/**
+ * The light round a favourite: its colour, and when it rages. `reach` is how far it spreads, in radii;
+ * strengths are 0 to 1. Fallen, it opens and rises; on the winner, `waves` of it spread each `period`.
+ */
+export const HALO = {
+  warm: [255, 214, 150],
+  hot: [255, 96, 62],
+  reach: 1.75,
+  fight: 0.6,
+  roster: 0.8,
+  gone: 0.25,
+  fall: { strength: 0.7, open: 1.2, rise: 0.16 },
+  win: { strength: 0.35, open: 0.9, waves: 3, period: 6 },
+};

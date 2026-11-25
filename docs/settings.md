@@ -24,14 +24,16 @@ Tapping a tile opens every option of that setting, alive. Tapping one chooses it
 
 ## Showdown
 
-Not a setting: the switch at the foot of the menu turns from Calm to Showdown, which opens the chooser, with the rule, how many enter, the cast and every arena. The same switch there turns back to the calm menu. Its third side opens 8-ball, whose own menu has the switch too. Random arena starts any of them. Fewer than 12 are drawn at random from the cast; nobody appears twice. The cast is the arena's own by default; the arrows choose any one theme's for every arena, or Random cast, a theme's drawn anew for each showdown. Again keeps the cast. Rule, how many and cast are saved.
+Not a setting: the switch at the foot of the menu turns from Calm to Showdown, which opens the chooser, with the rule, how many enter, the cast and every arena. The same switch there turns back to the calm menu. Its third side opens 8-ball, whose own menu has the switch too. Random arena starts any of them. Up to 12 enter, or 24 from a mixed cast; fewer are drawn at random, and nobody appears twice. The cast is the arena's own by default; the arrows choose any one theme's for every arena, Random cast, a theme's drawn anew for each showdown, or Mixed cast, some of every theme. Again keeps the cast, but deals a mixed one anew. A count over 12 is kept for when Mixed is chosen again. Rule, how many and cast are saved.
+
+During the line-up a tap on an entrant, there or in the roster, roots for it; the line-up waits while a finger is down, and a moment after a choice. Doing nothing skips it. A second tap enrages the favourite: it charges about in surges and is far likelier to win. A third lets it go. The favourite, but not its rage, is kept for the next showdown it enters, until the app closes. A win shows how many crowns the winner has, and a right call how many there have been; wrong calls are not counted and a raging win is not a call. Both are saved.
 
 | Rule   | Default | What happens                                                                                |
 | ------ | ------- | ------------------------------------------------------------------------------------------- |
 | Absorb | Yes     | The winner takes the loser in and doubles in width. Odds follow width; equal sizes are even |
 | Pop    |         | The loser pops. The winner doubles in width. Every clash is even                            |
 
-With Reduce Motion it runs slower and motes, swaying and rising titles are still.
+With Reduce Motion it runs slower and motes, swaying, rising titles and a favourite's light are still.
 
 ## 8-ball
 

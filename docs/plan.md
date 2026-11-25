@@ -1,20 +1,18 @@
 # Plan
 
-For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2.
+For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Sections keep their numbers when reordered. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2, in section 10.
 
-**Next: 1.2, judging 8-ball on a phone.** Without one, 3.2, mixed showdown casts.
+**Next: 1.20, check on the simulator what earlier 8-ball steps left.**
 
-Without a phone, skip 2 and 7.1 to 7.3, and pass over section 1: 1.2 decides whether it goes on. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
+Manual verification, whatever needs you or a phone to judge, waits in section 10, at the very end. Nothing else waits for it. Build and check on tests and the simulator, go on, and add what is left to judge to section 10. Section 8 is parked and section 9 is blocked: neither is picked up as a next step.
 
 ## 1. 8-ball in space
 
-A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in the calm room, with the cue ball made as a calm bubble is. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). Order: see the balls, then make a shot and a pot worth it, then the game, then its looks. The rules wait for 1.2: go on past B only if a shot is fun on a phone.
+A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in the calm room, with the cue ball made as a calm bubble is. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). Order: see the balls, then make a shot and a pot worth it, then the game, then its looks. It goes on before it has been played on a phone; 1.2 may still drop it.
 
-**A. See and follow.** Done when depth and direction read at a glance, at rest and on a break, at 60 fps.
+**A. See and follow** and **B. A pot worth it.** Built; judged in 1.2.
 
-- [ ] 1.2 Judge on a phone, by the questions at the end of [pool](pool.md): ball size, placing a shot, `mouth`, side pockets drawn wider than they take, power. Tune before going on
-
-**B. A pot worth it.** Built; 1.2 judges whether a pot feels like progress without stopping play.
+- [ ] 1.20 Check on the simulator what earlier steps left: the 8's own pot, and Reduce Motion from the system setting (1.17); the options menu, and its frame time (1.18)
 
 **C. True 8-ball.** Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won.
 
@@ -42,25 +40,6 @@ A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than wat
 - [ ] 1.4 More from spin: draw and follow, if a swipe can say them
 - [ ] 1.5 An opponent to play alone
 
-## 2. First time on a phone
-
-Needs you and a phone, so that feel and frame time are known before more is built.
-
-- [ ] 2.1 Install and note what feels wrong; confirm icon and splash
-- [ ] 2.2 Frame time on the oldest phone to support: 10 bubbles, without and with each trail; 10 glowing bubbles in Water; several bursts, with pops pushing neighbours; the picker; showdown with 12. Repeat after 6.2
-- [ ] 2.3 Tune the core: growth (start size, pace, largest size), launch (hold power, swipe strength, depth of the box), rebound, drift, wobble, the push of a pop (`TUNING.puff`), haptics
-- [ ] 2.4 Tune gestures: several fingers, `swipe`, `TUNING.sweep`, `spin`, `flick` (does it get in the way of launching from a crowd?), `tilt` (does it want its own setting?), the first-time hint (`TUNING.hint`; is it understood?)
-
-## 3. Showdown play
-
-- [ ] 3.2 Mixed casts from all 72, so more than 12 can enter without repeats
-- [ ] 3.3 Predict the winner: explore a step before each showdown for choosing a favourite to root for
-  - A favourite selector, from the line-up or the roster; quick to skip, and never in the way of Again
-  - Mark the favourite in the arena and roster if it can be subtle: a soft halo, a warmer rim, a small pennant or a faint thread of light; judge against trails and films
-  - A moment when the favourite wins or falls, gentle either way; a title for calling it right, beside the titles for unusual wins (`config/feats`)
-  - A possible variant, roid rage: the favourite is far likelier to win each collision, at the cost of wild swings in intensity, speed and path; it may veer at other bubbles rather than hold an organic course
-  - A quiet tally of winners and right calls, without it becoming a score
-
 ## 4. Sound
 
 One audio decision for the whole app. Off with the silent switch. Synthesised, unless licensed audio is chosen.
@@ -77,19 +56,13 @@ Build on the trails in **Built**. Explore, then reduce.
 
 ## 6. Liquid-filled bubbles
 
-A trial of bubbles that hold a liquid with its own behaviour. Start from `scene/liquid` and `ring` in `core/duel`. Unpark the rest (8.4 to 8.10) only if these look good and hold 60 fps on the phone.
+A trial of bubbles that hold a liquid with its own behaviour. Start from `scene/liquid` and `ring` in `core/duel`. Unpark the rest (8.4 to 8.10) only if these look good and hold 60 fps: on the simulator at first, on the phone in 2.2.
 
 - [ ] 6.1 A fill level whose surface tilts and sloshes as the bubble moves and spins
 - [ ] 6.2 Viscosity (water, oil, honey, mercury, slime, tar): sets sloshing, ringing and how fast bubbles merge
 
-## 7. Judge, reduce, release
+## 7. Release
 
-Needs you; 7.1 to 7.3 need a phone.
-
-- [ ] 7.1 Judge looks: maker and patterns, merging (`TUNING.merge`), materials, day and wall light, the picker
-- [ ] 7.2 Judge showdown: grid, mural, distance and wall contact strength (`config/arena`), how often titles appear (`config/feats`), pace, merge and odds; tune `TUNING.showdown`
-- [ ] 7.3 Live with Meet and Pop on Random; note loved and unloved effects
-- [ ] 7.4 Reduce: keep 5 or 6 styles, the loved effects, trails and liquids; choose defaults
 - [ ] 7.5 Store listing
 
 MVP is done when a stranger understands it without words, and it holds 60 fps with 10 bubbles.
@@ -145,6 +118,30 @@ Selectable, with Random available and None as the default.
 
 - [ ] 9.1 Finger pressure and size shape the growing bubble. Gesture Handler reports only positions, so this needs a small native module, an ADR and a phone; recent iPhones report size but not pressure
 
+## 10. Manual verification
+
+Always last: start only when no step outside 8 and 9 is open. Needs you, most of it a phone. Steps keep their numbers. Add to it whatever a session could not check.
+
+**8-ball**
+
+- [ ] 1.2 Judge on a phone, by the questions at the end of [pool](pool.md): ball size, placing a shot, `mouth`, side pockets drawn wider than they take, power. Tune, or drop 8-ball. Also what was only seen in stills, or not felt:
+  - 1.15 to 1.17 in play: depth, trails, and whether a pot feels like progress without stopping play
+  - 1.17: the haptics as a ball drops and lands
+
+**First time on a phone**
+
+- [ ] 2.1 Install and note what feels wrong; confirm icon and splash
+- [ ] 2.2 Frame time on the oldest phone to support: 10 bubbles, without and with each trail; 10 glowing bubbles in Water; several bursts, with pops pushing neighbours; the picker; showdown with 12, and a mixed one with 24. Repeat after 6.2
+- [ ] 2.3 Tune the core: growth (start size, pace, largest size), launch (hold power, swipe strength, depth of the box), rebound, drift, wobble, the push of a pop (`TUNING.puff`), haptics
+- [ ] 2.4 Tune gestures: several fingers, `swipe`, `TUNING.sweep`, `spin`, `flick` (does it get in the way of launching from a crowd?), `tilt` (does it want its own setting?), the first-time hint (`TUNING.hint`; is it understood?)
+
+**Judge and reduce**
+
+- [ ] 7.1 Judge looks: maker and patterns, merging (`TUNING.merge`), materials, day and wall light, the picker
+- [ ] 7.2 Judge showdown: grid, mural, distance and wall contact strength (`config/arena`), how often titles appear (`config/feats`), a mixed crowd of 24 (`TUNING.showdown.crowd`: too busy, too small?), pace, merge and odds; tune `TUNING.showdown`. The favourite (3.3): is it found and quick to skip, is its light subtle (`HALO`), does its fall or win please, is rage fun (`TUNING.showdown.rage`) and reached by a second tap, does the tally stay quiet; also with VoiceOver
+- [ ] 7.3 Live with Meet and Pop on Random; note loved and unloved effects
+- [ ] 7.4 Reduce: keep 5 or 6 styles, the loved effects, trails and liquids; choose defaults
+
 ## Built
 
 ### Core
@@ -194,3 +191,5 @@ Behind moving bubbles, narrowing and fading with perspective. Frame times are a 
 - A deeper arena: `TUNING.showdown.depth` 3.6, was 2.4, with the line-up kept at its old depth (`lineup`). Shows more floor and wall; simulated fights of 12 take about 15 s, were 13. Simulator: 60 fps with 12
 - Arena apart from cast: any cast in any arena, its own by default, or a random one each time (`showdown/casts`). The winner's title and the verbs go with the cast; the colours, font and name with the arena. Nothing new is drawn per frame; frame time not measured again
 - Murals redrawn as washes, light and mist (`showdown/scenery`), still faint, with a film's colours drifting over them (`ARENA.sheen`). Simulator: 60 fps with 12
+- 3.2, mixed casts: the Mixed cast draws from all 72, dealt evenly by theme, nobody twice and no two alike in colour (`crewOf` in `showdown/casts`, `CAST`), and lets up to 24 enter, with a roster of two rows. Title and verbs are the winner's own. More than 12 start smaller and closer (`TUNING.showdown.crowd`); simulated fights of 24 take about 12 s at the median on a phone, 8 to 11 on a tablet, with half out in about 1.4: a flurry, then a duel, to judge in 7.2. Development build, simulator, 24: 60 fps, at most 4 ms a frame. Judged on stills; taps in the chooser, tablets and the play itself not seen
+- 3.3, a favourite to root for: tap one in the line-up or roster, again to enrage it, again for none; kept for the next showdown it enters. A soft halo marks it, opens and rises when it falls, and spreads in waves when it wins (`HALO`). Titles You Called It and All the Rage; a saved tally shows only crowns and right calls (`config/tally`). Rage: six times likelier at equal size, charging in surges (`TUNING.showdown.rage`); simulated with 12 on a phone it wins 63% in Absorb and 38% in Pop, against about 8 to 10%. A pennant and a thread of light were not tried: the halo read at once. Development build, simulator, 12 with a favourite: 60 fps, at most 2.6 ms a frame on average. Choosing, fights, called wins and the tally after a restart seen there; rage only in the web preview, its frame time not measured (it draws no more). Not seen: the light of a fall as it opens, 24, tablets, Reduce Motion, VoiceOver

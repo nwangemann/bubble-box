@@ -6,7 +6,7 @@ import { LIB } from '@/styles/prelude';
 import type { View } from './drawScene';
 import { compile, ROOM } from './walls';
 
-const MOST = ENTRANTS.most;
+const MOST = ENTRANTS.mixed;
 
 /**
  * Shadows, reflections and light on the room's walls, in one pass. Uniform order matches

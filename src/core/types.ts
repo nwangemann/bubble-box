@@ -152,6 +152,10 @@ export type Duel = {
   sizes: Record<number, number>;
   /** Id of the winner, or 0. */
   champion: number;
+  /** Id of the one rooted for, or 0, and whether it rages. The line-up waits while `hold`. */
+  favourite: number;
+  rage: boolean;
+  hold: boolean;
 };
 
 export type World = {

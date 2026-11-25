@@ -13,12 +13,21 @@ export function sizeOf(world: World, b: Bubble) {
   return world.duel?.sizes[b.id] ?? b.r;
 }
 
-/** Chance that `a` beats `b`. Equal sizes are always even. */
+/** Whether a bubble is a raging favourite. */
+function rages(duel: Duel, b: Bubble) {
+  'worklet';
+  return duel.rage && b.id === duel.favourite;
+}
+
+/** Chance that `a` beats `b`. Equal sizes are always even, unless one rages. */
 export function oddsOf(world: World, a: Bubble, b: Bubble) {
   'worklet';
   const k = 3 * (world.duel?.edge ?? 0);
-  const ka = Math.pow(sizeOf(world, a), k);
-  return ka / (ka + Math.pow(sizeOf(world, b), k));
+  const mad = TUNING.showdown.rage.odds;
+  const duel = world.duel;
+  const ka = Math.pow(sizeOf(world, a), k) * (duel && rages(duel, a) ? mad : 1);
+  const kb = Math.pow(sizeOf(world, b), k) * (duel && rages(duel, b) ? mad : 1);
+  return ka / (ka + kb);
 }
 
 /** Sets a surface ringing along a direction: `k2` stretches it, `k3` pulls it to a pear. */
@@ -105,6 +114,40 @@ function nearestTo(b: Bubble, all: Bubble[]) {
   return best;
 }
 
+/** How furious a raging favourite is now, 0 to 1: it comes in surges, never evenly spaced. */
+export function furyOf(duel: Duel) {
+  'worklet';
+  const t = duel.seconds;
+  const k = 0.5 + 0.5 * Math.sin(t * 2.3 + 1.6 * Math.sin(t * 0.83) + 1);
+  return k * k * (3 - 2 * k);
+}
+
+/** A raging favourite charges whoever it has a mind to, veering, then loses interest. */
+function rampage(world: World, duel: Duel, b: Bubble, all: Bubble[], dt: number) {
+  'worklet';
+  const R = TUNING.showdown.rage;
+  const t = duel.seconds;
+  const fury = furyOf(duel);
+  const others = all.filter((o) => o !== b);
+  const whim = Math.floor(t / R.mind) + b.id;
+  const at = others[Math.floor(((whim * 0.61803) % 1) * others.length)];
+  if (!at) return;
+  const dx = at.p.x - b.p.x;
+  const dy = at.p.y - b.p.y;
+  const dz = at.p.z - b.p.z;
+  const l = Math.max(1e-6, Math.hypot(dx, dy, dz));
+  const nx = dx / l + R.swerve * Math.sin(t * 5.3);
+  const ny = dy / l + R.swerve * Math.sin(t * 4.1 + 2);
+  const nz = dz / l + R.swerve * Math.sin(t * 3.7 + 4);
+  const n = Math.max(1e-6, Math.hypot(nx, ny, nz));
+  const speed = R.speed[0]! + (R.speed[1]! - R.speed[0]!) * fury;
+  const turn = Math.min(1, (R.turn[0]! + (R.turn[1]! - R.turn[0]!) * fury) * dt);
+  b.v.x += ((nx / n) * speed - b.v.x) * turn;
+  b.v.y += ((ny / n) * speed - b.v.y) * turn;
+  b.v.z += ((nz / n) * speed - b.v.z) * turn;
+  strike(world, b, nx / n, ny / n, nz / n, R.shiver * fury * Math.sin(t * 19) * dt, 0);
+}
+
 /** Moves a showdown on by one step. Without one, does nothing. */
 export function direct(world: World, box: Box, dt: number) {
   'worklet';
@@ -121,6 +164,7 @@ export function direct(world: World, box: Box, dt: number) {
     if (duel.phase === 'fight') swell(duel, b, dt);
   }
   if (duel.phase === 'ready') {
+    if (duel.hold) duel.seconds = Math.min(duel.seconds, S.ready - S.favourite.look);
     const go = duel.seconds >= S.ready;
     for (const b of all) {
       const a = Math.random() * Math.PI * 2;
@@ -149,6 +193,10 @@ export function direct(world: World, box: Box, dt: number) {
     const heat = Math.max(0, duel.since - S.patience);
     const turn = Math.min(1, Math.min(S.most, S.least + S.gain * heat) * dt);
     for (const b of all) {
+      if (rages(duel, b)) {
+        rampage(world, duel, b, all, dt);
+        continue;
+      }
       const rival = nearestTo(b, all)!;
       const dx = rival.p.x - b.p.x;
       const dy = rival.p.y - b.p.y;

@@ -27,12 +27,16 @@ export const RULES = {
   },
 } satisfies Record<string, Rule>;
 
-/** How many enter, between these. No cast has more, so nobody appears twice. */
-export const ENTRANTS = { least: 2, most: 12, usual: 12 };
+/** How many enter, between these. One theme's cast has no more than `most`; a mixed one, `mixed`. */
+export const ENTRANTS = { least: 2, most: 12, mixed: 24, usual: 12 };
+
+/** How near in colour, of 441, two in a mixed cast may not be. Themes keep their own further apart. */
+export const CAST = { alike: 16 };
+
 export const cleanCount = (saved: unknown): number =>
   Number.isInteger(saved) &&
   (saved as number) >= ENTRANTS.least &&
-  (saved as number) <= ENTRANTS.most
+  (saved as number) <= ENTRANTS.mixed
     ? (saved as number)
     : ENTRANTS.usual;
 

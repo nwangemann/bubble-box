@@ -2,8 +2,9 @@ import { ARENA_FEEL } from '../config/feels';
 import { ENTRANTS, RULES, type Rule } from '../config/rules';
 import { TUNING } from '../config/tuning';
 import { paceOf, standing } from './duel';
-import { createShowdown } from './showdown';
+import { choose, createShowdown, entrantAt } from './showdown';
 import type { Box } from './types';
+import { scaleAt } from './projection';
 import { advance } from './world';
 
 const S = TUNING.showdown;
@@ -48,8 +49,8 @@ test.each([
 
 test('any number can enter, each once, lined up without touching', () => {
   for (const box of [phone, tablet])
-    for (let n = ENTRANTS.least; n <= ENTRANTS.most; n++) {
-      const { bubbles, duel } = createShowdown(box, RULES.even, n, N);
+    for (let n = ENTRANTS.least; n <= ENTRANTS.mixed; n++) {
+      const { bubbles, duel } = createShowdown(box, RULES.even, n, Math.max(n, N));
       expect(bubbles).toHaveLength(n);
       expect(new Set(duel!.entrants).size).toBe(n);
       bubbles.forEach((a, i) => {
@@ -285,4 +286,86 @@ test('a chain that finishes draining all at once leaves the winner whole', () =>
       expect(Number.isFinite(o.p.x + o.p.y + o.p.z + o.v.x + o.r + o.spin)).toBe(true);
   }
   expect(w.bubbles.map((o) => o.id)).toEqual([c.id]);
+});
+
+test.each([
+  ['phone', phone],
+  ['tablet', tablet],
+])('a full mixed crowd fights to one at a watchable length on a %s', (_, box) => {
+  const times: number[] = [];
+  for (let i = 0; i < 10; i++) {
+    const w = createShowdown(box, RULES.grow, ENTRANTS.mixed);
+    let t = 0;
+    while (w.duel!.phase !== 'won' && t < 60) {
+      tick(w, box);
+      t += 1 / 60;
+    }
+    expect(standing(w).map((b) => b.id)).toEqual([w.duel!.champion]);
+    expect(w.duel!.out).toBe(ENTRANTS.mixed - 1);
+    times.push(t - S.ready);
+  }
+  times.sort((a, b) => a - b);
+  expect(times[5]).toBeGreaterThan(6);
+});
+
+test('the line-up waits for a touch, and lasts long enough to see a favourite', () => {
+  const w = createShowdown(phone, RULES.even, N);
+  w.duel!.hold = true;
+  for (let t = 0; t < S.ready * 2; t += 1 / 60) tick(w);
+  expect(w.duel!.phase).toBe('ready');
+  w.duel!.hold = false;
+  choose(w, 3, false);
+  for (let t = 0; t < S.favourite.look - 0.1; t += 1 / 60) tick(w);
+  expect(w.duel!.phase).toBe('ready');
+  for (let t = 0; t < 0.3; t += 1 / 60) tick(w);
+  expect(w.duel!.phase).toBe('fight');
+  // Too late to change.
+  choose(w, 4, true);
+  expect([w.duel!.favourite, w.duel!.rage]).toEqual([3, false]);
+});
+
+test('every entrant can be touched in the line-up', () => {
+  for (const box of [phone, tablet])
+    for (let n = ENTRANTS.least; n <= ENTRANTS.mixed; n++) {
+      const w = createShowdown(box, RULES.even, n, Math.max(n, N));
+      for (const b of w.bubbles) {
+        const s = scaleAt(box, b.p.z);
+        expect(entrantAt(w, box, b.p.x * s + 0.02, b.p.y * s, 0.15)).toBe(b.id);
+      }
+      expect(entrantAt(w, box, 5, 5, 0.15)).toBe(0);
+    }
+});
+
+/** How often a favourite wins, how fast it ever goes, and how long fights take. */
+const root = (rage: boolean, box: Box, rule: Rule, count: number, n: number) => {
+  let won = 0;
+  let fast = 0;
+  const times: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const w = createShowdown(box, rule, count);
+    choose(w, 1 + (i % count), rage);
+    let t = 0;
+    while (w.duel!.phase !== 'won' && t < 120) {
+      tick(w, box);
+      t += 1 / 60;
+      const b = w.bubbles.find((o) => o.id === w.duel!.favourite);
+      if (b && w.duel!.phase === 'fight') fast = Math.max(fast, Math.hypot(b.v.x, b.v.y, b.v.z));
+    }
+    expect(w.duel!.phase).toBe('won');
+    if (w.duel!.champion === w.duel!.favourite) won++;
+    times.push(t - S.ready);
+  }
+  times.sort((a, b) => a - b);
+  return { share: won / n, fast, median: times[Math.floor(n / 2)]!, longest: times[n - 1]! };
+};
+
+test('rooting changes nothing but the light; rage wins far more often, at a watchable length', () => {
+  expect(root(false, phone, RULES.grow, N, 60).share).toBeLessThan(0.25);
+  for (const rule of Object.values(RULES)) {
+    const mad = root(true, phone, rule, N, 60);
+    expect(mad.share).toBeGreaterThan(0.3);
+    expect(mad.share).toBeLessThan(0.9);
+    expect(mad.median).toBeGreaterThan(4);
+    expect(mad.longest).toBeLessThan(45);
+  }
 });

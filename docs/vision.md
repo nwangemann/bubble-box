@@ -19,7 +19,7 @@ Zen simplicity and beauty. Every action is simple, organic and calm.
 
 ## Showdown
 
-The one part that is a show. Chosen with the mode switch in the menu, whose sides look like what they lead to, it covers the room, which waits beneath, and one dot leaves. Touch does nothing while it runs. Its arenas are see-through grid boxes like the room, so depth shows; scenery is only a ghost on the back wall. Themes are playful; bubbles and how they meet are realistic: films that bend light, a neck that opens and drains, a surface that rings and settles. Names and the winner's title are the exception to having no text.
+The one part that is a show. Chosen with the mode switch in the menu, whose sides look like what they lead to, it covers the room, which waits beneath, and one dot leaves. Touch does nothing while it runs, except in the line-up, where a tap chooses a favourite to root for, marked by a soft light. Its arenas are see-through grid boxes like the room, so depth shows; scenery is only a ghost on the back wall. Themes are playful; bubbles and how they meet are realistic: films that bend light, a neck that opens and drains, a surface that rings and settles. Names, the winner's title and a quiet count of crowns and right calls are the exception to having no text; nothing counts against anyone.
 
 ## Spirit
 
