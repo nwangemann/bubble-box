@@ -51,6 +51,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | 8-ball trial: potted and remaining       | `src/core/poolRow.ts`                                              |
 | 8-ball trial: light of a pot             | `src/scene/poolPots.ts`                                            |
 | 8-ball trial: options                    | `src/config/poolOptions.ts`                                        |
+| 8-ball rules: turns, fouls, the wait     | `src/config/poolRules.ts`, `src/core/poolGame.ts`                  |
 | 8-ball trial: shadows, light on walls    | `src/scene/poolWalls.ts`                                           |
 | 8-ball trial: drawing, screen            | `src/scene/drawPool.ts`, `src/ui/Pool.tsx`                         |
 

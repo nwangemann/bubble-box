@@ -1,4 +1,5 @@
 import { POOL } from '../config/pool';
+import { POOL_RULES } from '../config/poolRules';
 import { landsAt, potEnds } from './poolRow';
 import { ageTrail, pointAt, sideOf } from './trail';
 import type { Box, Bubble, Trail, Vec3 } from './types';
@@ -37,6 +38,10 @@ export type Pool = {
   trailing: number;
   /** Each with its ball's place in `balls`, or -1 once that has been replaced. */
   trails: Trail[];
+  /** The first ball the cue ball has struck since it was sent, or -1. */
+  first: number;
+  /** Seconds a shot after the break has run, for its later, harder drag; -1 once all have stopped. */
+  hurry: number;
 };
 
 /** A contact: ball `i` with ball `j`, with a cushion (`j` is the axis), or with pocket `j`. */
@@ -141,6 +146,8 @@ export function createPool(box: Box): Pool {
     calm: false,
     trailing: 0,
     trails: [],
+    first: -1,
+    hurry: -1,
   };
 }
 
@@ -405,14 +412,17 @@ function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
     pool.knock = Math.max(pool.knock, hard);
     if (pool.racked && hit.kind === 'ball' && hard > 0) burst(pool, hard);
     if (hit.kind === 'pocket' && hit.i > 0) pool.potted++;
+    if (hit.kind === 'ball' && hit.i === 0 && pool.first < 0) pool.first = hit.j;
     turn(pool, hit.i, box);
     if (hit.kind === 'ball') turn(pool, hit.j, box);
   }
   const fade = Math.exp(-dt / POOL.spinFade);
+  const { after, drag: harder } = POOL_RULES.hurry;
+  const drag = pool.hurry >= after ? POOL.drag * harder : POOL.drag;
   for (const b of balls) {
     if (b.sunk >= 0) continue;
     const draw = drawOf(holes, b.p);
-    const drawn = Math.hypot(draw.x, draw.y, draw.z) > POOL.drag;
+    const drawn = Math.hypot(draw.x, draw.y, draw.z) > drag;
     // Too faint to start a resting ball, it still bends a moving one.
     if (drawn || b.v.x !== 0 || b.v.y !== 0 || b.v.z !== 0) {
       b.v.x += draw.x * dt;
@@ -420,7 +430,7 @@ function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
       b.v.z += draw.z * dt;
     }
     const speed = Math.hypot(b.v.x, b.v.y, b.v.z);
-    const slower = speed - POOL.drag * dt;
+    const slower = speed - drag * dt;
     const k = slower <= 0 ? 0 : slower / speed;
     const turn = k === 0 ? 0 : fade;
     b.v.x *= k;
@@ -467,13 +477,80 @@ function fadeTrails(pool: Pool) {
   return pool.trails.length > 0;
 }
 
+/** Whether a ball at rest is drawn harder than drag holds it, so it will drift into a pocket. */
+function tipping(pool: Pool, box: Box) {
+  'worklet';
+  const holes = snugs(box);
+  return pool.balls.some((b) => {
+    if (b.sunk >= 0) return false;
+    const draw = drawOf(holes, b.p);
+    return Math.hypot(draw.x, draw.y, draw.z) > POOL.drag;
+  });
+}
+
+/** Every ball on the table has stopped, and none will drift in: the next shot may be played. */
+export function stillTable(pool: Pool, box: Box) {
+  'worklet';
+  if (pool.balls.some((b) => b.sunk < 0 && (b.v.x !== 0 || b.v.y !== 0 || b.v.z !== 0)))
+    return false;
+  return !tipping(pool, box);
+}
+
+/** The first ball a cue ball of `r` at `x`, `y` against the glass would overlap, or -1. */
+function overlaps(pool: Pool, x: number, y: number, r: number) {
+  'worklet';
+  for (let i = 1; i < pool.balls.length; i++) {
+    const b = pool.balls[i]!;
+    if (b.sunk >= 0) continue;
+    if (Math.hypot(b.p.x - x, b.p.y - y, b.p.z - r) < r + b.r) return i;
+  }
+  return -1;
+}
+
+/**
+ * The nearest place to `p`, against the glass, where a cue ball of `r` fits among the balls: `p`
+ * itself unless one rests that close.
+ */
+export function fitCue(pool: Pool, box: Box, p: Vec3, r: number): Vec3 {
+  'worklet';
+  const lx = box.hw - r;
+  const ly = box.hh - r;
+  const x0 = Math.max(-lx, Math.min(lx, p.x));
+  const y0 = Math.max(-ly, Math.min(ly, p.y));
+  if (overlaps(pool, x0, y0, r) < 0) return { x: x0, y: y0, z: r };
+  const { step, most, ways } = POOL_RULES.fit;
+  for (let n = 1; n <= most; n++) {
+    let best = -1;
+    let bx = 0;
+    let by = 0;
+    for (let k = 0; k < ways; k++) {
+      const a = (k / ways) * 2 * Math.PI;
+      const x = x0 + Math.cos(a) * n * step;
+      const y = y0 + Math.sin(a) * n * step;
+      if (Math.abs(x) > lx || Math.abs(y) > ly || overlaps(pool, x, y, r) >= 0) continue;
+      // Of those at this distance, the one nearest the finger.
+      const d = Math.hypot(x - p.x, y - p.y);
+      if (best < 0 || d < best) {
+        best = d;
+        bx = x;
+        by = y;
+      }
+    }
+    if (best >= 0) return { x: bx, y: by, z: r };
+  }
+  return { x: x0, y: y0, z: r };
+}
+
 /** Advances by real elapsed seconds. Returns whether anything moved or is leaving. */
 export function advancePool(pool: Pool, box: Box, seconds: number) {
   'worklet';
   const { balls } = pool;
-  const busy = balls.some((b) =>
+  const moving = balls.some((b) =>
     b.sunk >= 0 ? b.sunk < POOL.sink : b.v.x !== 0 || b.v.y !== 0 || b.v.z !== 0,
   );
+  if (pool.hurry >= 0) pool.hurry = moving ? pool.hurry + seconds : -1;
+  // Stopped on a lip by harder drag, a ball still tips in once it eases.
+  const busy = moving || (pool.hurry < 0 && tipping(pool, box));
   const lands = landsAt(pool.calm);
   balls.forEach((b, i) => {
     if (b.sunk < 0) return;
@@ -509,15 +586,17 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
 }
 
 /** Puts a ball made by a finger into play, with what the launch gave it. */
-export function enter(pool: Pool, bubble: Bubble) {
+export function enter(pool: Pool, box: Box, bubble: Bubble) {
   'worklet';
   // What the last one left fades where it hangs.
   for (const trail of pool.trails) if (trail.bubble === 0) trail.bubble = -1;
-  const cue = newBall(bubble.p, bubble.r);
-  cue.p.z = cue.r;
+  const cue = newBall(fitCue(pool, box, bubble.p, bubble.r), bubble.r);
   cue.v = { x: bubble.v.x, y: bubble.v.y, z: bubble.v.z };
   cue.w.z = bubble.spin;
   pool.balls[0] = cue;
+  pool.first = -1;
+  // A break keeps plain drag.
+  pool.hurry = pool.racked ? -1 : 0;
 }
 
 /** Follows the ball in the hand straight ahead, with the same contacts as play. */

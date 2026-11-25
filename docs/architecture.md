@@ -60,7 +60,7 @@ Each preview is a small `World` in its own box, driven by `preview/scripts` and 
 
 ## 8-ball
 
-`ui/Pool` covers the room, in the same box and view. What is in the hand is a small `World` with one hold, advanced by the calm code at one size (`World.steady`); on release its bubble becomes the cue ball (`enter`) of a `Pool`, whose contacts `core/pool` solves exactly. `traceAhead` runs the same contacts for the line. Trails are `core/trail`'s points, laid by `core/pool` with two at each contact so strips join cleanly, and cut and drawn by `scene/trails` with pool's own look. A still table with no finger draws nothing. Its menu is `ui/Tray` with `config/poolOptions`; choices reach `ui/Pool` as `settings`. See [pool](pool.md).
+`ui/Pool` covers the room, in the same box and view. What is in the hand is a small `World` with one hold, advanced by the calm code at one size (`World.steady`); on release its bubble becomes the cue ball (`enter`) of a `Pool`, whose contacts `core/pool` solves exactly. `traceAhead` runs the same contacts for the line. Trails are `core/trail`'s points, laid by `core/pool` with two at each contact so strips join cleanly, and cut and drawn by `scene/trails` with pool's own look. Turns are `core/poolGame`: `beginShot` as a cue ball enters, then once `stillTable`, `judge` gives the shot's verdict (pots, the first ball struck, a foul) and `endShot` passes the turn or keeps it, by `config/poolRules`. A finger down before then waits, and gets its cue ball as the turn is settled. A still table with no finger draws nothing. Its menu is `ui/Tray` with `config/poolOptions`; choices reach `ui/Pool` as `settings`. See [pool](pool.md).
 
 ## Mode switch
 

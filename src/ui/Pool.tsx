@@ -15,7 +15,16 @@ import { POOL } from '@/config/pool';
 import { POOL_ROWS, stepPool, trailing, type PoolSettings } from '@/config/poolOptions';
 import { TUNING } from '@/config/tuning';
 import { FEELS } from '@/config/feels';
-import { advancePool, createPool, enter, retire, traceAhead } from '@/core/pool';
+import {
+  advancePool,
+  createPool,
+  enter,
+  fitCue,
+  retire,
+  stillTable,
+  traceAhead,
+} from '@/core/pool';
+import { beginShot, createGame, endShot, judge } from '@/core/poolGame';
 import { poolRow } from '@/core/poolRow';
 import type { Box } from '@/core/types';
 import { advance, beginHold, createWorld, heldBy, moveHold, release, swipeOf } from '@/core/world';
@@ -74,11 +83,26 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   const dirty = useSharedValue(true);
   const lastBuzz = useSharedValue(0);
   const finger = useSharedValue(-1);
+  // Whose turn, and the shot out.
+  const game = useSharedValue(createGame());
+  // A finger down while balls roll, and where it is: its cue ball comes once all have stopped.
+  const waiting = useSharedValue(-1);
+  const waitAt = useSharedValue({ x: 0, y: 0 });
   const leaving = calm ? 0 : trailing(settings.trail);
   const trails = useSharedValue(leaving);
   useEffect(() => trails.set(leaving), [trails, leaving]);
   const still = useSharedValue(calm);
   useEffect(() => still.set(calm), [still, calm]);
+
+  /** A cue ball into the hand at a place in box units. */
+  const hold = (x: number, y: number, id: number) => {
+    'worklet';
+    // One cue ball at a time: a new one lets the last go.
+    retire(pool.value);
+    beginHold(hand.value, box, x, y, 'glass', false, id);
+    finger.value = id;
+    dirty.value = true;
+  };
 
   useFrameCallback((frame) => {
     const p = pool.value;
@@ -87,6 +111,14 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     p.trailing = trails.value;
     p.calm = still.value;
     const moved = advancePool(p, box, dt);
+    const g = game.value;
+    if (g.shooting && stillTable(p, box)) {
+      endShot(g, judge(g, p));
+      if (waiting.value !== -1) {
+        hold(waitAt.value.x, waitAt.value.y, waiting.value);
+        waiting.value = -1;
+      }
+    }
     const h = w.holds[0];
     const heldFor = h ? h.seconds : 0;
     if (h) advance(w, box, HANDS, 1, dt);
@@ -111,11 +143,13 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
       const placing = Math.min(1, Math.max(0, (h.seconds - place) / ease));
       sure = Math.max(placing, 1 - Math.hypot(s.x, s.y) / swipe);
     }
-    const trace = h && sure > 0 ? traceAhead(p, box, { ...h.bubble.p }, h.bubble.r) : null;
+    // Where it would start: clear of any ball resting against the glass.
+    const held = h ? { ...h.bubble, p: fitCue(p, box, h.bubble.p, h.bubble.r) } : null;
+    const trace = held && sure > 0 ? traceAhead(p, box, held.p, held.r) : null;
     const grown = h ? Math.min(1, h.seconds / POOL.cue.appear) : 0;
     picture.value = createPicture((canvas) => {
       'worklet';
-      drawPool(canvas, gpu, p, h ? h.bubble : null, grown, trace, sure, row, box, view);
+      drawPool(canvas, gpu, p, held, grown, trace, sure, row, box, view);
     });
   });
 
@@ -127,12 +161,16 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     const v = swiped && h.seconds < POOL.aim.place ? swipeOf(h) : { x: 0, y: 0 };
     release(w, v.x, v.y, POOL.cue.speed, finger.value);
     const bubble = w.bubbles.pop();
-    if (bubble) enter(pool.value, bubble);
+    if (bubble) {
+      enter(pool.value, box, bubble);
+      beginShot(game.value, pool.value);
+    }
     finger.set(-1);
     dirty.set(true);
   };
   const cancel = () => {
     'worklet';
+    waiting.set(-1);
     launch(false);
   };
   const touch = useManualGesture({
@@ -140,22 +178,27 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     onTouchesDown: (e) => {
       'worklet';
       const t = e.changedTouches[0];
-      if (!t || finger.value !== -1) return;
-      // One cue ball at a time: a new one lets the last go.
-      retire(pool.value);
+      if (!t || finger.value !== -1 || waiting.value !== -1) return;
       const x = (t.x - view.cx) / view.ppu;
       const y = (t.y - view.cy) / view.ppu;
-      beginHold(hand.value, box, x, y, 'glass', false, t.id);
-      finger.set(t.id);
+      // A shot waits for a still table.
+      if (game.value.shooting) {
+        waiting.set(t.id);
+        waitAt.set({ x, y });
+      } else hold(x, y, t.id);
     },
     onTouchesMove: (e) => {
       'worklet';
-      for (const t of e.changedTouches)
-        if (t.id === finger.value)
-          moveHold(hand.value, (t.x - view.cx) / view.ppu, (t.y - view.cy) / view.ppu, t.id);
+      for (const t of e.changedTouches) {
+        const x = (t.x - view.cx) / view.ppu;
+        const y = (t.y - view.cy) / view.ppu;
+        if (t.id === finger.value) moveHold(hand.value, x, y, t.id);
+        else if (t.id === waiting.value) waitAt.set({ x, y });
+      }
     },
     onTouchesUp: (e) => {
       'worklet';
+      if (e.changedTouches.some((t) => t.id === waiting.value)) waiting.set(-1);
       if (e.changedTouches.some((t) => t.id === finger.value)) launch(true);
     },
     onTouchesCancel: cancel,

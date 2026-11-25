@@ -2,7 +2,7 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Sections keep their numbers when reordered. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2, in section 10.
 
-**Next: 1.6, the 8-ball ruleset, on paper.**
+**Next: 1.8, solids and stripes.**
 
 Manual verification, whatever needs you or a phone to judge, waits in section 10, at the very end. Nothing else waits for it. Build and check on tests and the simulator, go on, and add what is left to judge to section 10. Section 8 is parked and section 9 is blocked: neither is picked up as a next step.
 
@@ -12,20 +12,12 @@ A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than wat
 
 **A. See and follow** and **B. A pot worth it.** Built; judged in 1.2.
 
-**C. True 8-ball.** Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won.
+**C. True 8-ball.** Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won. The rules are settled in [pool](pool.md), Rules (1.6).
 
-- [ ] 1.6 A ruleset on paper first: current standard 8-ball, adapted slightly where this table needs it (cue ball to hand, fouls, scratch, the break, calling pockets). Settles 1.7 to 1.12; replaces 1.3. To decide, with a first suggestion:
-  - Turns: a shot waits for the table to be still (8 to 9 s after a break today, so perhaps stronger drag late on)
-  - Every shot starts at the glass, so ball in hand is always had: a foul gives the opponent two shots instead
-  - Calling: only the 8
-  - Break: a pot keeps the turn and leaves the table open; the 8 potted is set back
-  - Cue ball potted is a foul; with the 8, a loss
-  - The vision has no scores or text: which exceptions the game needs
-- [ ] 1.7 Player 1 and player 2: whose turn it is, when it passes, what a foul gives
-- [ ] 1.8 Solids and stripes: the table is open until a first legal pot assigns them
+- [ ] 1.8 Solids and stripes: open until a shot after the break pots one group only; wrong ball first a foul
 - [ ] 1.19 Whose balls: each player's potted and remaining, and whose turn, on the layout of 1.9
-- [ ] 1.10 True 8-ball mode: the 8 must be sunk last; early, or with a scratch, it loses. Scale the pot of 1.17 by meaning: more for a called or last ball, most for the 8, muted for a foul
-- [ ] 1.11 Win conditions and a win screen, with play again
+- [ ] 1.10 The 8: called by the aim line; set back on its spot when potted early or on the break; lost with a foul or in another pocket. Scale the pot of 1.17 by meaning: more for the last of a group, most for the 8, muted for a foul
+- [ ] 1.11 Win and loss, a win screen with play again, breaks alternating
 - [ ] 1.12 Win tracking: wins for each player, kept between games
 
 **D. The table.** Options, so each can be left out without harm. Done when both hold to the first principle.
@@ -125,6 +117,8 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 - [ ] 1.2 Judge on a phone, by the questions at the end of [pool](pool.md): ball size, placing a shot, `mouth`, side pockets drawn wider than they take, power. Tune, or drop 8-ball. Also what was only seen in stills, or not felt:
   - 1.15 to 1.17 in play: depth, trails, and whether a pot feels like progress without stopping play
   - 1.17: the haptics as a ball drops and lands
+  - 1.7: does waiting with a finger down for the table to still feel natural, or should the cue ball show at once and wait to be sent; is the cue ball moving aside from a ball at the glass clear
+  - 1.6, the rules in play, once 1.7 to 1.11 are built: is the wait between shots short enough, and late drag unnoticed; do two shots after a foul sting enough; is the early 8 set back (not lost) right, or should the WPA loss return; is calling the 8 by the aim line understood
 
 **First time on a phone**
 
@@ -171,6 +165,8 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 - 1.16, short trails behind balls, pool's first option: All balls, Cue ball or None (`POOL.trail`, `core/pool`, `scene/trails`). All by default. Pieces hidden behind their own ball are skipped, calm trails too. Development build, simulator, break of 15: 60 fps, about 4 ms a frame, 2.5 in 1.15. Judged on stills; not yet in play or on a phone (1.2). Calm trails not looked at again
 - 1.17, celebrating a pocketed ball: light from the pocket with a front that crosses the walls, a mote that carries it to its place in the row, a firm haptic as it drops and a soft one as it lands (`POOL.pot`, `scene/poolPots`). A wash of the whole room and a film at the pocket were tried and dropped ([pool](pool.md)). Cue ball unmarked. Reduce Motion: a dimmer light only. Development build, simulator: about 3 ms a frame on average with pots, up to five at once. Judged on frames of recordings; the 8's own pot not seen, haptics not felt, not yet judged in play or on a phone (1.2)
 - 1.9, telling balls apart: new colours, the 8 with its figure, and a place at the top for each ball, solids, the 8, stripes (`POOL.looks`, `POOL.row`, `core/poolRow`). Development build, simulator, shots through 14 and 15 balls: 60 fps, about 3.2 ms a frame. Judged on stills at the far wall and on breaks; not yet in play or on a phone (1.2), by a colour-blind person, or the mode switch's 8-ball side, which draws the same balls. Recheck on felt in 1.13
+- 1.7, player 1 and player 2 (`config/poolRules`, `core/poolGame`): turns with two shots after a foul (scratch, nothing struck, an 8 after the break), the first ball struck recorded, the wait for a still table (a finger down meanwhile gets its cue ball once all have stopped), late drag after the break that lets a ball on a lip still tip in, and the cue ball starting clear of a ball against the glass. Groups, setting the 8 back and losing with it come in 1.8 to 1.11; the early 8 switch is there, unused but for a verdict's `lost`. Nothing shows whose turn it is until 1.19. Tested in core (turns, fouls, two shots, first ball, late drag, the lip, where the cue ball fits). Development build, simulator (iPhone 17): a break, then a tap while balls rolled did nothing, and a finger held from then got its cue ball and line once all had stopped, and shot on release; 60 fps throughout. Turns themselves not seen, as nothing shows them yet; the cue ball moved aside by a ball at the glass not seen
+- 1.6, the ruleset on paper ([pool](pool.md), Rules): WPA 8-ball of 2025, with Blackball's open table, two shots after a foul in place of ball in hand, late drag after the break, the 8 called by the aim line and set back when potted early. Chosen with simulated games of a player aiming at their own group (40 a case, misses of 0.02 to 0.08); nothing built
 - 1.20, what 1.17 and 1.18 left unseen, on a simulator (iPhone 17, development build); nothing needed a fix. The 8's own pot, its ball placed by a probe: pale light and front, a pale mote, its figure legible in the row. Reduce Motion switched in the system's Settings while 8-ball was open: followed both ways without a restart; on, trails stop, a pot is only a dimmer light and its place fills. The menu: tiles step and act at once, a tap on the table closes it without playing, both other sides leave, Trail survives a restart. Breaks of 15: 60 fps, about 3.5 ms a frame with trails, the menu open or closed, under 2 with none. Pots and breaks were set off by the probe, not by a finger
 
 ### Trails

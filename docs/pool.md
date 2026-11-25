@@ -11,7 +11,7 @@ How and where balls move must be intuitive, natural and fluid to follow. Keep th
 - **The calm room.** Same box, same camera. The far wall is the table: a long rectangle seen face on.
 - **Pockets**: 6, all on the far wall: its 4 corners, and the middles of its 2 long edges. Nothing on the near face, which is only a cushion.
 - **Cue ball**: made as a calm bubble is, but at one size, the size of the rest. Hold anywhere and it swells into the hand, release to send it. A quick swipe steers and a curved one spins. After 0.35 s the finger is placing the shot (a soft tick): drag to move it, the line follows, and lifting sends it along the line, however the finger moves. Power rises with the hold for 0.8 s and no more (`POOL.cue.charge`), so taking time to aim costs nothing.
-- **Always**: a new one can be made at any moment, while balls roll too. There is one at a time: touching lets the last fade. So there are no turns to wait for, no ball in hand, and a potted cue ball costs nothing.
+- **One at a time**: touching lets the last fade. A shot waits for a still table (Rules); a finger put down before then gets its cue ball once all have stopped, where it is by then.
 
 ## Balls and the rack
 
@@ -82,7 +82,37 @@ The dot opens pool's own menu, as it does the calm room's: a tile for each optio
 
 ## Rules
 
-None in the trial. Planned (part C of section 1 in the [plan](plan.md)): standard 8-ball for two players, adapted slightly where a cue ball always to hand leaves a rule nothing to act on. Turns, then, must be brought back: a shot waits for the table to be still.
+Settled in 1.6, for 1.7 to 1.12. The base is the WPA Rules of Play for 8-ball, effective 2025-09-15 (section 4), changed only where this table leaves a rule nothing to act on or makes it a lottery. Where WPA's own Blackball (section 8) already fits, it is used instead: its cue ball in hand in baulk is this table's glass. Two players on one phone, taking turns. Numbers marked _sim_ come from 40 simulated games for each case: a player who aims at a ball of their group, a pot where one is offered, and misses by 0.02 to 0.08 at the glass.
+
+**Turns.** A shot waits for the table to be still. Holding while balls roll does nothing yet; the cue ball comes once all have stopped. The shooter stays on while each shot legally pots a ball of their own group (or, on an open table, any ball). A shot that pots none passes the turn. A foul passes it with two shots: the opponent's turn ends at their second shot that pots nothing, or at once on a foul of their own. This stands in for ball in hand, which is always had here, as two visits did in older pub and league blackball; WPA Blackball's free shot only forgives a wrong ball first, which is rare here (2 to 3% of shots, _sim_), so it would cost nothing.
+
+**Waiting.** Shots after the break slow harder once they have run 3 s: drag 4 times as strong, back to `POOL.drag` once all have stopped, so a ball resting on a lip still tips in. A shot then takes 5.3 s on average and 6.8 at most, against 10.3 and 16 (_sim_), and pots barely fewer (44% of shots against 47%). The break keeps plain drag: its pots come late, as balls creep into pockets, and any stronger drag after 3 to 7 s left 0 to 0.3 pots a break instead of 0.4 to 0.7. So a break takes about 9 s.
+
+**The break.** From anywhere on the glass, any strength; no ball is called and any may be struck first. A pot keeps the turn and the table stays open (WPA 4.3c). WPA's four balls to a cushion always happens (at least 10, _sim_), so every break is legal. The 8 potted on the break is set back on its spot and play goes on (4.3e, the first choice, taken always: no choices to ask). A cue ball potted on the break is a foul, the 8 too then set back. Breaks alternate between games (1.3), the first to player 1.
+
+**Open table, groups.** As Blackball 8.6, since nothing is called: the table is open until a shot after the break legally pots balls of one group only, which then is the shooter's, and the other the opponent's. Pots from both leave it open. While open, any ball but the 8 may be struck first (4.4).
+
+**Fouls**, each passing the turn with two shots, balls potted staying down:
+
+- The cue ball potted (3.1)
+- No ball struck, or first a ball not the shooter's: the other group, or the 8 before the group is cleared (3.2)
+- The 8 potted before its turn: set back on its spot, see below
+
+Potting the opponent's ball is no foul (WPA, not Blackball); it stays down and does not keep the turn. The rest of WPA's fouls cannot happen here or are met by design: no ball leaves the box, nothing jumps, there is no cue to push, double hit or touch with, and a cue ball sent at least 2.7 per second runs about 30 before it stops, so it always reaches a cushion after any contact (3.3). A table still moving cannot be played (3.9) since the cue ball waits.
+
+**The 8.** It is the last ball, called by the aim line: the pocket the line marks as the 8's at release is the called one (the line shows it whenever the shot is being placed). The shooter whose group is cleared wins by legally potting the 8 in it. They lose if the 8 drops on a foul (a cue ball potted with it, or another ball struck first), in another pocket, or with no pocket marked (4.8a and c). Once a group is cleared, its owner's first ball is the 8.
+
+The one rule changed: **an 8 potted early** (before its owner's group is cleared, including with the last of it) **is set back on its spot as a foul**, not lost (WPA 4.8b). Here the cue ball keeps going for seconds after its target, through the whole rack, so it can rarely be kept off the 8: with the WPA rule 8 to 17 of 40 games ended that way (_sim_). The end keeps its risk in the called pocket and the scratch. To revert if play asks for it, a switch in the rules config.
+
+**Setting the 8 back**: on its place in the rack, or, if a ball is there, the nearest free place on the line from there to the far wall (1.5), once the table is still, and it eases in, not appearing at once.
+
+**Where a shot starts.** A ball resting against the glass would overlap a cue ball held over it: the cue ball begins at the nearest place it fits. Half a ball rests that close per shot on average (_sim_).
+
+**As built** (1.7, `config/poolRules`, `core/poolGame`): a shot is judged once the table is still, by what dropped since it was sent and the first ball the cue ball struck (`Pool.first`). The verdict passes the turn or keeps it; `PoolGame.shots` counts the shots left that may pot nothing. Late drag is `Pool.hurry`, seconds since a shot after the break was sent, reset once all have stopped; a ball at rest that a pocket draws harder than plain drag keeps the table from being still, so it tips in. Where the cue ball fits is searched outwards from the finger in rings (`POOL_RULES.fit`), and the held ball and its line show it there. Until 1.8 the table is always open, so any pot keeps the turn and any 8 after the break is early; the 8 stays down until 1.10 sets it back.
+
+**Left out**: calling other balls and safeties (4.6), the incoming player's choices after a break foul (4.3d, f to h), three fouls, stalemate (no position here blocks every shot), lagging, the shot clock. The old cue ball fades at the next touch, so it never blocks a shot.
+
+**No words.** Players are told apart by side, not name: player 1's balls fill the left of the row, player 2's the right, each group moving under its owner once taken (1.19); whose turn is shown there. The exceptions to having no text and no numbers stay the 8's figure and, as in showdowns, a quiet count of wins (1.12).
 
 ## Fit with the vision
 

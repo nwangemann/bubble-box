@@ -101,7 +101,7 @@ test('balls never overlap, leave the room or gain energy, and all come to rest',
     const w = createWorld();
     const bubble = newBubble(w, 'glass', 0.3, at([0.2, -0.3, 0.3]));
     bubble.v = at([0.3, 0.6, 6]);
-    enter(pool, bubble);
+    enter(pool, box, bubble);
     let energy = Infinity;
     let moving = true;
     for (let n = 0; n < 3600 && moving; n++) {
@@ -135,7 +135,7 @@ test('a new cue ball takes the place of the last, even while balls roll', () => 
   const bubble = newBubble(createWorld(), 'glass', 0.2, at([0.4, -0.4, 0.2]));
   bubble.v.z = 2;
   bubble.spin = 2;
-  enter(pool, bubble);
+  enter(pool, box, bubble);
   expect(pool.balls[0]!.sunk).toBe(-1);
   advancePool(pool, box, 0.5);
   expect(pool.balls[0]!.p.z).toBeGreaterThan(1);
@@ -206,7 +206,7 @@ test('a break moves every ball, even off centre', () => {
     const from = pool.balls.map((b) => ({ ...b.p }));
     const bubble = newBubble(createWorld(), 'glass', size, at([x, y, size]));
     bubble.v.z = speed;
-    enter(pool, bubble);
+    enter(pool, box, bubble);
     for (let n = 0; n < 1200; n++) advancePool(pool, box, 1 / 60);
     pool.balls.forEach((b, i) => {
       if (i === 0 || b.sunk >= 0) return;
@@ -289,7 +289,7 @@ test('a moving ball leaves a trail that turns where it does, then goes', () => {
     expect(Math.max(...points.map((o) => o.p.x))).toBeCloseTo(box.hw - r, 5);
     expect(pool.time - points[1]!.t).toBeLessThanOrEqual(POOL.trail.look.seconds);
     // It fades where it hangs after another takes its place, and the table then rests.
-    enter(pool, newBubble(createWorld(), 'soap', r, at([0, 0, r])));
+    enter(pool, box, newBubble(createWorld(), 'soap', r, at([0, 0, r])));
     advancePool(pool, box, 1 / 60);
     expect(pool.trails[0]!.bubble).toBe(-1);
     until(pool, () => pool.trails.length === 0);
@@ -304,7 +304,7 @@ test('only as many balls as chosen leave trails', () => {
     pool.trailing = most;
     const cue = newBubble(createWorld(), 'soap', r, at([0.02, 0.01, r]));
     cue.v.z = 4;
-    enter(pool, cue);
+    enter(pool, box, cue);
     until(pool, () => !pool.racked);
     for (let n = 0; n < 30; n++) advancePool(pool, box, 1 / 120);
     return new Set(pool.trails.map((o) => o.bubble)).size;
