@@ -2,7 +2,7 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Sections keep their numbers when reordered. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2, in section 10.
 
-**Next: 1.20, check on the simulator what earlier 8-ball steps left.**
+**Next: 1.6, the 8-ball ruleset, on paper.**
 
 Manual verification, whatever needs you or a phone to judge, waits in section 10, at the very end. Nothing else waits for it. Build and check on tests and the simulator, go on, and add what is left to judge to section 10. Section 8 is parked and section 9 is blocked: neither is picked up as a next step.
 
@@ -11,8 +11,6 @@ Manual verification, whatever needs you or a phone to judge, waits in section 10
 A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in the calm room, with the cue ball made as a calm bubble is. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). Order: see the balls, then make a shot and a pot worth it, then the game, then its looks. It goes on before it has been played on a phone; 1.2 may still drop it.
 
 **A. See and follow** and **B. A pot worth it.** Built; judged in 1.2.
-
-- [ ] 1.20 Check on the simulator what earlier steps left: the 8's own pot, and Reduce Motion from the system setting (1.17); the options menu, and its frame time (1.18)
 
 **C. True 8-ball.** Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won.
 
@@ -131,7 +129,7 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 **First time on a phone**
 
 - [ ] 2.1 Install and note what feels wrong; confirm icon and splash
-- [ ] 2.2 Frame time on the oldest phone to support: 10 bubbles, without and with each trail; 10 glowing bubbles in Water; several bursts, with pops pushing neighbours; the picker; showdown with 12, and a mixed one with 24. Repeat after 6.2
+- [ ] 2.2 Frame time on the oldest phone to support: 10 bubbles, without and with each trail; 10 glowing bubbles in Water; several bursts, with pops pushing neighbours; the picker; showdown with 12, and a mixed one with 24; whether the chooser is slow to open the first time after installing (about a second on the simulator, development build). Repeat after 6.2
 - [ ] 2.3 Tune the core: growth (start size, pace, largest size), launch (hold power, swipe strength, depth of the box), rebound, drift, wobble, the push of a pop (`TUNING.puff`), haptics
 - [ ] 2.4 Tune gestures: several fingers, `swipe`, `TUNING.sweep`, `spin`, `flick` (does it get in the way of launching from a crowd?), `tilt` (does it want its own setting?), the first-time hint (`TUNING.hint`; is it understood?)
 
@@ -173,6 +171,7 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 - 1.16, short trails behind balls, pool's first option: All balls, Cue ball or None (`POOL.trail`, `core/pool`, `scene/trails`). All by default. Pieces hidden behind their own ball are skipped, calm trails too. Development build, simulator, break of 15: 60 fps, about 4 ms a frame, 2.5 in 1.15. Judged on stills; not yet in play or on a phone (1.2). Calm trails not looked at again
 - 1.17, celebrating a pocketed ball: light from the pocket with a front that crosses the walls, a mote that carries it to its place in the row, a firm haptic as it drops and a soft one as it lands (`POOL.pot`, `scene/poolPots`). A wash of the whole room and a film at the pocket were tried and dropped ([pool](pool.md)). Cue ball unmarked. Reduce Motion: a dimmer light only. Development build, simulator: about 3 ms a frame on average with pots, up to five at once. Judged on frames of recordings; the 8's own pot not seen, haptics not felt, not yet judged in play or on a phone (1.2)
 - 1.9, telling balls apart: new colours, the 8 with its figure, and a place at the top for each ball, solids, the 8, stripes (`POOL.looks`, `POOL.row`, `core/poolRow`). Development build, simulator, shots through 14 and 15 balls: 60 fps, about 3.2 ms a frame. Judged on stills at the far wall and on breaks; not yet in play or on a phone (1.2), by a colour-blind person, or the mode switch's 8-ball side, which draws the same balls. Recheck on felt in 1.13
+- 1.20, what 1.17 and 1.18 left unseen, on a simulator (iPhone 17, development build); nothing needed a fix. The 8's own pot, its ball placed by a probe: pale light and front, a pale mote, its figure legible in the row. Reduce Motion switched in the system's Settings while 8-ball was open: followed both ways without a restart; on, trails stop, a pot is only a dimmer light and its place fills. The menu: tiles step and act at once, a tap on the table closes it without playing, both other sides leave, Trail survives a restart. Breaks of 15: 60 fps, about 3.5 ms a frame with trails, the menu open or closed, under 2 with none. Pots and breaks were set off by the probe, not by a finger
 
 ### Trails
 
