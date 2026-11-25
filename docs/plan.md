@@ -2,17 +2,17 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2.
 
-**Next: 1.2, 8-ball trial.**
+**Next: 1.2, judge the 8-ball trial on a phone. Without one: 3.1, arena apart from cast.**
 
 Without a phone, skip 2 and 7.1 to 7.3, and leave 1.3 to 1.5 until 1.2 has been judged on one. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
 
 ## 1. 8-ball in space
 
-A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in a weightless box. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). 1.2 is a trial: go on to 1.3 to 1.5 only if a shot is fun.
+A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in the calm room, with the cue ball made as a calm bubble is. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). 1.2 is a trial: go on to 1.3 to 1.5 only if a shot is fun.
 
-- [ ] 1.2 Trial, as "What 1.2 must answer" in [pool](pool.md): cue ball, five balls, 12 pockets; aim with the cue's eye, pull to shoot. Exact collisions, cushions and cushion spin, our own physics (ADR 1). Then judge on a phone
-- [ ] 1.3 The full game: rack and break, solids and stripes, calling the 8, scratches and fouls, ball in hand, two players passing the phone
-- [ ] 1.4 English, draw and follow, chosen in the cue's eye (draw and follow are a convention without a cloth)
+- [ ] 1.2 Judge the trial on a phone, by the questions at the end of [pool](pool.md). Built and played on a simulator only
+- [ ] 1.3 The full game: settle rules that suit a cue ball always to hand, then the rack, solids and stripes, the 8, perhaps two players
+- [ ] 1.4 More from spin: draw and follow, if a swipe can say them
 - [ ] 1.5 The mode itself: a third side to the mode switch, looks for table and balls, an opponent to play alone
 
 ## 2. First time on a phone
@@ -134,7 +134,8 @@ Selectable, with Random available and None as the default.
 
 ### 8-ball in space
 
-- 1.1 on paper: table, rack, aiming, spin, rules, fit with the vision ([pool](pool.md)). Numbers are from a simulation, not play
+- 1.1 on paper, then rebuilt to a new structure: the calm room and camera, six pockets on the far wall, a cue ball from the calm hold at any moment ([pool](pool.md))
+- The trial of 1.2: exact contacts (`core/pool`), a pyramid of 15 whose break moves them all, a faint draw near pockets, a line straight ahead, opened by holding the dot. Simulator, release build, 15 balls: 60 fps, 1.4 ms a frame
 
 ### Trails
 

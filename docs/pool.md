@@ -1,92 +1,57 @@
 # 8-ball in space
 
-Design for section 1 of the [plan](plan.md). On paper only: nothing here has been drawn or played. Numbers marked _sim_ come from a throwaway simulation (equal frictionless balls, constant drag, no spin) and are starting points for 1.2. Units as in [architecture](architecture.md).
+Design for section 1 of the [plan](plan.md), and the trial built for 1.2. Opened for now by holding the dot. Units as in [architecture](architecture.md). Numbers marked _sim_ come from simulated shots, not play.
 
-## The idea
+## Structure
 
-A table is a rectangle twice as long as it is wide. In space it is a box as deep as it is wide. Along the screen's long side it still reads as a table seen from above: cue ball at the bottom, rack at the top, depth the one new thing.
+- **The calm room.** Same box, same camera. The far wall is the table: a long rectangle seen face on.
+- **Pockets**: 6, all on the far wall: its 4 corners, and the middles of its 2 long edges. Nothing on the near face, which is only a cushion.
+- **Cue ball**: made as a calm bubble is. Hold anywhere and it grows under the finger, drag to move it, release to send it, a swipe steers and a curved swipe spins. Longer holds launch harder and make it larger and heavier (`POOL.cue.grows`; off keeps it the size of the rest, though a longer hold still launches harder). `ui/Pool` uses the calm code itself for what is in the hand.
+- **Always**: a new one can be made at any moment, while balls roll too. There is one at a time: touching lets the last fade. So there are no turns to wait for, no ball in hand, and a potted cue ball costs nothing.
 
-## Table
+## Balls and the rack
 
-- **Size**: 2 wide, 3.7 tall, 2 deep, set back so its near face is at z = 0.6. Near corners then clear the phone's rounded corners, and the strips above and below leave room for the dot and the potted balls. The near face is an invisible cushion.
-- **Balls**: radius 0.1, so about 16 points at the front and 11 at the back on a 393 point wide phone. About twice as large against the table as real ones; smaller cannot be read or aimed at.
-- **Pockets**: 12. The 8 corners, and the middles of the 4 long edges, as a table has 4 corners and 2 long sides. A ball drops when its centre comes within 0.32 of the point. It must be well over 0.173, as near as a ball's centre can get to a corner. Faces were rejected: a third of the open shots, and 1 layout in 10 with none (_sim_).
-- **Cushions**: all six faces, keeping 0.8 of the speed into them. Nothing is nearer "down" than anything else.
-- **Cloth**: the air. Drag is a constant slowing of about 0.4, as from cloth, not a share of speed, so balls truly stop and hang where they stop. Drift, buoyancy, tilt and the least speed of feels are all off.
+Fifteen, radius 0.15, in a pyramid with its tip towards the viewer: 1, 4 and 9 balls in each other's hollows, all touching, and the 8 behind the middle. 7 solids and 7 stripes, alternating. Cleared, it is set again.
 
-## Rack
+A break moves every ball. Collisions alone do not: pushes reach the middle ball and the 8 at right angles, so a light break left most of the rack still. So the first touch also springs the rack apart, at 0.18 of its speed (`POOL.rack.burst`). This is the one thing that is not true physics.
 
-Fifteen balls fit neither a pyramid of 10 nor of 20. They do fit a body-centred cluster: the 8 in the middle, 8 around it as a cube's corners, 6 beyond its faces. The 14 make 7 opposite pairs, each a solid facing a stripe, so it is fair from every side. One of the 6 points at the cue ball.
+A ball drops when its middle comes within 0.55 of a pocket's point (it can come no nearer a corner than 0.26). Pockets draw faintly what is within 1.15 (`POOL.draw`): paths bend, and a ball that stops within about 0.7 drifts in. Drag is a constant slowing of 0.12, so others truly stop and hang where they stop. Cushions keep 0.8 of the speed into them and grip.
 
-Breaking is the weak spot (_sim_, 40 breaks each):
+## Aiming
 
-| Cue speed | Pocket | Potted | Scratch | 8 potted | Seconds |
-| --------- | ------ | ------ | ------- | -------- | ------- |
-| 8         | 0.28   | 0.25   | 10%     | 5%       | 6.0     |
-| 12        | 0.28   | 0.78   | 17%     | 20%      | 6.8     |
-| 12        | 0.32   | 1.15   | 23%     | 30%      | 6.8     |
-| 16        | 0.32   | 1.43   | 17%     | 15%      | 7.2     |
+While the finger is still, a faint line runs straight ahead, as a release without a swipe would go, with a ring where the cue ball would touch and a line to where the ball it meets would land, bolder if that drops. A swipe fades it, as it no longer tells the truth. Because the shot starts at the finger and flies at the vanishing point, where you put your finger is how you cut the ball. The ball in the hand is translucent so as not to hide its target.
 
-So a break needs about 12, above the app's `maxSpeed` of 8; with a drag of 0.7 or more hardly anything drops. A flat triangle pots a little less; a pyramid pots about the same, and loses the 8 less often, but has no place for the 8 in the middle. The 8 dropping on the break is common enough that it is put back, not won or lost.
+Depth shows by size, haze, and a shadow on the far wall straight behind each ball.
 
-## Aiming and depth
+## How a break plays, simulated
 
-Hardest question: a point on a flat screen is a line in space. Two ideas settle it.
+40 breaks for each hold, straight, up to 0.1 off centre (_sim_).
 
-1. **A touch means the first thing under it.** A ball or a wall; both have a depth, so any touch is one exact aim. Touch a ball to aim at its middle, a wall to play a kick shot.
-2. **The cue's eye.** A round inset shows the target as the cue ball sees it, with a ghost of the cue ball overlapping it. Dragging anywhere slides the ghost across the target, slower than the finger. Which part is hit has only two directions, so nothing about depth is left to judge.
+| Hold  | Cue ball radius | Potted | 8 potted | Cue ball potted | Until still |
+| ----- | --------------- | ------ | -------- | --------------- | ----------- |
+| 0.1 s | 0.10            | 0      | 0%       | 0%              | 9 s         |
+| 0.3 s | 0.15            | 0.2    | 0%       | 0%              | 9 s         |
+| 0.8 s | 0.26            | 1.9    | 20%      | 7%              | 12 s        |
+| 2 s   | 0.43            | 3.7    | 42%      | 0%              | 16 s        |
 
-In the box itself: a line from the cue ball to the ghost, then a short one for the target and one for the cue ball. Without spin these leave at right angles, in any direction. Each ball drops a faint shadow on the back wall and the floor, so depth shows when nothing is moving (`roomContact` already does this).
-
-The camera stays still for the trial. Standing behind the cue ball would be natural, but loses where everything is, and breaks "the near face is the screen". Try it only if the cue's eye fails.
-
-How hard it is (_sim_, best open shot, 8 balls, 12 pockets of 0.32): 97% potted at 0.25 degrees of error, 95% at 0.5, 84% at 1, 60% at 2. Random directions pot 2.5% with pockets of 0.28. Half a degree over a distance of 2 is about 5 points in a 120 point inset showing four radii, within reach of a finger slowed down. Pocket size is the difficulty knob.
-
-## Power and shooting
-
-Pull back from the cue ball and let go; the line brightens and thickens with the pull. Sliding back to the ball cancels. Power and aim are separate touches, so letting go never spoils the aim. 1.2 may also try the app's own gesture: hold to charge, release to shoot.
-
-## Spin
-
-With no cloth, hitting above, below or beside the middle are all the same thing turned round: sideways spin, which only matters at cushions and, slightly, between balls. Real draw and follow need a cloth. So:
-
-- **English** is real: spin is a full 3D vector that kicks off cushions.
-- **Draw and follow** are a convention: up in the cue's eye is forward spin. It is kept along the shot's own line and spent after the first contact as a push ahead or back.
-
-The trial needs only natural stop shots and cushion spin. Draw and follow are 1.4.
+Every ball moved, but for 1 in 300 at the faintest tap. The 8 drops often on a hard break, which rules will have to allow for.
 
 ## Physics
 
-A new `src/core/pool.ts` beside `world.ts`, reusing `Vec3`, `Box` and `projection`. Not `collide`: it eases overlap apart and has no exact contact time, right for soft bubbles and wrong here. At the app's 1/120 s step, a 30 degree cut leaves 2 degrees off at speed 3 and 5.5 degrees at 8 (_sim_), more than any aim error above. Collisions must be solved at their exact moment: within each step, find the earliest contact, move to it, resolve, repeat, up to a limit. This keeps ADR 1. The aim preview must use the same code as the shot.
+`core/pool`, apart from `core/world`, whose soft contacts are wrong for this: at 1/120 s a 30 degree cut came out 2 to 5 degrees off. Each step finds the earliest contact among balls, cushions and pockets, moves to it, resolves it and goes on, up to a limit, so contacts are exact at any speed (ADR 1). The line uses the same contacts, but not the pockets' draw, so near a pocket it is a little off. Balls have equal density and push only along the line between them. The cue ball's spin bends its path and kicks off cushions.
 
-Rest: under a small speed a ball stops; the turn ends when all have. About 6 to 7 s after a break; ordinary shots should be under 5 or drag rises at low speed.
+## Rules
 
-## Rules kept
-
-- Break, then the table is open until a legal pot chooses solids or stripes.
-- A legal shot first hits your own group, then pots something or sends a ball to a cushion. Pot one of yours to go again.
-- Scratch, or anything else illegal, gives the other player ball in hand. Depth has no finger, so it is placed on the plane midway back.
-- The 8 last, in a pocket chosen by touching it. Early, in the wrong pocket, or with a scratch loses. On the break it is put back.
-
-Dropped: calling other pockets, the three-foul rule, balls off the table, the push-out, a shot clock.
+None in the trial. With the cue ball always to hand, pool's turns, fouls and ball in hand have nothing to act on, so 1.3 must be settled again after play: perhaps clear solids, then stripes, then the 8; perhaps two fingers, two players at once.
 
 ## Fit with the vision
 
-A game with turns sits uneasily with "no scores, text or sound that asks for attention". It keeps to it this way:
+The balls left are the score; potted ones rest in a row at the top. No numbers, timer or words.
 
-- The balls are the score. Potted ones drift to a row at the edge; nothing is counted.
-- No numbers on balls. Solids are plain films, stripes are banded, the 8 is nearly black, the cue ball clear. Told apart by pattern, not only colour.
-- Whose turn it is: that side's balls glow softly. A foul is a slow dim and the cue ball coming loose, not a message.
-- No timer. Waiting is calm.
-- Words only where showdown has them, for who won.
+## What the trial must answer, on a phone
 
-It is a game, so like Showdown it is a stated exception. The vision changes only if 1.5 ships.
-
-## What 1.2 must answer
-
-1. Is the cue's eye understood, and is a pot satisfying?
-2. Can you tell where everything is with nothing moving?
-3. Is a break worth watching?
-4. Is about 6 s of waiting calm or dull?
-
-Build only: cue ball, five balls, 12 pockets, cue's eye, pull to shoot, exact collisions, cushion spin, put back when everything is gone. No rules, no turns, reached by a temporary entry. Keep if, on a phone, a new player pots a ball within their first five shots and wants another.
+1. Is a pot satisfying, and does placing the finger feel like aiming?
+2. Should the cue ball grow?
+3. Is the line a help, or does it play the game for you? (`POOL.aim.opacity` 0 hides it.)
+4. Is depth clear when nothing moves?
+5. What happens to balls that come to rest near the glass?

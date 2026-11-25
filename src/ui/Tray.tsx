@@ -11,6 +11,8 @@ type Tile = { key: Setting; label: string; value: string };
 type Props = {
   open: boolean;
   onToggle: () => void;
+  /** Temporary way in to the 8-ball trial. */
+  onHold: () => void;
   tiles: Tile[];
   onTile: (key: Setting) => void;
   onPopAll: () => void;
@@ -18,7 +20,7 @@ type Props = {
 };
 
 /** One small dot that opens a tile for each setting, showing what is chosen. */
-export function Tray({ open, onToggle, tiles, onTile, onPopAll, onLobby }: Props) {
+export function Tray({ open, onToggle, onHold, tiles, onTile, onPopAll, onLobby }: Props) {
   const { width, height } = useWindowDimensions();
   const grid = Math.min(width - M.side * 2, M.widest);
   const tile = {
@@ -72,6 +74,7 @@ export function Tray({ open, onToggle, tiles, onTile, onPopAll, onLobby }: Props
       )}
       <Pressable
         onPress={onToggle}
+        onLongPress={onHold}
         accessibilityRole="button"
         accessibilityLabel={open ? 'Close options' : 'Open options'}
         style={styles.handle}

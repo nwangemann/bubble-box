@@ -56,6 +56,10 @@ Each preview is a small `World` in its own box, driven by `preview/scripts` and 
 
 `scene/liquid` draws a bubble and whatever it is taking in as one smooth union, marched per pixel; a lone calm bubble is a plain sphere. The arena is `roomPicture` with a faint mural under a film's colours, both static. Distance (`AIR`, `awayAt`) hazes, dims and softens: in the film's shader for each part of a surface by its own depth, and for figures by fading to a second painting as seen at the back wall. `scene/roomContact` is one full-screen pass beneath the bubbles: it finds the wall behind each pixel, as `walls` does, and adds every bubble's shadow, thrown light and mirror image; `drawRipple` then rings the walls. Films bend a picture of the arena painted once on the CPU. Figures are images painted once. An entrant's cast number picks one of twelve vapours.
 
+## 8-ball
+
+`ui/Pool` covers the room, in the same box and view. What is in the hand is a small `World` with one hold, advanced by the calm code; on release its bubble becomes the cue ball (`enter`) of a `Pool`, whose contacts `core/pool` solves exactly. `traceAhead` runs the same contacts for the line. A still table with no finger draws nothing. See [pool](pool.md).
+
 ## Mode switch
 
 `ui/ModeSwitch` shows the calm room and a showdown as two static pictures, drawn by the real bubble shaders and kept for a width. It sits at the same place in the tray and the chooser, so it reads as one switch.

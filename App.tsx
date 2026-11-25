@@ -29,6 +29,7 @@ import { THEME_IDS, THEMES, type ThemeId } from '@/showdown';
 import { Lobby } from '@/ui/Lobby';
 import { Maker } from '@/ui/Maker';
 import { Picker } from '@/ui/Picker';
+import { Pool } from '@/ui/Pool';
 import { Showdown } from '@/ui/Showdown';
 import { Tray } from '@/ui/Tray';
 
@@ -49,6 +50,7 @@ export default function App() {
   const [count, setCount] = useState(saved.count);
   const [hinted, setHinted] = useState(saved.hinted);
   const [bout, setBout] = useState<{ theme: ThemeId; round: number } | null>(null);
+  const [pool, setPool] = useState(false);
   const [popSignal, setPopSignal] = useState(0);
   const close = useCallback(() => setOpen(false), []);
   const learned = useCallback(() => setHinted(true), []);
@@ -91,7 +93,7 @@ export default function App() {
     const others = THEME_IDS.filter((id) => id !== not);
     fight(others[Math.floor(Math.random() * others.length)]!);
   };
-  const covered = preview !== null || making || lobby || bout !== null;
+  const covered = preview !== null || making || lobby || bout !== null || pool;
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#070a18' }}>
@@ -118,6 +120,10 @@ export default function App() {
       <Tray
         open={open && !covered}
         onToggle={() => setOpen((o) => !o)}
+        onHold={() => {
+          setOpen(false);
+          setPool(true);
+        }}
         onLobby={() => setLobby(true)}
         onPopAll={() => setPopSignal((n) => n + 1)}
         onTile={setPreview}
@@ -182,6 +188,7 @@ export default function App() {
           onLeave={() => setBout(null)}
         />
       )}
+      {pool && <Pool onLeave={() => setPool(false)} />}
     </GestureHandlerRootView>
   );
 }
