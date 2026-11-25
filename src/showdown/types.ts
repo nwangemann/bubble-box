@@ -18,16 +18,13 @@ export type Fighter = {
 /** Where things are in a mural: 1 is half the back wall's width, the middle is 0, y down. */
 export type Place = { horizon: number; top: number; bottom: number };
 
-export type Theme = {
+/** Where a showdown is held, and how it is announced. */
+export type Arena = {
   name: string;
   tagline: string;
-  /** What the winner is called. */
-  title: string;
   /** System font for titles; falls back quietly. */
   font: string;
   accent: string;
-  /** "{Winner} {verb} {loser}". */
-  verbs: string[];
   /** The box: centre and edge of the backdrop, and 0-255 rgb of its lines. */
   backdrop: [string, string];
   ink: [number, number, number];
@@ -35,5 +32,16 @@ export type Theme = {
   mural: (at: Place) => Shape[];
   /** Things floating in the air. `rise` is up when positive. */
   motes: { color: string; size: number; rise: number };
+};
+
+/** Who fights, in any arena. */
+export type Cast = {
+  /** What the winner is called. */
+  title: string;
+  /** "{Winner} {verb} {loser}". */
+  verbs: string[];
   cast: Fighter[];
 };
+
+/** An arena and the cast that belongs there. */
+export type Theme = Arena & Cast;

@@ -10,6 +10,7 @@ import { drawFigure, drawLiquid, showdownLook } from '@/scene/drawShowdown';
 import { getGpu } from '@/scene/gpu';
 import { arenaPicture, pictureShader } from '@/scene/showdownPictures';
 import { THEME_IDS, THEMES, type ThemeId } from '@/showdown';
+import { castFor, castName, stepCast, type CastChoice } from '@/showdown/casts';
 import { ModeSwitch } from './ModeSwitch';
 
 const C = U.card;
@@ -21,7 +22,9 @@ type Props = {
   /** How many enter. */
   count: number;
   onCount: (count: number) => void;
-  onPick: (theme: ThemeId) => void;
+  cast: CastChoice;
+  onCast: (cast: CastChoice) => void;
+  onPick: (arena: ThemeId) => void;
   onRandom: () => void;
   /** Back to the calm room's menu. */
   onCalm: () => void;
@@ -29,7 +32,18 @@ type Props = {
 };
 
 /** Every arena as a card, and the rule they are fought under. */
-export function Lobby({ rule, onRule, count, onCount, onPick, onRandom, onCalm, onClose }: Props) {
+export function Lobby({
+  rule,
+  onRule,
+  count,
+  onCount,
+  cast,
+  onCast,
+  onPick,
+  onRandom,
+  onCalm,
+  onClose,
+}: Props) {
   const { width, height } = useWindowDimensions();
   const step = (by: number) =>
     onCount(Math.max(ENTRANTS.least, Math.min(ENTRANTS.most, count + by)));
@@ -46,18 +60,24 @@ export function Lobby({ rule, onRule, count, onCount, onPick, onRandom, onCalm, 
       h,
     }));
   }, [width, height]);
+  // The rooms, and what films bend, stay as they are while the cast changes.
+  const rooms = useMemo(
+    () =>
+      cards.map(({ id, w, h }) => {
+        const box = { hw: 1, hh: h / w, depth: TUNING.showdown.depth, focal: TUNING.box.focal };
+        const room = arenaPicture(THEMES[id], box, { cx: w / 2, cy: h / 2, ppu: w / 2 });
+        return { room, shader: pictureShader(room, w, h, 1) };
+      }),
+    [cards],
+  );
   const picture = useMemo(
     () =>
       createPicture((canvas) => {
-        for (const { id, x, y, w, h } of cards) {
-          const theme = THEMES[id];
-          const view = { cx: w / 2, cy: h / 2, ppu: w / 2 };
-          const box = {
-            hw: 1,
-            hh: h / w,
-            depth: TUNING.showdown.depth,
-            focal: TUNING.box.focal,
-          };
+        cards.forEach(({ id, x, y, w, h }, at) => {
+          const { room, shader } = rooms[at]!;
+          // Random promises no cast in particular, so each card shows another's.
+          const guests = THEME_IDS[(at + 1) % THEME_IDS.length]!;
+          const { cast: who } = THEMES[cast === 'random' ? guests : castFor(cast, id)];
           canvas.save();
           canvas.translate(x, y);
           canvas.clipRRect(
@@ -65,10 +85,8 @@ export function Lobby({ rule, onRule, count, onCount, onPick, onRandom, onCalm, 
             ClipOp.Intersect,
             true,
           );
-          const arena = arenaPicture(theme, box, view);
-          canvas.drawPicture(arena);
-          const shader = pictureShader(arena, w, h, 1);
-          const look = showdownLook({ ...theme, cast: theme.cast.slice(0, 3) });
+          canvas.drawPicture(room);
+          const look = showdownLook(THEMES[id], who.slice(0, 3));
           look.cast.forEach((f, i) => {
             const r = (w / 2) * C.ball;
             const at = { x: w * (0.2 + 0.3 * i), y: h * (i === 1 ? 0.32 : 0.52) };
@@ -89,9 +107,9 @@ export function Lobby({ rule, onRule, count, onCount, onPick, onRandom, onCalm, 
             });
           });
           canvas.restore();
-        }
+        });
       }),
-    [cards, liquid],
+    [cards, rooms, liquid, cast],
   );
 
   return (
@@ -143,14 +161,37 @@ export function Lobby({ rule, onRule, count, onCount, onPick, onRandom, onCalm, 
             <Text style={styles.sign}>+</Text>
           </Pressable>
         </View>
-        <Pressable
-          onPress={onRandom}
-          accessibilityRole="button"
-          accessibilityLabel="Random arena"
-          style={({ pressed }) => [styles.random, pressed && styles.pressed]}
-        >
-          <Text style={styles.ruleText}>Random arena</Text>
-        </Pressable>
+        <View style={styles.row}>
+          <View
+            style={styles.count}
+            accessible
+            accessibilityRole="adjustable"
+            accessibilityLabel="Cast"
+            accessibilityValue={{ text: castName(cast) }}
+            accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+            onAccessibilityAction={(e) =>
+              onCast(stepCast(cast, e.nativeEvent.actionName === 'increment' ? 1 : -1))
+            }
+          >
+            <Pressable onPress={() => onCast(stepCast(cast, -1))} hitSlop={4} style={styles.step}>
+              <Text style={styles.sign}>‹</Text>
+            </Pressable>
+            <Text style={styles.number} numberOfLines={1}>
+              {castName(cast)}
+            </Text>
+            <Pressable onPress={() => onCast(stepCast(cast, 1))} hitSlop={4} style={styles.step}>
+              <Text style={styles.sign}>›</Text>
+            </Pressable>
+          </View>
+          <Pressable
+            onPress={onRandom}
+            accessibilityRole="button"
+            accessibilityLabel="Random arena"
+            style={({ pressed }) => [styles.random, pressed && styles.pressed]}
+          >
+            <Text style={styles.ruleText}>Random arena</Text>
+          </Pressable>
+        </View>
       </View>
       {cards.map(({ id, x, y, w, h }) => (
         <Pressable
@@ -207,11 +248,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: '500',
-    width: 96,
+    width: 100,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
   },
   about: { color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   random: {
     minHeight: 40,
     paddingHorizontal: 18,

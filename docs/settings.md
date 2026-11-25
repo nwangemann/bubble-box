@@ -24,7 +24,7 @@ Tapping a tile opens every option of that setting, alive. Tapping one chooses it
 
 ## Showdown
 
-Not a setting: the switch at the foot of the menu turns from Calm to Showdown, which opens the chooser, with the rule, how many enter and every arena. The same switch there turns back to the calm menu. Random arena starts any of them. Both are saved. Fewer than 12 are drawn at random from the cast; nobody appears twice.
+Not a setting: the switch at the foot of the menu turns from Calm to Showdown, which opens the chooser, with the rule, how many enter, the cast and every arena. The same switch there turns back to the calm menu. Random arena starts any of them. Fewer than 12 are drawn at random from the cast; nobody appears twice. The cast is the arena's own by default; the arrows choose any one theme's for every arena, or Random cast, a theme's drawn anew for each showdown. Again keeps the cast. Rule, how many and cast are saved.
 
 | Rule   | Default | What happens                                                                                |
 | ------ | ------- | ------------------------------------------------------------------------------------------- |

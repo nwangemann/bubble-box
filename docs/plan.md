@@ -2,7 +2,7 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2.
 
-**Next: 1.2, judge the 8-ball trial on a phone. Without one: 3.1, arena apart from cast.**
+**Next: 1.2, judge the 8-ball trial on a phone. Without one: 3.2, mixed casts.**
 
 Without a phone, skip 2 and 7.1 to 7.3, and leave 1.3 to 1.5 until 1.2 has been judged on one. Start no liquids (6) before 2.2. Section 8 is parked until 7.4; section 9 is blocked.
 
@@ -26,7 +26,6 @@ Needs you and a phone, so that feel and frame time are known before more is buil
 
 ## 3. Showdown play
 
-- [ ] 3.1 Arena apart from cast
 - [ ] 3.2 Mixed casts from all 72, so more than 12 can enter without repeats
 - [ ] 3.3 Predict the winner: explore a step before each showdown for choosing a favourite to root for
   - A favourite selector, from the line-up or the roster; quick to skip, and never in the way of Again
@@ -152,4 +151,5 @@ Behind moving bubbles, narrowing and fading with perspective. Frame times are a 
 - Depth cues on bubbles: haze, dimming and softer focus with distance (`AIR` in `config/arena`)
 - Contact with the room: shadows and reflections on floor and walls, light on a wall a bubble nears, ripples where it hits (`ROOM_CONTACT` in `config/arena`). Simulator: 60 fps with 12, the same with the pass on or off
 - A deeper arena: `TUNING.showdown.depth` 3.6, was 2.4, with the line-up kept at its old depth (`lineup`). Shows more floor and wall; simulated fights of 12 take about 15 s, were 13. Simulator: 60 fps with 12
+- Arena apart from cast: any cast in any arena, its own by default, or a random one each time (`showdown/casts`). The winner's title and the verbs go with the cast; the colours, font and name with the arena. Nothing new is drawn per frame; frame time not measured again
 - Murals redrawn as washes, light and mist (`showdown/scenery`), still faint, with a film's colours drifting over them (`ARENA.sheen`). Simulator: 60 fps with 12

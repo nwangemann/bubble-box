@@ -26,6 +26,7 @@ import { Scene } from '@/scene/Scene';
 import { loadSettings, saveSettings } from '@/services/savedSettings';
 import { useReduceMotion } from '@/services/useReduceMotion';
 import { THEME_IDS, THEMES, type ThemeId } from '@/showdown';
+import { castFor, type CastChoice } from '@/showdown/casts';
 import { Lobby } from '@/ui/Lobby';
 import { Maker } from '@/ui/Maker';
 import { Picker } from '@/ui/Picker';
@@ -48,8 +49,13 @@ export default function App() {
   const [lobby, setLobby] = useState(false);
   const [rule, setRule] = useState<RuleId>(saved.rule);
   const [count, setCount] = useState(saved.count);
+  const [cast, setCast] = useState<CastChoice>(saved.cast);
   const [hinted, setHinted] = useState(saved.hinted);
-  const [bout, setBout] = useState<{ theme: ThemeId; round: number } | null>(null);
+  const [bout, setBout] = useState<{
+    arena: ThemeId;
+    cast: ThemeId;
+    round: number;
+  } | null>(null);
   const [pool, setPool] = useState(false);
   const [popSignal, setPopSignal] = useState(0);
   const close = useCallback(() => setOpen(false), []);
@@ -59,11 +65,11 @@ export default function App() {
   useEffect(() => {
     // A slider moves many times a second; one write at the end is enough.
     const timer = setTimeout(
-      () => saveSettings({ settings, walls, custom, rule, count, hinted }),
+      () => saveSettings({ settings, walls, custom, rule, count, cast, hinted }),
       300,
     );
     return () => clearTimeout(timer);
-  }, [settings, walls, custom, rule, count, hinted]);
+  }, [settings, walls, custom, rule, count, cast, hinted]);
 
   const { bubble, feel, glass, tap, contact, pull, trail, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
@@ -84,10 +90,10 @@ export default function App() {
     setSettings((s) => ({ ...s, [key]: id }));
   };
 
-  const fight = (theme: ThemeId) => {
+  const fight = (arena: ThemeId, who = castFor(cast, arena)) => {
     setLobby(false);
     setOpen(false);
-    setBout((b) => ({ theme, round: (b?.round ?? 0) + 1 }));
+    setBout((b) => ({ arena, cast: who, round: (b?.round ?? 0) + 1 }));
   };
   const anotherArena = (not?: ThemeId) => {
     const others = THEME_IDS.filter((id) => id !== not);
@@ -167,7 +173,9 @@ export default function App() {
           onRule={setRule}
           count={count}
           onCount={setCount}
-          onPick={fight}
+          cast={cast}
+          onCast={setCast}
+          onPick={(arena) => fight(arena)}
           onRandom={() => anotherArena()}
           onCalm={() => {
             setLobby(false);
@@ -179,12 +187,13 @@ export default function App() {
       {bout && (
         <Showdown
           key={bout.round}
-          theme={THEMES[bout.theme]}
+          arena={THEMES[bout.arena]}
+          cast={THEMES[bout.cast]}
           rule={RULES[rule]}
           count={count}
           calm={calm}
-          onAgain={() => fight(bout.theme)}
-          onNext={() => anotherArena(bout.theme)}
+          onAgain={() => fight(bout.arena, bout.cast)}
+          onNext={() => anotherArena(bout.arena)}
           onLeave={() => setBout(null)}
         />
       )}

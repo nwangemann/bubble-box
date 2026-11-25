@@ -36,6 +36,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Showdown casts and arenas                | `src/showdown/`                                                    |
 | What murals are painted with             | `src/showdown/scenery.ts`                                          |
 | Showdown grid, mural, haze, wall contact | `src/config/arena.ts`                                              |
+| Whose cast fights in an arena            | `src/showdown/casts.ts`                                            |
 | Showdown rules and entrant count         | `src/config/rules.ts`                                              |
 | Showdown titles for unusual wins         | `src/config/feats.ts`, `src/core/feats.ts`                         |
 | Showdown physics: odds, hunting, ringing | `src/core/duel.ts`                                                 |

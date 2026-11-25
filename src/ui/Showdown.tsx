@@ -29,11 +29,12 @@ import {
 } from '@/scene/drawShowdown';
 import { getGpu } from '@/scene/gpu';
 import { arenaPicture, pictureShader } from '@/scene/showdownPictures';
-import type { Theme } from '@/showdown/types';
+import type { Arena, Cast } from '@/showdown/types';
 import { SHOWDOWN_UI as U } from '@/config/showdownUi';
 
 type Props = {
-  theme: Theme;
+  arena: Arena;
+  cast: Cast;
   rule: Rule;
   /** How many enter. */
   count: number;
@@ -64,7 +65,7 @@ const STILL = {
 const FEELS = [ARENA_FEEL];
 
 /** One showdown from line-up to winner. Remount it for another. */
-export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }: Props) {
+export function Showdown({ arena, cast, rule, count, calm, onAgain, onNext, onLeave }: Props) {
   const { width, height } = useWindowDimensions();
   const view = useMemo(() => ({ cx: width / 2, cy: height / 2, ppu: width / 2 }), [width, height]);
   const box = useMemo<Box>(
@@ -76,14 +77,14 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
     }),
     [width, height],
   );
-  const [look] = useState(() => showdownLook(theme));
-  const arena = useMemo(() => arenaPicture(theme, box, view), [theme, box, view]);
+  const [look] = useState(() => showdownLook(arena, cast.cast));
+  const room = useMemo(() => arenaPicture(arena, box, view), [arena, box, view]);
   const [{ liquid, roomContact }] = useState(getGpu);
   const back = useMemo<Backdrop | null>(() => {
-    const shader = pictureShader(arena, width, height, U.backdrop);
+    const shader = pictureShader(room, width, height, U.backdrop);
     return shader && { shader, scale: U.backdrop };
-  }, [arena, width, height]);
-  const [start] = useState(() => createShowdown(box, rule, count, theme.cast.length));
+  }, [room, width, height]);
+  const [start] = useState(() => createShowdown(box, rule, count, cast.cast.length));
   const world = useSharedValue(start);
   const picture = useSharedValue(createPicture(() => {}));
   const told = useSharedValue(0);
@@ -97,12 +98,12 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
   const onClash = (winner: number, loser: number) => {
     thud();
     setOut((o) => [...o, loser]);
-    const verb = theme.verbs[loser % theme.verbs.length]!;
-    setNews(`${theme.cast[winner]!.name} ${verb} ${theme.cast[loser]!.name}`);
+    const verb = cast.verbs[loser % cast.verbs.length]!;
+    setNews(`${cast.cast[winner]!.name} ${verb} ${cast.cast[loser]!.name}`);
   };
   const onPhase = (
     next: 'ready' | 'fight' | 'won',
-    cast: number,
+    champion: number,
     wins: number,
     feats: FeatId[],
   ) => {
@@ -110,7 +111,7 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
     if (next !== 'won') return;
     cheer();
     setNews('');
-    setBest({ cast, wins, feats });
+    setBest({ cast: champion, wins, feats });
   };
 
   useFrameCallback((frame) => {
@@ -170,7 +171,7 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
       onAccessibilityEscape={onLeave}
     >
       <Canvas style={StyleSheet.absoluteFill}>
-        <Picture picture={arena} />
+        <Picture picture={room} />
       </Canvas>
       <Canvas style={StyleSheet.absoluteFill}>
         <Picture picture={picture} />
@@ -192,10 +193,10 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
           style={styles.card}
           pointerEvents="none"
         >
-          <Text style={[styles.big, { fontFamily: theme.font, color: theme.accent }]}>
-            {theme.name}
+          <Text style={[styles.big, { fontFamily: arena.font, color: arena.accent }]}>
+            {arena.name}
           </Text>
-          <Text style={styles.small}>{theme.tagline}</Text>
+          <Text style={styles.small}>{arena.tagline}</Text>
           <Text style={styles.faint}>{rule.about}</Text>
         </Animated.View>
       )}
@@ -206,13 +207,13 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
             style={styles.crown}
             pointerEvents="none"
           >
-            <Text style={[styles.title, { color: theme.accent }]}>{theme.title}</Text>
+            <Text style={[styles.title, { color: arena.accent }]}>{cast.title}</Text>
             <Text
-              style={[styles.big, { fontFamily: theme.font }]}
+              style={[styles.big, { fontFamily: arena.font }]}
               numberOfLines={1}
               adjustsFontSizeToFit
             >
-              {theme.cast[best.cast]?.name}
+              {cast.cast[best.cast]?.name}
             </Text>
             <Text style={styles.small}>
               {best.wins === 1 ? '1 knock-out' : `${best.wins} knock-outs`}
@@ -227,7 +228,7 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
               {best.feats.map((id) => (
                 <Text
                   key={id}
-                  style={[styles.feat, { fontFamily: theme.font, color: theme.accent }]}
+                  style={[styles.feat, { fontFamily: arena.font, color: arena.accent }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                 >
@@ -250,7 +251,7 @@ export function Showdown({ theme, rule, count, calm, onAgain, onNext, onLeave }:
                 accessibilityRole="button"
                 style={({ pressed }) => [
                   styles.button,
-                  i === 0 && { backgroundColor: theme.accent },
+                  i === 0 && { backgroundColor: arena.accent },
                   pressed && styles.pressed,
                 ]}
               >

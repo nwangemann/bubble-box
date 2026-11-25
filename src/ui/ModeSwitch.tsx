@@ -95,7 +95,10 @@ function showdownPicture(w: number, h: number) {
     }
   });
   const theme = THEMES[S.theme];
-  const look = showdownLook({ ...theme, cast: S.fighters.map((i) => theme.cast[i]!) });
+  const look = showdownLook(
+    theme,
+    S.fighters.map((i) => theme.cast[i]!),
+  );
   const shader = pictureShader(sky, w, h, 2);
   return createPicture((canvas) => {
     canvas.drawPicture(sky);

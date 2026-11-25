@@ -19,7 +19,7 @@ import { AIR, ARENA } from '@/config/arena';
 import { scaleAt } from '@/core/projection';
 import type { Box } from '@/core/types';
 import { INK, type Shape } from '@/showdown/shapes';
-import type { Fighter, Theme } from '@/showdown/types';
+import type { Arena, Fighter } from '@/showdown/types';
 import type { View } from './drawScene';
 import { roomPicture } from './roomPicture';
 
@@ -179,10 +179,10 @@ export function pictureShader(picture: SkPicture, width: number, height: number,
 /** A film's colours from thin to thick. */
 const FILM = ['#ffd9a0', '#ff9ecb', '#9aa8ff', '#8cf0e0', '#ffe9a8', '#ffa0c8', '#90b8ff'];
 
-/** The core room in a theme's colours, with its mural showing faintly through the back wall. */
-export function arenaPicture(theme: Theme, box: Box, view: View): SkPicture {
+/** The core room in an arena's colours, with its mural showing faintly through the back wall. */
+export function arenaPicture(arena: Arena, box: Box, view: View): SkPicture {
   const { mural, horizon, sheen, ...look } = ARENA;
-  const env = { ...look, backdrop: theme.backdrop, ink: theme.ink };
+  const env = { ...look, backdrop: arena.backdrop, ink: arena.ink };
   const room = roomPicture(box, view, env);
   const { hw, hh } = box;
   const s = scaleAt(box, box.depth) * view.ppu;
@@ -195,7 +195,7 @@ export function arenaPicture(theme: Theme, box: Box, view: View): SkPicture {
     const ghost = Skia.Paint();
     ghost.setAlphaf(mural);
     canvas.saveLayer(ghost);
-    drawShapes(canvas, theme.mural({ horizon: hh * horizon, top: -hh, bottom: hh }));
+    drawShapes(canvas, arena.mural({ horizon: hh * horizon, top: -hh, bottom: hh }));
     // The colours of a thin film drift over what is painted, and over nothing else.
     const film = Skia.Paint();
     film.setAlphaf(sheen);

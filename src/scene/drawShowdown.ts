@@ -9,7 +9,7 @@ import { AIR, ROOM_CONTACT } from '@/config/arena';
 import { TUNING } from '@/config/tuning';
 import { awayAt, scaleAt } from '@/core/projection';
 import type { Box, Bubble, Clash, World } from '@/core/types';
-import type { Theme } from '@/showdown/types';
+import type { Arena, Fighter } from '@/showdown/types';
 import { drawRipple, type View } from './drawScene';
 import { PARTNERS } from './liquid';
 import { drawRoomContact, type Touching } from './roomContact';
@@ -37,23 +37,23 @@ const NO_PARTNER = [0, 0, 0, 0];
 const NO_DYE = [0, 0, 0];
 
 /** Plain data and painted images for the frame loop. Made once per showdown. */
-export function showdownLook(theme: Theme): ShowdownLook {
+export function showdownLook(arena: Arena, fighters: Fighter[]): ShowdownLook {
   const fill = Skia.Paint();
   fill.setAntiAlias(true);
   const ring = Skia.Paint();
   ring.setAntiAlias(true);
   const rgb = (c: string) => [...Skia.Color(c)].slice(0, 3);
   return {
-    cast: theme.cast.map((f) => fighterLook(f, rgb(theme.backdrop[0]))),
-    accent: [...Skia.Color(theme.accent)],
-    mote: { ...theme.motes, color: [...Skia.Color(theme.motes.color)] },
-    room: [...rgb(theme.backdrop[1]), ...rgb(theme.backdrop[0]), ...rgb(theme.backdrop[1])],
+    cast: fighters.map((f) => fighterLook(f, rgb(arena.backdrop[0]))),
+    accent: [...Skia.Color(arena.accent)],
+    mote: { ...arena.motes, color: [...Skia.Color(arena.motes.color)] },
+    room: [...rgb(arena.backdrop[1]), ...rgb(arena.backdrop[0]), ...rgb(arena.backdrop[1])],
     fill,
     film: Skia.Paint(),
     layer: Skia.Paint(),
     contact: Skia.Paint(),
     ring,
-    ink: theme.ink,
+    ink: arena.ink,
   };
 }
 

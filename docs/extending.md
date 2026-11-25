@@ -45,7 +45,7 @@ Add to `src/config/trails.ts`, then write `vec3 trail(float v, float k, float bo
 
 ## Showdown theme
 
-Write a `Theme` in `src/showdown/` and register it in `index.ts`. A cast is twelve; `npm test` fails if two share a name, colours, face or hat. Draw a `Fighter` on a ball of radius 1 with the helpers in `shapes.ts` and `parts.ts`, staying within 2.2. Its box is the core Lattice in its `backdrop` and `ink`; keep it see-through. Place its `mural` from `horizon` up, so it fits any screen; it shows faintly on the back wall. Paint it with `scenery.ts` in washes, light and mist, with no outlines. A title for an unusual win is an entry in `src/config/feats.ts` and its test in `src/core/feats.ts`. A new rule is an entry in `src/config/rules.ts`.
+A `Theme` is an `Arena` and the `Cast` that belongs there; either can be used with another's. Write one in `src/showdown/` and register it in `index.ts`. A cast is twelve; `npm test` fails if two share a name, colours, face or hat. Draw a `Fighter` on a ball of radius 1 with the helpers in `shapes.ts` and `parts.ts`, staying within 2.2. Its box is the core Lattice in its `backdrop` and `ink`; keep it see-through. Place its `mural` from `horizon` up, so it fits any screen; it shows faintly on the back wall. Paint it with `scenery.ts` in washes, light and mist, with no outlines. A title for an unusual win is an entry in `src/config/feats.ts` and its test in `src/core/feats.ts`. A new rule is an entry in `src/config/rules.ts`.
 
 ## Feel
 
