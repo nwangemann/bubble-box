@@ -12,7 +12,7 @@ Keep to about 6 `fbm` calls per pixel: ten bubbles can overlap.
 
 ## Environment
 
-Add to `src/config/environments.ts`. A new kind of wall texture (image, frost, shader) is a new field there plus drawing in `roomPicture`.
+Add to `src/config/environments.ts`. Give it a `day` palette. For a material, write `vec4 wall(vec2 t)` (colour, opacity) in `MATERIALS` in `src/scene/walls.ts`, honour `soft`, and name it in `wall`. `lit` is how well walls catch light from bubbles; a style casts light with `glow`.
 
 ## Meet and pop effects
 

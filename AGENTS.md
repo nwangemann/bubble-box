@@ -15,6 +15,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Frame loop, touch, haptics               | `src/scene/Scene.tsx`        |
 | Drawing bubbles and ripples              | `src/scene/drawScene.ts`     |
 | Drawing the room                         | `src/scene/roomPicture.ts`   |
+| Wall materials and light on walls        | `src/scene/walls.ts`         |
 | Screen-side ripple strength and options  | `src/config/glass.ts`        |
 | Screen-side ripple shader                | `src/scene/glassFilter.ts`   |
 | What a tap on a bubble does              | `src/config/taps.ts`         |

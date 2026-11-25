@@ -143,9 +143,9 @@ export function play(stage: Stage, part: Part, seconds: number) {
     return;
   }
 
-  if (kind === 'box') {
+  if (kind === 'box' || kind === 'light') {
     if (w.bubbles.length === 0) {
-      const b = add(stage, part, 0, 0, P.z, P.radius.box);
+      const b = add(stage, part, 0, 0, P.z, P.radius[kind]);
       b.v = { x: 0.34, y: 0.26, z: 0.4 };
     }
   } else if (kind === 'feel') {
@@ -189,7 +189,13 @@ export function play(stage: Stage, part: Part, seconds: number) {
   }
   if ((kind === 'feel' || kind === 'meet' || kind === 'pop' || kind === 'tap') && at(P.clear[kind]))
     clear(stage, part);
-  advance(w, box, kind === 'feel' || kind === 'box' ? part.feels : [STILL_AIR], part.bounce, dt);
+  advance(
+    w,
+    box,
+    kind === 'feel' || kind === 'box' || kind === 'light' ? part.feels : [STILL_AIR],
+    part.bounce,
+    dt,
+  );
 }
 
 /** Runs to the moment that shows the option best, for Reduce Motion. */

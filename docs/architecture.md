@@ -35,6 +35,8 @@ Each preview is a small `World` in its own box, driven by `preview/scripts` and 
 ## Scene
 
 - `roomPicture` records the room once per environment, shown on its own canvas.
+- `walls` draws wall materials into the room once, and a moving light pass: glowing bubbles on the walls, and caustics in water. Both undo the perspective per pixel to find the wall. The light pass runs only with a glowing bubble or water; an empty Water room settles, then draws nothing.
+- `dress` in `config/environments` turns a box, its light and the sliders into the `Environment` that gets drawn.
 - A hit on the glass adds a `Wave` to the world. While any wave lives and the Glass option is on, the room and bubbles are drawn together through `glassFilter`, a full-screen refraction. Otherwise that pass does not run. It works in device pixels.
 - `drawScene` draws ripples, then bubbles far to near. Each bubble is one rect with its style's shader, in local coordinates where the edge is at 1.
 - Shader uniforms are positional. Their order is shared by `styles/prelude.ts` and `drawBubble`; for effects, by `fx/shell.ts` and `drawBurst`.

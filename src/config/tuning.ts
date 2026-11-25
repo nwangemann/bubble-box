@@ -29,6 +29,8 @@ export const TUNING = {
   /** Two-finger swipe. `undo` forgives a bubble begun by the first finger. */
   sweep: { slop: 0.06, reach: 0.16, undo: 0.35 },
   hapticMinImpact: 0.35,
+  /** Light from glowing bubbles; seconds for water to settle in an empty room. */
+  walls: { glow: 0.9, settle: 1.2 },
   /** The preview picker. Pixels for layout; world units (half a cell wide) and seconds for motion. */
   preview: {
     side: 18,
@@ -51,11 +53,20 @@ export const TUNING = {
     press: 0.14,
     stagger: 0.12,
     melt: 1.2,
-    radius: { bubble: 0.86, glass: 0.5, box: 0.28, meet: 0.3, pop: 0.34, tap: 0.4 },
+    radius: { bubble: 0.86, glass: 0.5, box: 0.28, light: 0.28, meet: 0.3, pop: 0.34, tap: 0.4 },
     /** Length of each loop, and when its event happens, when it clears and where it stands still. */
-    loop: { bubble: 3.4, box: 4.5, feel: 6.8, glass: 4, tap: 4.4, meet: 4.4, pop: 4.4 },
+    loop: { bubble: 3.4, box: 4.5, light: 4.5, feel: 6.8, glass: 4, tap: 4.4, meet: 4.4, pop: 4.4 },
     act: { feel: 0.9, glass: 0.3, tap: 1.5, pop: 1.5 },
     clear: { feel: 5.8, meet: 2.8, pop: 3.3, tap: 3.4 },
-    still: { bubble: 1.5, box: 1.5, feel: 1.8, glass: 1, tap: 1.85, meet: 1.75, pop: 2 },
+    still: {
+      bubble: 1.5,
+      box: 1.5,
+      light: 1.5,
+      feel: 1.8,
+      glass: 1,
+      tap: 1.85,
+      meet: 1.75,
+      pop: 2,
+    },
   },
 } as const;

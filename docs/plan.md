@@ -79,10 +79,11 @@ Tapping a category title in the tray (such as Bubble) opens a modal showing a me
 
 ## Phase 3: box
 
-- [ ] Frost, water, silk and stone walls
-- [ ] Wall opacity and softness sliders
-- [ ] Walls lit by nearby glowing bubbles
-- [ ] Day and night backdrops
+- [x] Frost, water, silk and stone walls
+- [x] Wall opacity and softness sliders
+- [x] Walls lit by nearby glowing bubbles
+- [x] Day and night backdrops
+- [ ] On a phone: judge materials, day and wall light; measure frame time with 10 glowing bubbles in Water
 
 ## Phase 4: bubble
 

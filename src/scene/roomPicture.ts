@@ -1,4 +1,5 @@
 import {
+  BlurStyle,
   createPicture,
   PaintStyle,
   Skia,
@@ -9,6 +10,8 @@ import type { Environment } from '@/config/environments';
 import { scaleAt } from '@/core/projection';
 import type { Box } from '@/core/types';
 import type { View } from './drawScene';
+import { getGpu } from './gpu';
+import { drawMaterial } from './walls';
 
 type P3 = [number, number, number];
 
@@ -73,11 +76,17 @@ export function roomPicture(box: Box, view: View, env: Environment): SkPicture {
     );
     canvas.drawRect({ x: 0, y: 0, width: view.cx * 2, height: view.cy * 2 }, back);
 
+    drawMaterial(canvas, getGpu().walls.materials, box, view, env);
+
     const fill = Skia.Paint();
     fill.setAntiAlias(true);
     const line = Skia.Paint();
     line.setAntiAlias(true);
     line.setStyle(PaintStyle.Stroke);
+    // Softness turns hard lines into wide, dim ones.
+    const blur = (env.softness * view.ppu) / 40;
+    if (blur > 0.3) line.setMaskFilter(Skia.MaskFilter.MakeBlur(BlurStyle.Normal, blur, true));
+    const widen = 1 + env.softness * 4;
     faces.forEach((face, i) => {
       const path = Skia.Path.Polygon(face.map(at), true);
       if (env.faceOpacity > 0) {
@@ -85,12 +94,12 @@ export function roomPicture(box: Box, view: View, env: Environment): SkPicture {
         canvas.drawPath(path, fill);
       }
       if (env.edgeOpacity > 0) {
-        line.setStrokeWidth(1);
+        line.setStrokeWidth(widen);
         line.setColor(ink(env.edgeOpacity));
         canvas.drawPath(path, line);
       }
     });
-    line.setStrokeWidth(0.7);
+    line.setStrokeWidth(0.7 * widen);
     line.setColor(ink(env.gridOpacity));
     for (const [p, q, s, t] of faces) {
       for (let i = 1; i < env.grid; i++) {

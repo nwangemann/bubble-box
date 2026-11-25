@@ -33,6 +33,7 @@ import { drawScene } from './drawScene';
 import { throughGlass } from './glassFilter';
 import { getGpu } from './gpu';
 import { roomPicture } from './roomPicture';
+import { drawWallLight } from './walls';
 
 type Props = {
   /** Each list holds one entry, or every entry for Random. */
@@ -76,7 +77,12 @@ export function Scene({
 
   const world = useSharedValue(createWorld(fx));
   const picture = useSharedValue(createPicture(() => {}));
-  const quiet = useSharedValue(true);
+  const quiet = useSharedValue(false);
+  // Changed walls need one frame, even in an empty room.
+  useEffect(() => quiet.set(false), [env, box, quiet]);
+  // Water keeps moving while there is anything to move it, then settles.
+  const stir = useSharedValue(0);
+  const wallTime = useSharedValue(0);
   const lastBuzz = useSharedValue(0);
 
   useFrameCallback((frame) => {
@@ -89,9 +95,13 @@ export function Scene({
       w.ripples.length === 0 &&
       w.waves.length === 0 &&
       w.bursts.length === 0;
+    const wet = env.wall === 'water';
+    stir.value += ((empty ? 0 : 1) - stir.value) * (1 - Math.exp(-dt / TUNING.walls.settle));
+    const still = empty && (!wet || stir.value < 0.02);
     // An empty room costs nothing, after one last frame to clear it.
-    if (empty && quiet.value) return;
-    quiet.value = empty;
+    if (still && quiet.value) return;
+    quiet.value = still;
+    wallTime.value += dt * stir.value;
     w.fx = fx;
     advance(w, box, feels, env.bounce, dt);
     if (w.impact > TUNING.hapticMinImpact && w.time - lastBuzz.value > 0.06) {
@@ -104,6 +114,7 @@ export function Scene({
       const waves = w.waves.filter((v) => bends[Math.floor(v.variant * bends.length)]);
       const scene = () => {
         'worklet';
+        drawWallLight(canvas, gpu.lightPaint, gpu.walls.light, w, box, view, env, wallTime.value);
         drawScene(
           canvas,
           gpu.bubblePaint,

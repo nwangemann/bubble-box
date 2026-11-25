@@ -1,6 +1,13 @@
 import { FX, fxFor, type Fx } from '../fx';
 import { STYLES } from '../styles';
-import { ENVIRONMENTS, type Environment } from './environments';
+import {
+  DEFAULT_WALLS,
+  ENVIRONMENTS,
+  LIGHTS,
+  type BoxLook,
+  type Light,
+  type Walls,
+} from './environments';
 import { FEELS, type Feel } from './feels';
 import { GLASS, type Glass } from './glass';
 import { TAPS, type Tap } from './taps';
@@ -12,6 +19,7 @@ export const NONE = 'none';
 export const DEFAULTS = {
   bubble: 'soap',
   box: 'lattice',
+  light: 'night',
   feel: 'drift',
   glass: 'ripple',
   tap: 'grow',
@@ -35,6 +43,7 @@ const last = { id: RANDOM, name: 'Random' };
 export const ROWS: { key: Setting; label: string; options: Option[] }[] = [
   { key: 'bubble', label: 'Bubble', options: [...named(STYLES), last] },
   { key: 'box', label: 'Box', options: [...named(ENVIRONMENTS), last] },
+  { key: 'light', label: 'Light', options: [...named(LIGHTS), last] },
   { key: 'feel', label: 'Feel', options: [...named(FEELS), last] },
   { key: 'glass', label: 'Glass', options: [...named(GLASS), last] },
   { key: 'tap', label: 'Tap', options: [...named(TAPS), last] },
@@ -49,6 +58,17 @@ export function cleanSettings(saved: unknown): Settings {
   for (const { key, options } of ROWS) {
     const value = (saved as Record<string, unknown>)[key];
     if (options.some((o) => o.id === value)) out[key] = value as string;
+  }
+  return out;
+}
+
+/** Keeps slider values that make sense. */
+export function cleanWalls(saved: unknown): Walls {
+  const out = { ...DEFAULT_WALLS };
+  if (typeof saved !== 'object' || saved === null) return out;
+  for (const key of ['opacity', 'softness'] as const) {
+    const value = (saved as Record<string, unknown>)[key];
+    if (typeof value === 'number' && value >= 0 && value <= 1) out[key] = value;
   }
   return out;
 }
@@ -75,13 +95,17 @@ export const feelPool = (s: string) => pool<Feel>(FEELS, s);
 export const glassPool = (s: string) => pool<Glass>(GLASS, s);
 export const tapPool = (s: string) => pool<Tap>(TAPS, s);
 
-/** There is one room, so Random picks one box now. */
-export function pickBox(choice: string, avoid?: Environment): Environment {
-  const all = pool<Environment>(ENVIRONMENTS, choice);
+/** There is one room, so Random picks one now, and another when chosen again. */
+function pickOne<T>(record: Record<string, T>, choice: string, avoid?: T): T {
+  const all = pool<T>(record, choice);
   const fresh = all.filter((e) => e !== avoid);
   const from = fresh.length > 0 ? fresh : all;
   return from[Math.floor(Math.random() * from.length)]!;
 }
+export const boxPool = (s: string) => pool<BoxLook>(ENVIRONMENTS, s);
+export const lightPool = (s: string) => pool<Light>(LIGHTS, s);
+export const pickBox = (s: string, avoid?: BoxLook) => pickOne<BoxLook>(ENVIRONMENTS, s, avoid);
+export const pickLight = (s: string, avoid?: Light) => pickOne<Light>(LIGHTS, s, avoid);
 
 const FX_ENTRIES = Object.entries(FX) as [string, Fx][];
 const LIVES = Object.fromEntries(FX_ENTRIES.map(([id, f]) => [id, f.life]));

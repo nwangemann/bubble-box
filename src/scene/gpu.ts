@@ -1,6 +1,7 @@
 import { BlendMode, Skia } from '@shopify/react-native-skia';
 import { compileFx, compileStyles } from './effects';
 import { compileGlass } from './glassFilter';
+import { compileWalls } from './walls';
 
 function make() {
   const ripplePaint = Skia.Paint();
@@ -15,6 +16,8 @@ function make() {
     glassPaint: Skia.Paint(),
     bubblePaint: Skia.Paint(),
     ripplePaint,
+    walls: compileWalls(),
+    lightPaint: Skia.Paint(),
   };
 }
 

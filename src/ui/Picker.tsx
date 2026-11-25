@@ -8,17 +8,24 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import {
+  boxPool,
   feelPool,
   fxPools,
   glassPool,
-  RANDOM,
+  lightPool,
   ROWS,
   stylePool,
   tapPool,
   type Setting,
   type Settings,
 } from '@/config/defaults';
-import { ENVIRONMENTS, type Environment } from '@/config/environments';
+import {
+  dress,
+  type BoxLook,
+  type Environment,
+  type Light,
+  type Walls,
+} from '@/config/environments';
 import { TUNING } from '@/config/tuning';
 import { layoutCells } from '@/preview/layout';
 import { createStage, play, playToStill, type Part, type Stage } from '@/preview/scripts';
@@ -26,13 +33,17 @@ import { drawScene } from '@/scene/drawScene';
 import { throughGlass } from '@/scene/glassFilter';
 import { getGpu } from '@/scene/gpu';
 import { roomPicture } from '@/scene/roomPicture';
+import { drawWallLight } from '@/scene/walls';
 
 const P = TUNING.preview;
 
 type Props = {
   setting: Setting;
   settings: Settings;
-  env: Environment;
+  /** The box and light in use, which Random may have chosen. */
+  look: BoxLook;
+  light: Light;
+  walls: Walls;
   /** Reduce Motion: previews are stills. */
   calm: boolean;
   onPick: (id: string) => void;
@@ -40,7 +51,7 @@ type Props = {
 };
 
 /** Every option of one setting, alive, on one canvas. */
-export function Picker({ setting, settings, env, calm, onPick, onClose }: Props) {
+export function Picker({ setting, settings, look, light, walls, calm, onPick, onClose }: Props) {
   const { width, height } = useWindowDimensions();
   const [gpu] = useState(getGpu);
   const [layer] = useState(() => Skia.Paint());
@@ -66,10 +77,10 @@ export function Picker({ setting, settings, env, calm, onPick, onClose }: Props)
       };
       const envs: Environment[] =
         setting === 'box'
-          ? id === RANDOM
-            ? Object.values(ENVIRONMENTS)
-            : [ENVIRONMENTS[id as keyof typeof ENVIRONMENTS]]
-          : [env];
+          ? boxPool(id).map((b) => dress(b, light, walls))
+          : setting === 'light'
+            ? lightPool(id).map((l) => dress(look, l, walls))
+            : [dress(look, light, walls)];
       const local = { cx: rect.width / 2, cy: rect.height / 2, ppu };
       const glasses = glassPool(chosen('glass'));
       const part: Part = {
@@ -79,7 +90,7 @@ export function Picker({ setting, settings, env, calm, onPick, onClose }: Props)
         feels: feelPool(chosen('feel')),
         taps: tapPool(chosen('tap')),
         fx: fxPools(chosen('meet'), chosen('pop')),
-        bounce: setting === 'box' ? envs[0]!.bounce : 1,
+        bounce: setting === 'box' || setting === 'light' ? envs[0]!.bounce : 1,
         // Feels start together, to be compared.
         delay: setting === 'feel' ? 0 : i * P.stagger,
       };
@@ -92,7 +103,7 @@ export function Picker({ setting, settings, env, calm, onPick, onClose }: Props)
         glasses,
         bends: setting === 'glass' ? glasses.map((g) => g.bend > 0) : [false],
         rooms:
-          setting === 'box' || setting === 'feel' || setting === 'glass'
+          setting === 'box' || setting === 'light' || setting === 'feel' || setting === 'glass'
             ? envs.map((e) => roomPicture(box, local, e))
             : [],
         view: { cx: rect.x + rect.width / 2, cy: rect.y + rect.height / 2, ppu },
@@ -103,7 +114,7 @@ export function Picker({ setting, settings, env, calm, onPick, onClose }: Props)
         ),
       };
     });
-  }, [row, setting, settings, env, width, height]);
+  }, [row, setting, settings, look, light, walls, width, height]);
 
   const stages = useSharedValue<Stage[]>([]);
   const drawn = useSharedValue<unknown>(null);
@@ -147,6 +158,17 @@ export function Picker({ setting, settings, env, calm, onPick, onClose }: Props)
             }
             canvas.restore();
           }
+          if (a.rooms.length > 0)
+            drawWallLight(
+              canvas,
+              gpu.lightPaint,
+              gpu.walls.light,
+              world,
+              a.part.box,
+              a.view,
+              e,
+              world.time,
+            );
           drawScene(
             canvas,
             gpu.bubblePaint,
