@@ -8,7 +8,7 @@ import {
   type SkRuntimeEffect,
 } from '@shopify/react-native-skia';
 import { POOL } from '@/config/pool';
-import { filled, type PoolRowLayout } from '@/core/poolRow';
+import { filled, placeAt, turnMark, type PoolRowLayout, type RowTurn } from '@/core/poolRow';
 import { pockets, type Ball, type Pool, type Trace } from '@/core/pool';
 import { scaleAt } from '@/core/projection';
 import type { Box, Bubble, Vec3 } from '@/core/types';
@@ -131,6 +131,8 @@ export function poolRoom(box: Box, view: View): SkPicture {
 /** A ball's colour as a line: the 8's is pale, as black would not show. */
 const MARKS = POOL.looks.map(({ color, kind }) => (kind === 'eight' ? [0.8, 0.85, 0.9] : color));
 const AIR = [0.05, 0.14, 0.22];
+/** The room's own lines, for whose turn. */
+const INK = POOL.look.ink.map((c) => c / 255);
 const FAR = [POOL.far.haze, POOL.far.dim, POOL.far.dull, POOL.rim];
 
 export function drawDisc(
@@ -199,41 +201,49 @@ function drawWakes(
   return i;
 }
 
-/** Every ball to pot, in its place: potted ones whole, the rest as rings. */
+/** Every ball to pot, in its place: potted ones whole, the rest as rings. Then whose turn it is. */
 function drawRow(
   canvas: SkCanvas,
   gpu: PoolGpu,
   effect: SkRuntimeEffect,
   pool: Pool,
   row: PoolRowLayout,
+  turn: RowTurn,
   v: View,
 ) {
   'worklet';
   const { top, ghost, ring } = POOL.row;
   const r = row.radius;
-  for (const { places } of row.groups)
+  for (const { kind, places } of row.groups)
     for (const { ball, x } of places) {
       const b = pool.balls[ball];
       const k = b ? filled(b.sunk, pool.calm) : 0;
       const size = r * (0.8 + 0.2 * k);
-      drawDisc(
-        canvas,
-        gpu.ball,
-        effect,
-        ball,
-        v.cx + x,
-        top,
-        size,
-        size,
-        ghost + (1 - ghost) * k,
-        0,
-        0,
-      );
+      const at = placeAt(row, kind, x, turn.swap);
+      const px = v.cx + at.x;
+      const py = top + at.y;
+      drawDisc(canvas, gpu.ball, effect, ball, px, py, size, size, ghost + (1 - ghost) * k, 0, 0);
       if (k >= 1) continue;
       const t = MARKS[ball]!;
       ink(gpu.line, true, t[0]!, t[1]!, t[2]!, ring * (1 - k), 1.2);
-      canvas.drawCircle(v.cx + x, top, r - 0.6, gpu.line);
+      canvas.drawCircle(px, py, r - 0.6, gpu.line);
     }
+  const { below, width, opacity, second, short } = POOL.row.turn;
+  const mark = turnMark(row, turn.side);
+  const [cr, cg, cb] = INK;
+  const y = top + below;
+  // Round ends, then back to butt for the rest.
+  gpu.line.setStrokeCap(1);
+  ink(gpu.line, true, cr!, cg!, cb!, opacity, width);
+  canvas.drawLine(v.cx + mark.x - mark.half, y, v.cx + mark.x + mark.half, y, gpu.line);
+  if (turn.second > 0) {
+    // A second shot to come, after the opponent's foul.
+    const half = mark.half * short;
+    ink(gpu.line, true, cr!, cg!, cb!, opacity * turn.second, width);
+    const y2 = y + second;
+    canvas.drawLine(v.cx + mark.x - half, y2, v.cx + mark.x + half, y2, gpu.line);
+  }
+  gpu.line.setStrokeCap(0);
 }
 
 export function drawPool(
@@ -248,6 +258,7 @@ export function drawPool(
   /** How plainly that shows, 0 to 1. */
   sure: number,
   row: PoolRowLayout,
+  turn: RowTurn,
   box: Box,
   v: View,
 ) {
@@ -317,6 +328,6 @@ export function drawPool(
     const ry = r * (1 + held.d.y - held.d.z * 0.3);
     drawDisc(canvas, gpu.ball, effect, 0, c.x, c.y, rx, ry, POOL.cue.held, 0, 0.4);
   }
-  drawRow(canvas, gpu, effect, pool, row, v);
-  drawMotes(canvas, gpu.pots, pool, row, box, v);
+  drawRow(canvas, gpu, effect, pool, row, turn, v);
+  drawMotes(canvas, gpu.pots, pool, row, turn, box, v);
 }

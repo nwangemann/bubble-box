@@ -94,7 +94,27 @@ export const POOL = {
    * groups, `side` the least margin. One still on the table is a ring of its colour and a `ghost` of
    * itself; once its light lands it fills in over `fill` seconds.
    */
-  row: { top: 84, gap: 23, apart: 10, side: 14, radius: 8.5, ghost: 0.3, ring: 0.85, fill: 0.35 },
+  row: {
+    top: 84,
+    gap: 23,
+    apart: 10,
+    side: 14,
+    radius: 8.5,
+    ghost: 0.3,
+    ring: 0.85,
+    fill: 0.35,
+    /**
+     * Player 1's half is the left, player 2's the right. Once the table is taken, each group moves
+     * under its owner over `seconds`, solids bowing `bow` pixels below and stripes above.
+     */
+    swap: { seconds: 0.8, bow: 18 },
+    /**
+     * Whose turn: a line `below` the middle of the row under the shooter's half, from `inner` radii
+     * off the middle to its end, sliding across in `seconds`. A shorter one `second` pixels under it
+     * while they have two shots.
+     */
+    turn: { below: 16, width: 2, opacity: 0.6, inner: 1.7, seconds: 0.45, second: 5, short: 0.45 },
+  },
   /** How balls look with distance, at the far wall: haze into the air, dimming, and duller shine. */
   far: { haze: 0.35, dim: 0.2, dull: 0.8 },
   /** Light of a ball's own colour round the near edge of each, gone at the far wall. */

@@ -1,7 +1,14 @@
 import { BlendMode, Skia, type SkCanvas } from '@shopify/react-native-skia';
 import { POOL } from '@/config/pool';
 import { pockets, type Ball, type Pool } from '@/core/pool';
-import { landsAt, motePath, potLight, type PoolRowLayout } from '@/core/poolRow';
+import {
+  landsAt,
+  motePath,
+  placeAt,
+  potLight,
+  type PoolRowLayout,
+  type RowTurn,
+} from '@/core/poolRow';
 import { scaleAt } from '@/core/projection';
 import type { Box } from '@/core/types';
 import { LIB } from '@/styles/prelude';
@@ -139,6 +146,7 @@ export function drawMotes(
   gpu: PotsGpu,
   pool: Pool,
   row: PoolRowLayout,
+  turn: RowTurn,
   box: Box,
   v: View,
 ) {
@@ -148,7 +156,7 @@ export function drawMotes(
   const { leaves, lands, blooms, mote } = POOL.pot;
   const ends = landsAt(false) + blooms;
   const holes = pockets(box);
-  for (const { places } of row.groups)
+  for (const { kind, places } of row.groups)
     for (const place of places) {
       const b = pool.balls[place.ball];
       const q = b && holes[b.pocket];
@@ -156,7 +164,9 @@ export function drawMotes(
       const c = COLORS[place.ball]!;
       const s = scaleAt(box, q.z) * v.ppu;
       const from = [q.x * s * 0.94, q.y * s * 0.97];
-      const to = [place.x, POOL.row.top - v.cy];
+      // Its place as drawn now, so a mote follows a group moving under its owner.
+      const at = placeAt(row, kind, place.x, turn.swap);
+      const to = [at.x, POOL.row.top + at.y - v.cy];
       for (let n = mote.tail - 1; n >= 0; n--) {
         const k = (b.sunk - n * mote.lag - leaves) / (lands - leaves);
         if (k <= 0 || k >= 1) continue;
@@ -176,10 +186,11 @@ export function drawMotes(
       const k = (b.sunk - lands) / blooms;
       if (k <= 0 || k >= 1) continue;
       const out = 1 - (1 - k) ** 2;
-      const x = v.cx + place.x;
+      const x = v.cx + at.x;
+      const y = POOL.row.top + at.y;
       gpu.glow.setShader(glowEffect.makeShader([...c, 1.4 * (1 - k) ** 2, 1]));
-      square(canvas, gpu.glow, x, POOL.row.top, row.radius * (1.4 + 2.2 * out));
+      square(canvas, gpu.glow, x, y, row.radius * (1.4 + 2.2 * out));
       gpu.glow.setShader(glowEffect.makeShader([...c, (1 - k) ** 2, 0]));
-      square(canvas, gpu.glow, x, POOL.row.top, row.radius * mote.size);
+      square(canvas, gpu.glow, x, y, row.radius * mote.size);
     }
 }

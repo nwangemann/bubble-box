@@ -13,8 +13,10 @@ import {
 import {
   beginShot,
   createGame,
+  cleared,
   EIGHT,
   endShot,
+  groupOf,
   judge,
   type PoolGame,
   type Verdict,
@@ -54,6 +56,7 @@ const verdict = (v: Partial<Verdict>): Verdict => ({
   potted: [],
   first: 1,
   foul: null,
+  takes: null,
   lost: false,
   keeps: false,
   ...v,
@@ -129,31 +132,6 @@ test('a foul of their own ends the two shots at once', () => {
   expect([game.turn, game.shots]).toEqual([0, 2]);
 });
 
-test('the 8 potted after the break is a foul, and a loss only by the switch', () => {
-  const potEight = () => {
-    const pool = table([[0, 0, 3]]);
-    // The one ball on the table is the 8.
-    pool.balls[EIGHT] = pool.balls[1]!;
-    pool.balls[1] = { ...pool.balls[1]!, p: at([0.6, 1.5, 4]), sunk: 0.1, pocket: 0 };
-    const game = createGame();
-    pool.balls[EIGHT]!.sunk = -1;
-    for (let i = 2; i < EIGHT; i++)
-      pool.balls[i] = { ...pool.balls[1]!, p: at([0, 0, 0]), sunk: 1, pocket: 0 };
-    beginShot(game, pool);
-    pool.first = EIGHT;
-    pool.balls[EIGHT]!.sunk = 0;
-    pool.balls[EIGHT]!.pocket = 2;
-    return judge(game, pool);
-  };
-  expect(potEight()).toMatchObject({ foul: 'eight', lost: false, keeps: false });
-  POOL_RULES.earlyEight = 'lose';
-  try {
-    expect(potEight()).toMatchObject({ foul: 'eight', lost: true });
-  } finally {
-    POOL_RULES.earlyEight = 'spot';
-  }
-});
-
 test('on the break the 8 is no foul and keeps the turn', () => {
   const game = createGame();
   const pool = createPool(box);
@@ -223,4 +201,157 @@ test('a cue ball starts at the nearest place it fits beside a ball against the g
   const bubble = newBubble(createWorld(), 'glass', r, at([0.05, 0, r]));
   enter(pool, box, bubble);
   expect(pool.balls[0]!.p).toEqual(fit);
+});
+
+const SOLIDS = POOL.looks.flatMap((l, i) => (l.kind === 'solid' ? [i] : []));
+const STRIPES = POOL.looks.flatMap((l, i) => (l.kind === 'stripe' ? [i] : []));
+
+/**
+ * Judges a shot after the break on a full table without playing it: `down` were down before,
+ * `first` struck first, `potted` dropped.
+ */
+const judged = (game: PoolGame, first: number, potted: number[], down: number[] = []) => {
+  const pool = createPool(box);
+  pool.racked = false;
+  pool.balls[0]!.sunk = -1;
+  for (const i of down) pool.balls[i]!.sunk = 1;
+  beginShot(game, pool);
+  pool.first = first;
+  for (const i of potted) {
+    pool.balls[i]!.sunk = 0;
+    pool.balls[i]!.pocket = 1;
+  }
+  const v = judge(game, pool);
+  endShot(game, v);
+  return v;
+};
+
+test('balls are of a group by their look; a group is cleared once all of it is down', () => {
+  expect(SOLIDS).toHaveLength(7);
+  expect(STRIPES).toHaveLength(7);
+  expect(groupOf(0)).toBeNull();
+  expect(groupOf(EIGHT)).toBeNull();
+  expect(SOLIDS.every((i) => groupOf(i) === 'solid')).toBe(true);
+  const down: boolean[] = [];
+  SOLIDS.slice(1).forEach((i) => (down[i] = true));
+  expect(cleared(down, 'solid')).toBe(false);
+  down[SOLIDS[0]!] = true;
+  expect(cleared(down, 'solid')).toBe(true);
+  expect(cleared(down, 'stripe')).toBe(false);
+});
+
+test('the break leaves the table open, whatever drops', () => {
+  const game = createGame();
+  const pool = createPool(box);
+  beginShot(game, pool);
+  pool.first = 1;
+  pool.balls[SOLIDS[0]!]!.sunk = 0;
+  pool.balls[SOLIDS[0]!]!.pocket = 1;
+  const v = judge(game, pool);
+  endShot(game, v);
+  expect(v).toMatchObject({ broke: true, takes: null, keeps: true });
+  expect(game.groups).toBeNull();
+});
+
+test('after the break, a shot potting one group only gives it to the shooter', () => {
+  const game = createGame();
+  game.turn = 1;
+  const v = judged(game, STRIPES[0]!, [STRIPES[0]!, STRIPES[1]!]);
+  expect(v).toMatchObject({ takes: 'stripe', foul: null, keeps: true });
+  expect(game.groups).toEqual(['solid', 'stripe']);
+  expect(game.turn).toBe(1);
+});
+
+test('while open, any ball but the 8 may be struck first, and pots from both leave it open', () => {
+  const game = createGame();
+  const v = judged(game, STRIPES[2]!, [SOLIDS[0]!, STRIPES[0]!]);
+  expect(v).toMatchObject({ foul: null, takes: null, keeps: true });
+  expect(game.groups).toBeNull();
+  expect(judged(game, SOLIDS[1]!, [])).toMatchObject({ foul: null, keeps: false });
+  expect(game.groups).toBeNull();
+});
+
+test('while open, the 8 struck first is a foul, and takes nothing', () => {
+  const game = createGame();
+  const v = judged(game, EIGHT, [SOLIDS[0]!]);
+  expect(v).toMatchObject({ foul: 'wrong', takes: null, keeps: false });
+  expect(game.groups).toBeNull();
+  expect([game.turn, game.shots]).toEqual([1, POOL_RULES.foulShots]);
+});
+
+test('a foul that pots one group takes nothing', () => {
+  const game = createGame();
+  expect(judged(game, SOLIDS[0]!, [SOLIDS[0]!, 0])).toMatchObject({ foul: 'scratch', takes: null });
+  expect(game.groups).toBeNull();
+});
+
+test('once taken, the other group struck first is a foul', () => {
+  const game = createGame();
+  game.groups = ['solid', 'stripe'];
+  const v = judged(game, STRIPES[0]!, [SOLIDS[0]!]);
+  expect(v).toMatchObject({ foul: 'wrong', keeps: false });
+  expect([game.turn, game.shots]).toEqual([1, POOL_RULES.foulShots]);
+  // Player 2's own is the stripes.
+  expect(judged(game, STRIPES[0]!, [STRIPES[0]!])).toMatchObject({ foul: null, keeps: true });
+});
+
+test("only the shooter's own keeps the turn; the opponent's stays down for nothing", () => {
+  const game = createGame();
+  game.groups = ['solid', 'stripe'];
+  expect(judged(game, SOLIDS[0]!, [STRIPES[0]!])).toMatchObject({ foul: null, keeps: false });
+  expect(game.turn).toBe(1);
+  expect(judged(game, STRIPES[1]!, [STRIPES[1]!, SOLIDS[1]!])).toMatchObject({
+    foul: null,
+    keeps: true,
+  });
+  expect(game.turn).toBe(1);
+});
+
+test('the 8 struck first before the group is cleared is a foul; after, it is the only ball', () => {
+  const game = createGame();
+  game.groups = ['solid', 'stripe'];
+  expect(judged(game, EIGHT, [])).toMatchObject({ foul: 'wrong' });
+  game.turn = 0;
+  // The last solid goes down with the 8 struck first: still early.
+  const last = SOLIDS.slice(1);
+  expect(judged(game, EIGHT, [SOLIDS[0]!], last)).toMatchObject({ foul: 'wrong' });
+  game.turn = 0;
+  expect(judged(game, EIGHT, [], SOLIDS)).toMatchObject({ foul: null });
+  game.turn = 0;
+  expect(judged(game, SOLIDS[0]!, [], SOLIDS.slice(1).concat(SOLIDS[0]!))).toMatchObject({
+    foul: 'wrong',
+  });
+  game.turn = 0;
+  expect(judged(game, STRIPES[0]!, [], SOLIDS)).toMatchObject({ foul: 'wrong' });
+});
+
+test('the 8 potted with the last of the group is early; once it is cleared, it is no foul', () => {
+  const game = createGame();
+  game.groups = ['solid', 'stripe'];
+  const v = judged(game, SOLIDS[0]!, [SOLIDS[0]!, EIGHT], SOLIDS.slice(1));
+  expect(v).toMatchObject({ foul: 'eight', keeps: false });
+  game.turn = 0;
+  expect(judged(game, EIGHT, [EIGHT], SOLIDS)).toMatchObject({ foul: null });
+});
+
+test('a new rack opens the table again', () => {
+  const game = createGame();
+  game.groups = ['stripe', 'solid'];
+  beginShot(game, createPool(box));
+  expect(game.groups).toBeNull();
+});
+
+test('the 8 potted early is a foul, and a loss only by the switch', () => {
+  const potEight = () => {
+    const game = createGame();
+    game.groups = ['solid', 'stripe'];
+    return judged(game, SOLIDS[0]!, [EIGHT]);
+  };
+  expect(potEight()).toMatchObject({ foul: 'eight', lost: false, keeps: false });
+  POOL_RULES.earlyEight = 'lose';
+  try {
+    expect(potEight()).toMatchObject({ foul: 'eight', lost: true });
+  } finally {
+    POOL_RULES.earlyEight = 'spot';
+  }
 });

@@ -25,7 +25,7 @@ import {
   traceAhead,
 } from '@/core/pool';
 import { beginShot, createGame, endShot, judge } from '@/core/poolGame';
-import { poolRow } from '@/core/poolRow';
+import { createRowTurn, followGame, poolRow } from '@/core/poolRow';
 import type { Box } from '@/core/types';
 import { advance, beginHold, createWorld, heldBy, moveHold, release, swipeOf } from '@/core/world';
 import { drawPool, getPoolGpu, poolRoom } from '@/scene/drawPool';
@@ -85,6 +85,8 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   const finger = useSharedValue(-1);
   // Whose turn, and the shot out.
   const game = useSharedValue(createGame());
+  // Whose turn and whose groups, as the row shows them.
+  const turn = useSharedValue(createRowTurn());
   // A finger down while balls roll, and where it is: its cue ball comes once all have stopped.
   const waiting = useSharedValue(-1);
   const waitAt = useSharedValue({ x: 0, y: 0 });
@@ -119,6 +121,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
         waiting.value = -1;
       }
     }
+    const shown = followGame(turn.value, g, dt, p.calm);
     const h = w.holds[0];
     const heldFor = h ? h.seconds : 0;
     if (h) advance(w, box, HANDS, 1, dt);
@@ -126,8 +129,8 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     const { place, ease, swipe } = POOL.aim;
     if (h && heldFor < place && h.seconds >= place) scheduleOnRN(tick);
     // A still table draws nothing.
-    if (!moved && !h && !dirty.value) return;
-    dirty.value = moved || !!h;
+    if (!moved && !shown && !h && !dirty.value) return;
+    dirty.value = moved || shown || !!h;
     if (p.potted > 0) scheduleOnRN(drop);
     else if (p.landed > 0) scheduleOnRN(land);
     else if (p.knock > POOL.hapticLeast && p.time - lastBuzz.value > POOL.hapticGap) {
@@ -149,7 +152,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     const grown = h ? Math.min(1, h.seconds / POOL.cue.appear) : 0;
     picture.value = createPicture((canvas) => {
       'worklet';
-      drawPool(canvas, gpu, p, held, grown, trace, sure, row, box, view);
+      drawPool(canvas, gpu, p, held, grown, trace, sure, row, turn.value, box, view);
     });
   });
 

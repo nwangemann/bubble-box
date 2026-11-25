@@ -1,5 +1,17 @@
 import { POOL } from '../config/pool';
-import { filled, landsAt, motePath, poolRow, potEnds, potLight } from './poolRow';
+import { createGame } from './poolGame';
+import {
+  createRowTurn,
+  filled,
+  followGame,
+  landsAt,
+  motePath,
+  placeAt,
+  poolRow,
+  potEnds,
+  potLight,
+  turnMark,
+} from './poolRow';
 
 test('every ball to pot has its own place, in three groups and the same colour order', () => {
   const { groups } = poolRow(402);
@@ -53,4 +65,57 @@ test('a mote goes from its pocket to its place', () => {
   const to = [40, -350];
   expect(motePath(from, to, 0)).toEqual({ x: -70, y: 160 });
   expect(motePath(from, to, 1)).toEqual({ x: 40, y: -350 });
+});
+
+test("once the table is taken, each group moves onto the other's places, keeping its colour order", () => {
+  const row = poolRow(402);
+  const [solids, eight, stripes] = row.groups;
+  solids!.places.forEach((place, j) => {
+    expect(placeAt(row, 'solid', place.x, 0)).toEqual({ x: place.x, y: 0 });
+    const there = placeAt(row, 'solid', place.x, 1);
+    expect(there.x).toBeCloseTo(stripes!.places[j]!.x);
+    expect(there.y).toBeCloseTo(0);
+    expect(placeAt(row, 'stripe', stripes!.places[j]!.x, 1).x).toBeCloseTo(place.x);
+  });
+  expect(placeAt(row, 'eight', eight!.places[0]!.x, 0.5)).toEqual({ x: 0, y: 0 });
+  // Halfway, solids pass below and stripes above, clear of each other.
+  const low = placeAt(row, 'solid', solids!.places[6]!.x, 0.5);
+  const high = placeAt(row, 'stripe', stripes!.places[0]!.x, 0.5);
+  expect(low.y - high.y).toBeGreaterThan(2 * row.radius);
+  // And clear of the 8, which stays.
+  expect(Math.min(low.y, -high.y)).toBeGreaterThan(2 * row.radius);
+});
+
+test("the turn's line lies under the shooter's half, clear of the 8 and within the row", () => {
+  for (const width of [320, 402]) {
+    const row = poolRow(width);
+    const left = turnMark(row, 0);
+    const right = turnMark(row, 1);
+    expect(left.x).toBeCloseTo(-right.x);
+    expect(left.x + left.half).toBeLessThan(-row.radius);
+    expect(left.x - left.half).toBeCloseTo(-row.end);
+    expect(row.end).toBeLessThanOrEqual(width / 2 - POOL.row.side + 1e-9);
+  }
+});
+
+test('the row follows the game: whose turn, whose groups, and a second shot, eased or at once', () => {
+  const game = createGame();
+  const t = createRowTurn();
+  expect(followGame(t, game, 1 / 60, false)).toBe(false);
+  game.turn = 1;
+  game.shots = 2;
+  game.groups = ['stripe', 'solid'];
+  expect(followGame(t, game, 1 / 60, false)).toBe(true);
+  expect(t.side).toBeGreaterThan(0);
+  expect(t.side).toBeLessThan(1);
+  expect(t.swap).toBeLessThan(t.side);
+  for (let i = 0; i < 120; i++) followGame(t, game, 1 / 60, false);
+  expect(t).toEqual({ side: 1, swap: 1, second: 1 });
+  expect(followGame(t, game, 1 / 60, false)).toBe(false);
+  // A new rack opens the table: back where they began. With Reduce Motion, at once.
+  game.groups = null;
+  game.shots = 1;
+  game.turn = 0;
+  expect(followGame(t, game, 1 / 60, true)).toBe(true);
+  expect(t).toEqual({ side: 0, swap: 0, second: 0 });
 });
