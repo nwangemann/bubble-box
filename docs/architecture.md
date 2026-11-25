@@ -36,6 +36,10 @@ Past `maxBubbles`, the oldest pops.
 
 Each preview is a small `World` in its own box, driven by `preview/scripts` and drawn by `drawScene`, all on one canvas. Coordinates are absolute, so glass needs no transform. While it is open the main room's loop is paused. `scene/gpu` holds the shaders both share.
 
+## Maker
+
+`ui/Maker` edits the Custom bubble while the room is paused. `customLook` turns the choices into plain numbers (`mine`) handed to every draw. Custom is the only style with extra uniforms; `drawBubble` adds them after the shared ones.
+
 ## Scene
 
 - `roomPicture` records the room once per environment, shown on its own canvas.

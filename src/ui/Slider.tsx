@@ -3,13 +3,21 @@ import { StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 
-type Props = { label: string; value: number; onChange: (value: number) => void };
+type Props = {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+  /** Lines up several sliders. */
+  labelWidth?: number;
+  /** Shown along the track. */
+  colours?: string[];
+};
 
 const STEPS = 50;
 const KNOB = 16;
 
 /** A quiet slider from 0 to 1. */
-export function Slider({ label, value, onChange }: Props) {
+export function Slider({ label, value, onChange, labelWidth, colours }: Props) {
   const [width, setWidth] = useState(1);
   const set = (x: number) => {
     const k = Math.min(1, Math.max(0, (x - KNOB / 2) / Math.max(1, width - KNOB)));
@@ -31,7 +39,7 @@ export function Slider({ label, value, onChange }: Props) {
   });
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, labelWidth !== undefined && { width: labelWidth }]}>{label}</Text>
       <GestureDetector gesture={pan}>
         <View
           style={styles.touch}
@@ -46,7 +54,15 @@ export function Slider({ label, value, onChange }: Props) {
             nudge(e.nativeEvent.actionName === 'increment' ? 0.1 : -0.1)
           }
         >
-          <View style={styles.track} />
+          <View
+            style={[
+              styles.track,
+              colours && styles.colours,
+              colours && {
+                backgroundImage: `linear-gradient(to right, ${colours.join(', ')})`,
+              },
+            ]}
+          />
           <View style={[styles.knob, { left: value * (width - KNOB) }]} />
         </View>
       </GestureDetector>
@@ -59,6 +75,7 @@ const styles = StyleSheet.create({
   label: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginRight: 8 },
   touch: { flex: 1, height: 44, justifyContent: 'center' },
   track: { height: 2, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.35)' },
+  colours: { height: 6, borderRadius: 3, marginHorizontal: KNOB / 2 },
   knob: {
     position: 'absolute',
     width: KNOB,

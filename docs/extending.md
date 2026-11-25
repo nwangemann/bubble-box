@@ -12,6 +12,10 @@ Add `turn` to the rotation of anything on the surface so spin shows (`skin` alre
 
 Keep to about 6 `fbm` calls per pixel: ten bubbles can overlap.
 
+### Custom pattern
+
+Add a branch to `motif` in `src/styles/custom.ts` and a name in the same place in `PATTERNS` in `src/config/custom.ts`: their orders must match.
+
 ## Environment
 
 Add to `src/config/environments.ts`. Give it a `day` palette. For a material, write `vec4 wall(vec2 t)` (colour, opacity) in `MATERIALS` in `src/scene/walls.ts`, honour `soft`, and name it in `wall`. `lit` is how well walls catch light from bubbles; a style casts light with `glow`.

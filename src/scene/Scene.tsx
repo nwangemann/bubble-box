@@ -5,6 +5,7 @@ import { PixelRatio, StyleSheet, View as RNView, useWindowDimensions } from 'rea
 import { GestureDetector, useManualGesture } from 'react-native-gesture-handler';
 import { useFrameCallback, useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import type { CustomLook } from '@/config/custom';
 import type { Environment } from '@/config/environments';
 import type { Feel } from '@/config/feels';
 import type { Glass } from '@/config/glass';
@@ -38,6 +39,7 @@ import { drawWallLight } from './walls';
 type Props = {
   /** Each list holds one entry, or every entry for Random. */
   styles: string[];
+  mine: CustomLook;
   feels: Feel[];
   env: Environment;
   glasses: Glass[];
@@ -57,6 +59,7 @@ const buzz = (strength: number) => {
 
 export function Scene({
   styles,
+  mine,
   feels,
   env,
   glasses,
@@ -118,7 +121,17 @@ export function Scene({
       const waves = w.waves.filter((v) => bends[Math.floor(v.variant * bends.length)]);
       const scene = () => {
         'worklet';
-        drawWallLight(canvas, gpu.lightPaint, gpu.walls.light, w, box, view, env, wallTime.value);
+        drawWallLight(
+          canvas,
+          gpu.lightPaint,
+          gpu.walls.light,
+          w,
+          box,
+          view,
+          env,
+          wallTime.value,
+          mine,
+        );
         drawScene(
           canvas,
           gpu.bubblePaint,
@@ -131,6 +144,7 @@ export function Scene({
           view,
           env,
           bends,
+          mine,
         );
       };
       // The full-screen pass runs only while a wave is alive, and bends the room too.

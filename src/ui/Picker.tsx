@@ -7,6 +7,7 @@ import Animated, {
   useFrameCallback,
   useSharedValue,
 } from 'react-native-reanimated';
+import type { CustomLook } from '@/config/custom';
 import {
   boxPool,
   feelPool,
@@ -40,6 +41,7 @@ const P = TUNING.preview;
 type Props = {
   setting: Setting;
   settings: Settings;
+  mine: CustomLook;
   /** The box and light in use, which Random may have chosen. */
   look: BoxLook;
   light: Light;
@@ -51,7 +53,17 @@ type Props = {
 };
 
 /** Every option of one setting, alive, on one canvas. */
-export function Picker({ setting, settings, look, light, walls, calm, onPick, onClose }: Props) {
+export function Picker({
+  setting,
+  settings,
+  mine,
+  look,
+  light,
+  walls,
+  calm,
+  onPick,
+  onClose,
+}: Props) {
   const { width, height } = useWindowDimensions();
   const [gpu] = useState(getGpu);
   const [layer] = useState(() => Skia.Paint());
@@ -168,6 +180,7 @@ export function Picker({ setting, settings, look, light, walls, calm, onPick, on
               a.view,
               e,
               world.time,
+              mine,
             );
           drawScene(
             canvas,
@@ -181,6 +194,7 @@ export function Picker({ setting, settings, look, light, walls, calm, onPick, on
             a.view,
             e,
             a.bends,
+            mine,
           );
         };
         canvas.save();

@@ -1,5 +1,6 @@
 import { aurora, lantern, tide } from './obvious';
 import { contour, chrome, eclipse, ink, medusa, nebula } from './experimental';
+import { custom } from './custom';
 import { glass, pearl, soap } from './standard';
 
 export type BubbleStyle = {
@@ -36,6 +37,8 @@ export const STYLES = {
     sksl: eclipse,
   },
   medusa: { name: 'Medusa', glow: 0.5, tint: [0.35, 0.55, 1], group: 'experimental', sksl: medusa },
+  // Made in ui/Maker. Its tint follows the chosen colours; this one is only a stand-in.
+  custom: { name: 'Custom', glow: 0.35, tint: [0.7, 0.8, 1], group: 'standard', sksl: custom },
 } satisfies Record<string, BubbleStyle>;
 
 export type StyleId = keyof typeof STYLES;

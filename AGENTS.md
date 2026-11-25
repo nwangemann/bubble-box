@@ -4,28 +4,29 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 
 ## Where things are
 
-| To change                                | Open                         |
-| ---------------------------------------- | ---------------------------- |
-| Any feel number (growth, launch, wobble) | `src/config/tuning.ts`       |
-| Physics presets                          | `src/config/feels.ts`        |
-| Box looks and bounce                     | `src/config/environments.ts` |
-| Bubble looks                             | `src/styles/`                |
-| Motion, collisions, launch               | `src/core/world.ts`          |
-| Gravity from tilting the phone           | `src/core/tilt.ts`           |
-| Perspective                              | `src/core/projection.ts`     |
-| Frame loop, touch, haptics               | `src/scene/Scene.tsx`        |
-| Drawing bubbles and ripples              | `src/scene/drawScene.ts`     |
-| Drawing the room                         | `src/scene/roomPicture.ts`   |
-| Wall materials and light on walls        | `src/scene/walls.ts`         |
-| Screen-side ripple strength and options  | `src/config/glass.ts`        |
-| Screen-side ripple shader                | `src/scene/glassFilter.ts`   |
-| What a tap on a bubble does              | `src/config/taps.ts`         |
-| Meet and pop effects                     | `src/fx/`                    |
-| Default settings, tray rows, Random      | `src/config/defaults.ts`     |
-| Saved settings, Reduce Motion            | `src/services/`              |
-| Options tray                             | `src/ui/Tray.tsx`            |
-| Preview picker                           | `src/ui/Picker.tsx`          |
-| What each preview acts out               | `src/preview/`               |
+| To change                                | Open                                       |
+| ---------------------------------------- | ------------------------------------------ |
+| Any feel number (growth, launch, wobble) | `src/config/tuning.ts`                     |
+| Physics presets                          | `src/config/feels.ts`                      |
+| Box looks and bounce                     | `src/config/environments.ts`               |
+| Bubble looks                             | `src/styles/`                              |
+| Motion, collisions, launch               | `src/core/world.ts`                        |
+| Gravity from tilting the phone           | `src/core/tilt.ts`                         |
+| Perspective                              | `src/core/projection.ts`                   |
+| Frame loop, touch, haptics               | `src/scene/Scene.tsx`                      |
+| Drawing bubbles and ripples              | `src/scene/drawScene.ts`                   |
+| Drawing the room                         | `src/scene/roomPicture.ts`                 |
+| Wall materials and light on walls        | `src/scene/walls.ts`                       |
+| Screen-side ripple strength and options  | `src/config/glass.ts`                      |
+| Screen-side ripple shader                | `src/scene/glassFilter.ts`                 |
+| What a tap on a bubble does              | `src/config/taps.ts`                       |
+| Meet and pop effects                     | `src/fx/`                                  |
+| Default settings, tray rows, Random      | `src/config/defaults.ts`                   |
+| Saved settings, Reduce Motion            | `src/services/`                            |
+| Options tray                             | `src/ui/Tray.tsx`                          |
+| Preview picker                           | `src/ui/Picker.tsx`                        |
+| Custom bubble: choices, then its screen  | `src/config/custom.ts`, `src/ui/Maker.tsx` |
+| What each preview acts out               | `src/preview/`                             |
 
 ## Read before working
 

@@ -8,6 +8,7 @@ import type { Environment, WallId } from '@/config/environments';
 import { TUNING } from '@/config/tuning';
 import type { Box, World } from '@/core/types';
 import { heldBubbles } from '@/core/world';
+import { CUSTOM, type CustomLook } from '@/config/custom';
 import { STYLES, type BubbleStyle } from '@/styles';
 import { LIB } from '@/styles/prelude';
 import type { View } from './drawScene';
@@ -214,6 +215,7 @@ export function drawWallLight(
   view: View,
   env: Environment,
   time: number,
+  mine: CustomLook,
 ) {
   'worklet';
   if (!effect) return;
@@ -225,7 +227,8 @@ export function drawWallLight(
     if (!g || g.glow === 0 || lamps.length >= LAMPS * 4) continue;
     const alive = b.popping < 0 ? 1 : Math.max(0, 1 - b.popping / TUNING.popSeconds);
     lamps.push(b.p.x, b.p.y, b.p.z, g.glow * b.r * TUNING.walls.glow * alive);
-    tints.push(g.tint[0]!, g.tint[1]!, g.tint[2]!, 1);
+    const tint = b.style === CUSTOM ? mine.tint : g.tint;
+    tints.push(tint[0]!, tint[1]!, tint[2]!, 1);
   }
   const wet = env.wall === 'water' ? Math.min(1, env.wallOpacity) : 0;
   if (wet === 0 && (lamps.length === 0 || env.lit === 0)) return;

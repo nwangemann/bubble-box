@@ -81,6 +81,8 @@ export const TUNING = {
   hapticMinImpact: 0.35,
   /** Light from glowing bubbles; seconds for water to settle in an empty room. */
   walls: { glow: 0.9, settle: 1.2 },
+  /** The bubble maker. Shares of the screen for the bubble; pixels for slider names. */
+  maker: { width: 0.9, height: 0.42, label: 56 },
   /** The preview picker. Pixels for layout; world units (half a cell wide) and seconds for motion. */
   preview: {
     side: 18,

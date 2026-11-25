@@ -16,10 +16,12 @@ import {
   type Setting,
   type Settings,
 } from '@/config/defaults';
+import { CUSTOM, customLook, type Custom } from '@/config/custom';
 import { dress, type Walls } from '@/config/environments';
 import { Scene } from '@/scene/Scene';
 import { loadSettings, saveSettings } from '@/services/savedSettings';
 import { useReduceMotion } from '@/services/useReduceMotion';
+import { Maker } from '@/ui/Maker';
 import { Picker } from '@/ui/Picker';
 import { Tray } from '@/ui/Tray';
 
@@ -27,6 +29,9 @@ export default function App() {
   const [saved] = useState(loadSettings);
   const [settings, setSettings] = useState<Settings>(saved.settings);
   const [walls, setWalls] = useState<Walls>(saved.walls);
+  const [custom, setCustom] = useState<Custom>(saved.custom);
+  const mine = useMemo(() => customLook(custom), [custom]);
+  const [making, setMaking] = useState(false);
   const [look, setLook] = useState(() => pickBox(settings.box));
   const [light, setLight] = useState(() => pickLight(settings.light));
   const env = useMemo(() => dress(look, light, walls), [look, light, walls]);
@@ -38,9 +43,9 @@ export default function App() {
   const calm = useReduceMotion();
   useEffect(() => {
     // A slider moves many times a second; one write at the end is enough.
-    const timer = setTimeout(() => saveSettings({ settings, walls }), 300);
+    const timer = setTimeout(() => saveSettings({ settings, walls, custom }), 300);
     return () => clearTimeout(timer);
-  }, [settings, walls]);
+  }, [settings, walls, custom]);
 
   const { bubble, feel, glass, tap, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
@@ -53,6 +58,8 @@ export default function App() {
     // Choosing Random again moves to another.
     if (key === 'box') setLook((now) => pickBox(id, id === RANDOM ? now : undefined));
     if (key === 'light') setLight((now) => pickLight(id, id === RANDOM ? now : undefined));
+    // Choosing Custom, even again, opens what makes it.
+    if (key === 'bubble' && id === CUSTOM) setMaking(true);
     setSettings((s) => ({ ...s, [key]: id }));
   };
 
@@ -61,17 +68,18 @@ export default function App() {
       <StatusBar hidden />
       <Scene
         styles={styles}
+        mine={mine}
         feels={feels}
         env={env}
         glasses={glasses}
         taps={taps}
         fx={fx}
         popSignal={popSignal}
-        paused={preview !== null}
+        paused={preview !== null || making}
         onTouch={close}
       />
       <Tray
-        open={open && preview === null}
+        open={open && preview === null && !making}
         onToggle={() => setOpen((o) => !o)}
         walls={walls}
         onWalls={setWalls}
@@ -90,6 +98,7 @@ export default function App() {
           key={preview}
           setting={preview}
           settings={settings}
+          mine={mine}
           look={look}
           light={light}
           walls={walls}
@@ -99,6 +108,16 @@ export default function App() {
             setPreview(null);
           }}
           onClose={() => setPreview(null)}
+        />
+      )}
+      {making && (
+        <Maker
+          custom={custom}
+          mine={mine}
+          env={env}
+          calm={calm}
+          onChange={setCustom}
+          onClose={() => setMaking(false)}
         />
       )}
     </GestureHandlerRootView>

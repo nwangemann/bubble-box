@@ -2,7 +2,31 @@
 
 Each box is one small session. Tick it when done and move **Next**.
 
-**Next: 1.1**
+**Next: Phase 4, bubbles that merge.** Phases are in priority order, not number order: 4, 5 and 2b first, then the rest. Phase 1 sits last because it needs a person with a phone.
+
+## Phase 4: bubble
+
+- [x] Custom colour and pattern
+- [ ] On a phone: judge the maker and its patterns
+- [ ] Bubbles that merge
+- [ ] Background refraction
+- [ ] Style that shifts with speed or age
+
+## Phase 5: sound and release
+
+- [ ] Optional soft tones, pitched by size
+- [ ] Android pass
+- [ ] Store listing
+
+## Phase 2b: pop and meeting effects
+
+Everything here is selectable, with Random available and None as the default. What is built, and what needs a phone, is under Phase 2b, continued.
+
+- [ ] Second round of weird: reaction-diffusion bloom, strange attractor threads, cymatics, smoke knots, a fractal that zooms as it fades
+- [ ] Wall-hit effects from the same system
+- [ ] Style-specific pop and meeting effects
+- [ ] Pop pushes nearby bubbles, and has its own haptic
+- [ ] Measure frame time with several bursts on screen
 
 ## Phase 0: foundation (built)
 
@@ -15,21 +39,6 @@ Each box is one small session. Tick it when done and move **Next**.
 - [x] Tap a bubble to pop it, as an option
 - [x] Chosen defaults, and Random for every setting ([settings](settings.md))
 
-## Phase 1: finish the MVP on a phone
-
-- [ ] 1.1 (needs you; 1.2 to 1.7 too) Install on a phone and note what feels wrong
-- [ ] 1.2 Tune growth: start size, pace, largest size
-- [ ] 1.3 Tune launch: hold power, swipe strength, depth of the box
-- [ ] 1.4 Tune rebound, drift and wobble
-- [ ] 1.5 Tune haptics
-- [ ] 1.6 Pick favourite styles; keep 5 or 6
-- [ ] 1.7 Measure frame time with 10 bubbles on the oldest phone to support
-- [x] 1.8 Respect Reduce Motion
-- [x] 1.9 Remember the chosen options
-- [x] 1.10 App icon and splash (first version; confirm on a phone)
-
-MVP is done when a stranger understands it without words, and it holds 60 fps with 10 bubbles.
-
 ## Phase 2: touch depth
 
 - [ ] (blocked) Finger pressure and size shape the growing bubble. Gesture Handler reports only positions, so this needs a small native module, an ADR and a phone; recent iPhones report size but not pressure
@@ -37,8 +46,10 @@ MVP is done when a stranger understands it without words, and it holds 60 fps wi
 - [ ] Tune `TUNING.spin` on a phone
 - [x] Several fingers grow several bubbles
 - [ ] On a phone: judge several fingers, swipe strength and telling a sweep from growing (`TUNING.sweep`, `swipe`)
-- [ ] Flick a bubble to nudge it
-- [ ] Tilt adds a gentle gravity
+- [x] Flick a bubble to nudge it
+- [ ] Tune `TUNING.flick` on a phone, and judge whether it gets in the way of launching from a crowd
+- [x] Tilt adds a gentle gravity
+- [ ] Tune `TUNING.tilt` on a phone (simulators have no sensor), and judge whether it wants its own setting
 
 ## Phase 2a: clearing bubbles
 
@@ -50,18 +61,13 @@ Two-finger swipe is the way to clear bubbles; a single tap makes one. Tap to pop
 - [ ] Investigate more ways, possibly several at once: double tap on empty space lets all go, pinch until it bursts, bubbles that age and pop
 - [ ] Make the swipe leave a wake that pushes nearby bubbles
 
-## Phase 2b: pop and meeting effects
+## Phase 2b, continued: pop and meeting effects
 
 Exploration. Everything below is selectable, with Random available and None as the default; reduce at the end.
 
 - [x] Pop as a selectable option: film, droplets, mist, shatter, starlight, implode, brood, plus three fractal ones
 - [x] Bubble-to-bubble effects: sparks, chiral, sunflower, frost, Kali, Julia, chord, Apollo
 - [ ] Live with Meet and Pop on Random on a phone; note loved and unloved effects
-- [ ] Second round of weird: reaction-diffusion bloom, strange attractor threads, cymatics, smoke knots, a fractal that zooms as it fades
-- [ ] Wall-hit effects from the same system
-- [ ] Style-specific pop and meeting effects
-- [ ] Pop pushes nearby bubbles, and has its own haptic
-- [ ] Measure frame time with several bursts on screen
 - [ ] Reduce to the preferred set and choose defaults
 
 ## Phase 2c: preview picker
@@ -87,15 +93,17 @@ Tapping a category title in the tray (such as Bubble) opens a modal showing a me
 - [x] Day and night backdrops
 - [ ] On a phone: judge materials, day and wall light; measure frame time with 10 glowing bubbles in Water
 
-## Phase 4: bubble
+## Phase 1: finish the MVP on a phone
 
-- [ ] Custom colour and pattern
-- [ ] Bubbles that merge
-- [ ] Background refraction
-- [ ] Style that shifts with speed or age
+- [ ] 1.1 (needs you; 1.2 to 1.7 too) Install on a phone and note what feels wrong
+- [ ] 1.2 Tune growth: start size, pace, largest size
+- [ ] 1.3 Tune launch: hold power, swipe strength, depth of the box
+- [ ] 1.4 Tune rebound, drift and wobble
+- [ ] 1.5 Tune haptics
+- [ ] 1.6 Pick favourite styles; keep 5 or 6
+- [ ] 1.7 Measure frame time with 10 bubbles on the oldest phone to support
+- [x] 1.8 Respect Reduce Motion
+- [x] 1.9 Remember the chosen options
+- [x] 1.10 App icon and splash (first version; confirm on a phone)
 
-## Phase 5: sound and release
-
-- [ ] Optional soft tones, pitched by size
-- [ ] Android pass
-- [ ] Store listing
+MVP is done when a stranger understands it without words, and it holds 60 fps with 10 bubbles.

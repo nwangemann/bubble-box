@@ -4,6 +4,7 @@ import {
   type SkPaint,
   type SkRuntimeEffect,
 } from '@shopify/react-native-skia';
+import { CUSTOM, type CustomLook } from '@/config/custom';
 import { FX, QUIET, type Fx } from '@/fx';
 import { TUNING } from '@/config/tuning';
 import type { Environment } from '@/config/environments';
@@ -38,6 +39,7 @@ function drawBubble(
   w: World,
   box: Box,
   v: View,
+  mine: CustomLook,
 ) {
   'worklet';
   const effect = fx[b.style];
@@ -52,7 +54,7 @@ function drawBubble(
   const rx = b.r * s * swell * (1 + b.d.x - b.d.z * 0.3);
   const ry = b.r * s * swell * (1 + b.d.y - b.d.z * 0.3);
   const born = Math.min(1, b.r / 0.09);
-  const shader = effect.makeShader([
+  const uniforms = [
     w.time,
     b.seed,
     1 / Math.max(1, Math.min(rx, ry) * 2),
@@ -60,8 +62,9 @@ function drawBubble(
     body.tear ? gone : 0,
     b.p.z / box.depth,
     b.turn,
-  ]);
-  paint.setShader(shader);
+  ];
+  if (b.style === CUSTOM) uniforms.push(...mine.uniforms);
+  paint.setShader(effect.makeShader(uniforms));
   canvas.save();
   canvas.translate(v.cx + b.p.x * s, v.cy + b.p.y * s);
   canvas.scale(rx, ry);
@@ -69,7 +72,20 @@ function drawBubble(
   canvas.restore();
 }
 
-function drawBurst(canvas: SkCanvas, paint: SkPaint, fx: Effects, o: Burst, box: Box, v: View) {
+function tintOf(style: string, mine: CustomLook) {
+  'worklet';
+  return style === CUSTOM ? mine.tint : (TINTS[style] ?? WHITE);
+}
+
+function drawBurst(
+  canvas: SkCanvas,
+  paint: SkPaint,
+  fx: Effects,
+  o: Burst,
+  box: Box,
+  v: View,
+  mine: CustomLook,
+) {
   'worklet';
   const effect = fx[o.fx];
   const look = FX_LOOK[o.fx];
@@ -79,8 +95,8 @@ function drawBurst(canvas: SkCanvas, paint: SkPaint, fx: Effects, o: Burst, box:
   const dir = Math.atan2(o.n.y, o.n.x);
   // Seen from the side, the plane of contact narrows along the normal.
   const narrow = 1 - look.flat * (1 - Math.abs(o.n.z));
-  const a = TINTS[o.styleA] ?? WHITE;
-  const b = TINTS[o.styleB] ?? WHITE;
+  const a = tintOf(o.styleA, mine);
+  const b = tintOf(o.styleB, mine);
   paint.setShader(
     effect.makeShader([
       Math.min(1, o.age / look.life),
@@ -156,6 +172,8 @@ export function drawScene(
   env: Environment,
   /** For each glass in play, whether it bends. */
   bends: boolean[],
+  /** How Custom bubbles look now. */
+  mine: CustomLook,
 ) {
   'worklet';
   for (const r of world.ripples) {
@@ -165,6 +183,6 @@ export function drawScene(
   }
   const all = [...world.bubbles, ...heldBubbles(world)];
   all.sort((a, b) => b.p.z - a.p.z);
-  for (const b of all) drawBubble(canvas, bubblePaint, fx, b, world, box, view);
-  for (const o of world.bursts) drawBurst(canvas, burstPaint, burstFx, o, box, view);
+  for (const b of all) drawBubble(canvas, bubblePaint, fx, b, world, box, view, mine);
+  for (const o of world.bursts) drawBurst(canvas, burstPaint, burstFx, o, box, view, mine);
 }
