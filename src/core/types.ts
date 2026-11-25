@@ -15,6 +15,8 @@ export type Bubble = {
   dv: Vec3;
   /** Seconds since it began popping; negative while alive. */
   popping: number;
+  /** Effect chosen when it began popping. */
+  popFx: string;
 };
 
 export type Axis = 'x' | 'y' | 'z';
@@ -22,6 +24,33 @@ export type Ripple = { p: Vec3; axis: Axis; age: number; strength: number };
 
 /** A hit on the glass, in screen-plane coordinates. */
 export type Wave = { x: number; y: number; age: number; strength: number };
+
+/** Light thrown off where bubbles meet or pop. Drawn by `src/fx`. */
+export type Burst = {
+  fx: string;
+  p: Vec3;
+  v: Vec3;
+  /** Contact normal, from bubble a to bubble b. */
+  n: Vec3;
+  /** Sideways rub, -1 to 1 as seen by the viewer. */
+  spin: number;
+  size: number;
+  strength: number;
+  seed: number;
+  age: number;
+  styleA: string;
+  styleB: string;
+  /** Ids of the pair, or 0 for a pop. */
+  pair: number;
+};
+
+/** Effects to choose from; more than one means a surprise, none means no effect. */
+export type FxPools = {
+  meet: string[];
+  pop: string[];
+  lives: Record<string, number>;
+  pieces: Record<string, number>;
+};
 
 export type Held = {
   bubble: Bubble;
@@ -37,6 +66,11 @@ export type World = {
   bubbles: Bubble[];
   ripples: Ripple[];
   waves: Wave[];
+  bursts: Burst[];
+  fx: FxPools;
+  /** A two-finger swipe in progress. Bubbles born during it are spared. */
+  sweep: { firstSpared: number; travelled: number } | null;
+  lastLaunch: { id: number; time: number; heldFor: number };
   held: Held | null;
   time: number;
   leftover: number;

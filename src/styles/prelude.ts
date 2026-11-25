@@ -11,7 +11,10 @@ uniform float px;
 uniform float fade;
 uniform float pop;
 uniform float fog;
+`;
 
+/** Helpers shared with effects. */
+export const LIB = `
 const float TAU = 6.2831853;
 
 float hash(vec2 q) {
@@ -44,6 +47,9 @@ float shine(vec3 n) {
        + 0.1 * spot(n, vec3(-0.4, -0.6, 0.7), 7.0);
 }
 float rimPow(float rim, float k) { return pow(clamp(rim, 0.0, 1.0), k); }
+`;
+
+export const SKIN = `
 // Spherical coordinates that swirl, for anything living on the surface.
 vec2 skin(vec3 n, float speed) {
   return rot(seed * TAU + time * speed) * (n.xy / (0.55 + n.z));

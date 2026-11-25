@@ -20,6 +20,10 @@ Each step: grow and move the held bubble, integrate free bubbles, resolve bubble
 
 A touch that starts on a bubble stays hidden and weightless for `TUNING.tap.seconds`. Released sooner without moving, it pops that bubble; held longer, it grows as usual.
 
+A second finger starts a sweep: the first finger's new bubble is taken back, and fingers pop what they cross. Bubbles born during the sweep are spared.
+
+Meetings and pops add a `Burst`: contact normal, sideways rub (`spin`), strength and both styles. `drawBurst` draws it as one additive shader rect aimed along the normal.
+
 Past `maxBubbles`, the oldest pops.
 
 ## Scene
@@ -27,5 +31,5 @@ Past `maxBubbles`, the oldest pops.
 - `roomPicture` records the room once per environment, shown on its own canvas.
 - A hit on the glass adds a `Wave` to the world. While any wave lives and the Glass option is on, the room and bubbles are drawn together through `glassFilter`, a full-screen refraction. Otherwise that pass does not run. It works in device pixels.
 - `drawScene` draws ripples, then bubbles far to near. Each bubble is one rect with its style's shader, in local coordinates where the edge is at 1.
-- Shader uniforms are positional. Their order is shared by `styles/prelude.ts` and `drawBubble`.
+- Shader uniforms are positional. Their order is shared by `styles/prelude.ts` and `drawBubble`; for effects, by `fx/shell.ts` and `drawBurst`.
 - The held bubble keeps the style it was born with, so styles mix in one room.

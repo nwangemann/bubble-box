@@ -9,7 +9,12 @@ Zen simplicity and beauty. Every action is simple, organic and calm.
 3. Release: it leaves the glass into the box. A longer hold launches harder; a swipe steers; a larger bubble turns less readily.
 4. It meets a wall, squashes, sends a ripple across it and rebounds, eventually back to the viewer.
 5. Meeting the glass sends a gentle refracting ripple across the screen (the Glass option).
-6. A quick tap on a bubble pops it (the Tap option).
+6. Bubbles that meet throw light shaped by the collision (the Meet option).
+7. A two-finger swipe pops what it crosses (the Pop option chooses how). A tap can also pop (the Tap option).
+
+## Spirit
+
+A solo, experimental project. Artistic fun decides. Lean on intuitive gestures, but broad accessibility is not the priority: be fun and weird, explore widely, then reduce.
 
 ## Principles
 
@@ -25,4 +30,4 @@ Zen simplicity and beauty. Every action is simple, organic and calm.
 - **Glass**: that near face.
 - **Held**: a bubble still under the finger.
 - **Charge**: 0 to 1, how far a hold has progressed.
-- **Style**: how a bubble looks. **Environment**: how the box looks and bounces. **Feel**: a physics preset.
+- **Burst**: the light from a meeting or a pop. **Style**: how a bubble looks. **Environment**: how the box looks and bounces. **Feel**: a physics preset.

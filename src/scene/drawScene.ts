@@ -4,17 +4,31 @@ import {
   type SkPaint,
   type SkRuntimeEffect,
 } from '@shopify/react-native-skia';
+import { FX, type Fx } from '@/fx';
 import { TUNING } from '@/config/tuning';
 import type { Environment } from '@/config/environments';
+import { STYLES, type StyleId } from '@/styles';
 import { scaleAt } from '@/core/projection';
 import { mayBeTap } from '@/core/world';
-import type { Box, Bubble, Ripple, World } from '@/core/types';
+import type { Box, Bubble, Burst, Ripple, World } from '@/core/types';
 
 export type Effects = Record<string, SkRuntimeEffect>;
 export type View = { cx: number; cy: number; ppu: number };
 
 const HALO = 1.5;
 const RING_POINTS = 48;
+const PLAIN = FX.film.body;
+/** Plain data the UI thread can hold; shader text stays behind. */
+const FX_LOOK = Object.fromEntries(
+  (Object.entries(FX) as [string, Fx][]).map(([id, f]) => [
+    id,
+    { life: f.life, reach: f.reach, flat: f.flat, body: f.body ?? PLAIN },
+  ]),
+);
+const TINTS = Object.fromEntries(
+  (Object.keys(STYLES) as StyleId[]).map((id) => [id, [...STYLES[id].tint]]),
+) as Record<string, number[]>;
+const WHITE = [1, 1, 1];
 
 function drawBubble(
   canvas: SkCanvas,
@@ -30,7 +44,10 @@ function drawBubble(
   if (!effect) return;
   const s = scaleAt(box, b.p.z) * v.ppu;
   const pop = b.popping < 0 ? 0 : b.popping / TUNING.popSeconds;
-  const swell = 1 + pop * 0.12;
+  const body = FX_LOOK[b.popFx]?.body ?? PLAIN;
+  // Falls inwards gathering speed, or swells steadily.
+  const swell = Math.max(0.01, 1 + body.swell * (body.swell < 0 ? pop * pop : pop));
+  const gone = Math.min(1, pop * body.haste);
   // Squash along z shows as the disc growing or shrinking.
   const rx = b.r * s * swell * (1 + b.d.x - b.d.z * 0.3);
   const ry = b.r * s * swell * (1 + b.d.y - b.d.z * 0.3);
@@ -39,8 +56,8 @@ function drawBubble(
     w.time,
     b.seed,
     1 / Math.max(1, Math.min(rx, ry) * 2),
-    born * (1 - pop * pop),
-    pop,
+    born * (1 - gone * gone),
+    body.tear ? gone : 0,
     b.p.z / box.depth,
   ]);
   paint.setShader(shader);
@@ -48,6 +65,42 @@ function drawBubble(
   canvas.translate(v.cx + b.p.x * s, v.cy + b.p.y * s);
   canvas.scale(rx, ry);
   canvas.drawRect({ x: -HALO, y: -HALO, width: HALO * 2, height: HALO * 2 }, paint);
+  canvas.restore();
+}
+
+function drawBurst(canvas: SkCanvas, paint: SkPaint, fx: Effects, o: Burst, box: Box, v: View) {
+  'worklet';
+  const effect = fx[o.fx];
+  const look = FX_LOOK[o.fx];
+  if (!effect || !look) return;
+  const s = scaleAt(box, o.p.z) * v.ppu;
+  const radius = (0.12 + o.size) * look.reach * s;
+  const dir = Math.atan2(o.n.y, o.n.x);
+  // Seen from the side, the plane of contact narrows along the normal.
+  const narrow = 1 - look.flat * (1 - Math.abs(o.n.z));
+  const a = TINTS[o.styleA] ?? WHITE;
+  const b = TINTS[o.styleB] ?? WHITE;
+  paint.setShader(
+    effect.makeShader([
+      Math.min(1, o.age / look.life),
+      o.seed,
+      o.strength,
+      o.spin,
+      dir,
+      1 / Math.max(1, radius),
+      a[0]!,
+      a[1]!,
+      a[2]!,
+      b[0]!,
+      b[1]!,
+      b[2]!,
+    ]),
+  );
+  canvas.save();
+  canvas.translate(v.cx + o.p.x * s, v.cy + o.p.y * s);
+  canvas.rotate((dir * 180) / Math.PI, 0, 0);
+  canvas.scale(radius * narrow, radius);
+  canvas.drawRect({ x: -1, y: -1, width: 2, height: 2 }, paint);
   canvas.restore();
 }
 
@@ -93,7 +146,9 @@ export function drawScene(
   canvas: SkCanvas,
   bubblePaint: SkPaint,
   ripplePaint: SkPaint,
+  burstPaint: SkPaint,
   fx: Effects,
+  burstFx: Effects,
   world: World,
   box: Box,
   view: View,
@@ -110,4 +165,5 @@ export function drawScene(
     world.held && !mayBeTap(world) ? [...world.bubbles, world.held.bubble] : [...world.bubbles];
   all.sort((a, b) => b.p.z - a.p.z);
   for (const b of all) drawBubble(canvas, bubblePaint, fx, b, world, box, view);
+  for (const o of world.bursts) drawBurst(canvas, burstPaint, burstFx, o, box, view);
 }

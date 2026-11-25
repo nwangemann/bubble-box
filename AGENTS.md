@@ -18,6 +18,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Screen-side ripple strength and options  | `src/config/glass.ts`        |
 | Screen-side ripple shader                | `src/scene/glassFilter.ts`   |
 | What a tap on a bubble does              | `src/config/taps.ts`         |
+| Meet and pop effects                     | `src/fx/`                    |
 | Options tray                             | `src/ui/Tray.tsx`            |
 
 ## Read before working
@@ -30,7 +31,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 
 ## Rules
 
-- `src/core` imports no React, Skia or Expo. Every function there starts with `'worklet'`.
+- `src/core` imports no React, Skia or Expo. Every function there starts with `'worklet'`, and is defined above anything that calls it: worklets capture what exists when they are defined, so no forward calls or mutual recursion.
 - Tunable numbers live in `src/config`, not inline.
 - Nothing in the frame loop goes through React state.
 - No new dependency without an ADR in `docs/adr`. No physics or 3D engine (ADR 1).

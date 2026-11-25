@@ -1,7 +1,17 @@
 import { FEELS } from '../config/feels';
 import { TUNING } from '../config/tuning';
 import type { Box } from './types';
-import { advance, beginHold, createWorld, finishTap, radiusAt, release } from './world';
+import {
+  advance,
+  beginHold,
+  createWorld,
+  finishTap,
+  radiusAt,
+  release,
+  beginSweep,
+  endSweep,
+  sweepAlong,
+} from './world';
 
 const box: Box = { hw: 1, hh: 2.17, depth: 5, focal: 3.2 };
 const run = (w: ReturnType<typeof createWorld>, s: number, feel = FEELS.drift) => {
@@ -95,4 +105,68 @@ test('a quick tap pops the bubble under it; holding there grows a new one', () =
   expect(finishTap(h)).toBe(false);
   release(h, 0, 0, 1);
   expect(h.bubbles).toHaveLength(2);
+});
+
+const pools = {
+  meet: ['sparks'],
+  pop: ['brood'],
+  lives: { sparks: 1.5, brood: 0.9 },
+  pieces: { brood: 5 },
+};
+
+test('bubbles that meet throw one burst per contact', () => {
+  const w = createWorld(pools);
+  beginHold(w, box, 0, 0, 'soap');
+  run(w, 0.6);
+  release(w, 0, 0, 1);
+  beginHold(w, box, 0, 0, 'ink');
+  run(w, 0.6);
+  release(w, 0, 0, 1);
+  let seen = 0;
+  for (let i = 0; i < 600 && seen === 0; i++) {
+    advance(w, box, FEELS.weightless, 1, 1 / 60);
+    seen = w.bursts.length;
+  }
+  expect(seen).toBe(1);
+  expect(Math.hypot(...Object.values(w.bursts[0]!.n))).toBeCloseTo(1);
+  w.bubbles = [];
+  run(w, 2);
+  expect(w.bursts).toHaveLength(0);
+});
+
+test('a tapped bubble can break into pieces, small ones cannot', () => {
+  const w = createWorld(pools);
+  beginHold(w, box, 0, 0, 'soap');
+  run(w, 1);
+  release(w, 0, 0, 1);
+  run(w, 0.3);
+  beginHold(w, box, 0, 0, 'soap', true);
+  expect(finishTap(w)).toBe(true);
+  const alive = () => w.bubbles.filter((b) => b.popping < 0);
+  expect(alive()).toHaveLength(5);
+  run(w, 1);
+  for (const b of alive()) b.r = 0.05;
+  w.bubbles[0]!.p = { x: 0, y: 0, z: 0.05 };
+  beginHold(w, box, 0, 0, 'soap', true);
+  expect(finishTap(w)).toBe(true);
+  expect(alive()).toHaveLength(4);
+});
+
+test('a two-finger swipe pops what it crosses and takes back the first finger', () => {
+  const w = createWorld(pools);
+  beginHold(w, box, 0, 0, 'soap');
+  run(w, 1);
+  release(w, 0, 0, 1);
+  run(w, 0.5);
+  beginHold(w, box, 0.8, 1.8, 'soap');
+  run(w, 0.05);
+  beginSweep(w);
+  expect(w.held).toBeNull();
+  expect(sweepAlong(w, box, 0, 0, 0.01, 0)).toBe(0);
+  expect(sweepAlong(w, box, -0.9, 1.9, -0.9, 1.5)).toBe(0);
+  expect(sweepAlong(w, box, -0.9, 0, 0.9, 0)).toBe(1);
+  // Its pieces survive the swipe that made them.
+  expect(sweepAlong(w, box, 0.9, 0, -0.9, 0)).toBe(0);
+  endSweep(w);
+  expect(w.bubbles.filter((b) => b.popping < 0)).toHaveLength(5);
 });

@@ -12,7 +12,7 @@ Each box is one small session. Tick it when done and move **Next**.
 - [x] Walls, rebound, squash, ripples, bubble contacts
 - [x] 12 bubble styles, 4 environments, 5 feels, tray
 - [x] Glass ripple on the screen side, with a toggle
-- [x] Tap a bubble to pop it, with a toggle
+- [x] Tap a bubble to pop it, as an option
 
 ## Phase 1: finish the MVP on a phone
 
@@ -37,32 +37,29 @@ MVP is done when a stranger understands it without words, and it holds 60 fps wi
 - [ ] Flick a bubble to nudge it
 - [ ] Tilt adds a gentle gravity
 
-## Phase 2a: grow and pop without a mode
+## Phase 2a: clearing bubbles
 
-Goal: never open the tray to remove a bubble, and never need to know which mode is on.
+Two-finger swipe is the way to clear bubbles; a single tap makes one. Tap to pop stays as an option.
 
-Today, with Tap set to Pop: a quick tap on a bubble pops it; a tap on empty space, or a hold anywhere, grows one. The cost is that a full room leaves little empty space for small new bubbles.
+- [x] Two-finger swipe pops what it crosses
+- [ ] Tune `TUNING.sweep` on a phone
+- [ ] First-time hint: after the first bubble, quietly suggest the two-finger swipe, once
+- [ ] Investigate more ways, possibly several at once: double tap on empty space lets all go, pinch until it bursts, bubbles that age and pop
+- [ ] Make the swipe leave a wake that pushes nearby bubbles
 
-- [ ] Live with the current rule on a phone; note each wrong result
-- [ ] Tune `TUNING.tap` (time, movement, target size)
-- [ ] Ignore far, small bubbles as tap targets when the room is full
-- [ ] Try double tap on empty space to let every bubble go
-- [ ] Try a two-finger swipe that pops what it crosses
-- [ ] Try pinching a bubble until it bursts
-- [ ] Try bubbles that age and pop by themselves, as a Feel field
-- [ ] If the rule holds up, remove the Tap option
+## Phase 2b: pop and meeting effects
 
-Prefer not to use: shake (clumsy, undo on iOS), a mode button (has to be remembered), a long press to pop (conflicts with growing).
+Exploration. Everything below is selectable, with Surprise as the default; reduce at the end.
 
-## Phase 2b: pop effects
-
-Explore after the first version is committed. Today a pop swells slightly while the film tears open from the middle.
-
-- [ ] Make pop a selectable option, like Feel
-- [ ] Try several: droplet burst, mist, shatter, dissolve into light, inward collapse, split into small bubbles
-- [ ] Let each style have its own pop
-- [ ] Pop haptic, and a push on nearby bubbles
-- [ ] Compare on a phone and keep the best
+- [x] Pop as a selectable option: film, droplets, mist, shatter, starlight, implode, brood, plus three fractal ones
+- [x] Bubble-to-bubble effects: sparks, chiral, sunflower, frost, Kali, Julia, chord, Apollo
+- [ ] Live with Surprise on a phone; note loved and unloved effects
+- [ ] Second round of weird: reaction-diffusion bloom, strange attractor threads, cymatics, smoke knots, a fractal that zooms as it fades
+- [ ] Wall-hit effects from the same system
+- [ ] Style-specific pop and meeting effects
+- [ ] Pop pushes nearby bubbles, and has its own haptic
+- [ ] Measure frame time with several bursts on screen
+- [ ] Reduce to the preferred set and choose defaults
 
 ## Phase 3: box
 
