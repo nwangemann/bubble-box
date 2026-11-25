@@ -110,6 +110,10 @@ Selectable, with Random available and None as the default.
 - [ ] 8.20 Coalescence and pop sounds pitched by size, a triumphant flourish for the winner
 - [ ] 8.21 Music per theme
 
+### Web preview
+
+- [ ] 8.22 Load faster. Measure first, on a phone in Safari, cold and repeat: first paint, downloads, Skia compiling, first frame. Are preloads used there? Then try, largest first: a smaller CanvasKit (3.3 of the 3.9 MB zipped; does the app need the full build?), Brotli (needs HTTPS), Skia cached for good under a name that changes with it, a service worker, a smaller app script (showdown, preview and 8-ball loaded when opened), running the app script sooner after Skia. Perhaps Home Screen launch images, and an error when the start script itself fails
+
 ## 9. Blocked
 
 - [ ] 9.1 Finger pressure and size shape the growing bubble. Gesture Handler reports only positions, so this needs a small native module, an ADR and a phone; recent iPhones report size but not pressure
@@ -119,6 +123,7 @@ Selectable, with Random available and None as the default.
 ### Core
 
 - A web preview, to try the app in a phone's browser without Xcode ([running](running.md), ADR 3). Safari on the simulator, on the Mac's own processor: 10 bubbles 53 to 60 fps, 8-ball 58 to 60, showdown with 12 at 60. A phone's is not known yet
+- The preview's loading: a breathing bubble inlined in the page, Skia and the app fetched at once, all zipped (10.6 to 3.9 MB), scripts cached. Not timed on a phone
 
 - Foundation: project, docs, physics core with tests, hold, launch, walls, ripples, contacts, 12 styles, 4 environments, 5 feels, tray, glass ripple, tap to pop, defaults and Random ([settings](settings.md))
 - Saved settings, Reduce Motion, first icon and splash

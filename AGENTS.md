@@ -28,6 +28,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Meet and pop effects                     | `src/fx/`                                                          |
 | Default settings, menu tiles, Random     | `src/config/defaults.ts`                                           |
 | Web preview: start, storage, page        | `src/start.web.ts`, `src/services/store.web.ts`, `public/`         |
+| Web preview: after the build, serving    | `scripts/`                                                         |
 | Saved settings, Reduce Motion            | `src/services/`                                                    |
 | Options menu and its tiles               | `src/ui/Tray.tsx`                                                  |
 | Calm, Showdown and 8-ball switch         | `src/config/modes.ts`, `src/ui/ModeSwitch.tsx`                     |

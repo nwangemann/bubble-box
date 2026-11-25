@@ -36,9 +36,71 @@
       #root {
         display: flex;
       }
+      /* Shown until the app has drawn (src/start.web.ts). All inline, so it needs only this page.
+         Only transform and opacity move, so it keeps breathing while scripts run. */
+      #loading {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #070a18;
+        pointer-events: none;
+        transition: opacity 0.5s ease;
+      }
+      #loading.done {
+        opacity: 0;
+      }
+      #loading i {
+        grid-area: 1 / 1;
+        width: 112px;
+        height: 112px;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.85), transparent 13%),
+          radial-gradient(circle at 70% 78%, rgba(255, 190, 225, 0.35), transparent 32%),
+          radial-gradient(
+            circle,
+            transparent 48%,
+            rgba(140, 190, 255, 0.25) 62%,
+            rgba(215, 190, 255, 0.7) 69%,
+            transparent 71%
+          );
+        animation: breathe 2.6s ease-in-out infinite alternate;
+      }
+      #loading p {
+        grid-area: 1 / 1;
+        margin: 0;
+        padding-top: 190px;
+        color: rgba(255, 255, 255, 0.7);
+        font: 15px system-ui;
+      }
+      #loading.failed i {
+        animation: none;
+        opacity: 0.35;
+      }
+      @keyframes breathe {
+        from {
+          transform: scale(0.78);
+          opacity: 0.65;
+        }
+        to {
+          transform: scale(1.08);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #loading i {
+          animation-name: glow;
+        }
+        @keyframes glow {
+          from {
+            opacity: 0.5;
+          }
+        }
+      }
     </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="loading" role="status" aria-label="Loading"><i></i></div>
   </body>
 </html>
