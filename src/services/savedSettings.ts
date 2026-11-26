@@ -2,6 +2,7 @@ import { cleanCustom, type Custom } from '@/config/custom';
 import { cleanPool, type PoolSettings } from '@/config/poolOptions';
 import { cleanCount, cleanRule, type RuleId } from '@/config/rules';
 import { cleanSettings, cleanWalls, type Settings } from '@/config/defaults';
+import { cleanSound, type SoundChoice } from '@/config/sound';
 import { cleanTally, type Tally } from '@/config/tally';
 import type { Walls } from '@/config/environments';
 import { cleanCast, type CastChoice } from '@/showdown/casts';
@@ -16,6 +17,8 @@ type Saved = {
   cast: CastChoice;
   tally: Tally;
   pool: PoolSettings;
+  /** One for the whole app, shown in the calm menu and 8-ball's. */
+  sound: SoundChoice;
   /** The first-time hint is no longer needed. */
   hinted: boolean;
 };
@@ -29,6 +32,7 @@ const clean = (data: unknown): Saved => ({
   cast: cleanCast((data as { cast?: unknown } | null)?.cast),
   tally: cleanTally((data as { tally?: unknown } | null)?.tally),
   pool: cleanPool((data as { pool?: unknown } | null)?.pool),
+  sound: cleanSound((data as { sound?: unknown } | null)?.sound),
   hinted: (data as { hinted?: unknown } | null)?.hinted === true,
 });
 

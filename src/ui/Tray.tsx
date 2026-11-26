@@ -6,7 +6,8 @@ import { ModeSwitch } from './ModeSwitch';
 
 const M = TUNING.menu;
 
-type Tile<K> = { key: K; label: string; value: string };
+/** `hint`, if given, is what a tap on this tile does, in place of the menu's. */
+type Tile<K> = { key: K; label: string; value: string; hint?: string };
 type Props<K> = {
   /** Whose menu it is. */
   mode: Mode;
@@ -52,14 +53,14 @@ export function Tray<K extends string>({
               style={styles.scroll}
               contentContainerStyle={[styles.grid, { width: grid }]}
             >
-              {tiles.map(({ key, label, value }) => (
+              {tiles.map(({ key, label, value, hint: own }) => (
                 <Pressable
                   key={key}
                   onPress={() => onTile(key)}
                   accessibilityRole="button"
                   accessibilityLabel={label}
                   accessibilityValue={{ text: value }}
-                  accessibilityHint={hint}
+                  accessibilityHint={own ?? hint}
                   style={({ pressed }) => [styles.tile, tile, pressed && styles.pressed]}
                 >
                   <Text numberOfLines={1} style={styles.label}>

@@ -23,9 +23,11 @@ import { CUSTOM, customLook, type Custom } from '@/config/custom';
 import { dress, type Walls } from '@/config/environments';
 import type { Mode } from '@/config/modes';
 import { RULES, type RuleId } from '@/config/rules';
+import { nextSound, SOUND_CHOICE, soundName } from '@/config/sound';
 import { addWin } from '@/config/tally';
 import { Scene } from '@/scene/Scene';
 import { loadSettings, saveSettings } from '@/services/savedSettings';
+import { prepareSound } from '@/services/sound';
 import { useReduceMotion } from '@/services/useReduceMotion';
 import { THEME_IDS, THEMES, type ThemeId } from '@/showdown';
 import { castFor, mostOf, type CastChoice, type CastId } from '@/showdown/casts';
@@ -35,6 +37,8 @@ import { Picker } from '@/ui/Picker';
 import { Pool } from '@/ui/Pool';
 import { Showdown } from '@/ui/Showdown';
 import { Tray } from '@/ui/Tray';
+
+const SOUND_KEY = 'sound';
 
 export default function App() {
   const [saved] = useState(loadSettings);
@@ -63,11 +67,15 @@ export default function App() {
   } | null>(null);
   const [pool, setPool] = useState(false);
   const [poolSettings, setPoolSettings] = useState(saved.pool);
+  const [sound, setSound] = useState(saved.sound);
   const [popSignal, setPopSignal] = useState(0);
   const close = useCallback(() => setOpen(false), []);
   const learned = useCallback(() => setHinted(true), []);
 
   const calm = useReduceMotion();
+  useEffect(() => {
+    prepareSound().catch(() => {});
+  }, []);
   useEffect(() => {
     // A slider moves many times a second; one write at the end is enough.
     const timer = setTimeout(
@@ -81,12 +89,13 @@ export default function App() {
           cast,
           tally,
           pool: poolSettings,
+          sound,
           hinted,
         }),
       300,
     );
     return () => clearTimeout(timer);
-  }, [settings, walls, custom, rule, count, cast, tally, poolSettings, hinted]);
+  }, [settings, walls, custom, rule, count, cast, tally, poolSettings, sound, hinted]);
 
   const { bubble, feel, glass, tap, contact, pull, trail, meet, pop } = settings;
   const styles = useMemo(() => stylePool(bubble), [bubble]);
@@ -143,6 +152,7 @@ export default function App() {
         calm={calm}
         hints={!hinted}
         hush={open}
+        sound={sound === 'tones'}
         onHinted={learned}
         onTouch={close}
       />
@@ -153,12 +163,20 @@ export default function App() {
         onToggle={() => setOpen((o) => !o)}
         onMode={switchTo}
         onPopAll={() => setPopSignal((n) => n + 1)}
-        onTile={setPreview}
-        tiles={ROWS.map(({ key, label, options }) => ({
-          key,
-          label,
-          value: options.find((o) => o.id === settings[key])!.name,
-        }))}
+        onTile={(key) => (key === SOUND_KEY ? setSound(nextSound) : setPreview(key))}
+        tiles={[
+          ...ROWS.map(({ key, label, options }) => ({
+            key: key as Setting | typeof SOUND_KEY,
+            label,
+            value: options.find((o) => o.id === settings[key])!.name,
+          })),
+          {
+            key: SOUND_KEY,
+            label: SOUND_CHOICE.label,
+            value: soundName(sound),
+            hint: 'Changes to the next option',
+          },
+        ]}
       />
       {preview && (
         <Picker
@@ -220,7 +238,14 @@ export default function App() {
         />
       )}
       {pool && (
-        <Pool settings={poolSettings} calm={calm} onSettings={setPoolSettings} onMode={switchTo} />
+        <Pool
+          settings={poolSettings}
+          calm={calm}
+          onSettings={setPoolSettings}
+          sound={sound}
+          onSound={setSound}
+          onMode={switchTo}
+        />
       )}
     </GestureHandlerRootView>
   );

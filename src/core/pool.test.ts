@@ -5,6 +5,7 @@ import {
   clearTable,
   createPool,
   enter,
+  newestPot,
   pockets,
   retire,
   rollOf,
@@ -448,4 +449,22 @@ test('unspent draw fades on the way, and a cue ball sent with it keeps it', () =
   expect(cue.roll).toBe(-1);
   advancePool(pool, box, POOL.roll.fade);
   expect(cue.roll).toBeCloseTo(-Math.exp(-1), 2);
+});
+
+test('the newest pot gives its weight, or 1 before the rules weigh it', () => {
+  const pool = createPool(box);
+  expect(newestPot(pool)).toBe(1);
+  const [, a, b] = pool.balls;
+  a!.sunk = 0.8;
+  a!.pocket = 2;
+  a!.weight = POOL.pot.meaning.foul;
+  b!.sunk = 0.01;
+  b!.pocket = 4;
+  expect(newestPot(pool)).toBe(1);
+  b!.weight = POOL.pot.meaning.eight;
+  expect(newestPot(pool)).toBe(POOL.pot.meaning.eight);
+  // The cue ball's scratch is no pot.
+  pool.balls[0]!.sunk = 0;
+  pool.balls[0]!.pocket = 1;
+  expect(newestPot(pool)).toBe(POOL.pot.meaning.eight);
 });

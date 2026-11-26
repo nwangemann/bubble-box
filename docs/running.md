@@ -24,4 +24,6 @@ Expo Go is not used. Rebuild after adding native code. `npx expo prebuild` regen
 
 Launch the dev build once: opening its deep link right after launching loads the app twice and leaves the splash showing.
 
+Sound plays through the Mac on a simulator, which has no silent switch: judge loudness and the switch on a phone.
+
 The icon and splash are the Pearl bubble, cropped from a simulator screenshot of the real shader. Rebuild after changing anything in `assets/` or `app.json`.

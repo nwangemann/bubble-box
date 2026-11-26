@@ -505,6 +505,18 @@ function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
   for (let i = 0; i < balls.length; i++) mark(pool, i, box, false);
 }
 
+/** How much the latest pot means (`Ball.weight`), for its tone; 1 when the rules have not said. */
+export function newestPot(pool: Pool) {
+  'worklet';
+  let at = -1;
+  pool.balls.forEach((b, i) => {
+    if (i === 0 || b.sunk < 0 || b.pocket < 0) return;
+    if (at < 0 || b.sunk < pool.balls[at]!.sunk) at = i;
+  });
+  const w = at < 0 ? -1 : pool.balls[at]!.weight;
+  return w < 0 ? 1 : w;
+}
+
 /** Lets the old cue ball go. */
 export function retire(pool: Pool) {
   'worklet';

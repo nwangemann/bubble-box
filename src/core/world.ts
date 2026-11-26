@@ -30,6 +30,7 @@ export function createWorld(fx: FxPools = { meet: [], pop: [], lives: {}, pieces
     nextId: 1,
     duel: null,
     impact: 0,
+    impactR: 0,
     popped: 0,
   };
 }
@@ -457,7 +458,10 @@ function bounce(
     else b.v.x += kick;
     b.spin *= T.spin.keep;
   }
-  world.impact = Math.max(world.impact, into);
+  if (into > world.impact) {
+    world.impact = into;
+    world.impactR = b.r;
+  }
   // Chooses the glass when several are in play; the wave and the ring must agree.
   const variant = Math.random();
   if (axis === 'z' && side < 0 && into > T.glass.minImpact) {
@@ -864,6 +868,7 @@ export function advance(
 ) {
   'worklet';
   world.impact = 0;
+  world.impactR = 0;
   const dt = Math.min(seconds, T.maxFrame);
   for (const r of world.ripples) r.age += dt;
   world.ripples = world.ripples.filter((r) => r.age < T.rippleSeconds);

@@ -15,6 +15,9 @@ The menu opens from the dot: a tile for each setting, with its name and what is 
 | Trail   | None       | Ribbon, Light, Echo                                                                         | Each bubble, for life                           |
 | Meet    | None       | Sparks, Chiral, Sunflower, Frost, Kali, Julia, Chord, Apollo                                | Each meeting                                    |
 | Pop     | None       | Film, Droplets, Mist, Shatter, Starlight, Implode, Brood, Chiral, Sunflower, Julia          | Each pop                                        |
+| Sound   | Off        | Tones                                                                                       | No Random; a tap changes it, without previews   |
+
+Sound is one choice for the whole app, its tile in both menus: soft tones as a bubble meets a wall or the glass, lower for a larger bubble and louder for a harder hit, a lighter one for a pop, and in 8-ball one for each pot, lower for a foul and higher for the last of a group or the 8. They follow the silent switch and leave other apps' sound playing.
 
 Pull draws bubbles towards each other: Near is strong but short, Far is soft and long, Heavy grows with size. Trail shows where a bubble has been: Ribbon is a sliver of film, Light a glowing thread in the bubble's colour, Echo faint images of the bubble that thin to rings. Random never picks None for either. Pop None fades the bubble away quickly with no effect. Every pop, even None, gently pushes bubbles near it. Two-finger swipe always clears bubbles.
 
@@ -45,6 +48,7 @@ Its options are its own, apart from the calm room's: tiles in its menu, opened f
 | Cloth    | Space     | Felt           | The table: the see-through room, or felt                     |
 | Aim      | Line      | Cue            | A line ahead, or a cue behind the ball too                   |
 | Opponent | Friend    | Computer       | Who plays player 2: a friend on the same phone, or the phone |
+| Sound    | Off       | Tones          | The app's one Sound choice, shared with the calm menu        |
 
 ## Custom
 

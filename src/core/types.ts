@@ -189,6 +189,8 @@ export type World = {
   duel: Duel | null;
   /** Strongest impact in the latest advance, for haptics. */
   impact: number;
+  /** Radius of the bubble that made `impact`, for the pitch of its tone. */
+  impactR: number;
   /** Radius of the largest bubble popped since last asked, for haptics; 0 for none. */
   popped: number;
 };

@@ -14,6 +14,7 @@ import type { Tap } from '@/config/taps';
 import type { TrailLook } from '@/config/trails';
 import { TUNING } from '@/config/tuning';
 import { advanceHint, createHint, learnHint } from '@/core/hint';
+import { soundBounce, soundPop } from '@/services/tones';
 import { lean, settleTilt } from '@/core/tilt';
 import type { Box, FxPools, Vec3 } from '@/core/types';
 import {
@@ -66,6 +67,8 @@ type Props = {
   hints: boolean;
   /** Holds the hint back, while the menu is open. */
   hush: boolean;
+  /** Soft tones as bubbles meet walls and pop. */
+  sound: boolean;
   onHinted: () => void;
   onTouch: () => void;
 };
@@ -100,6 +103,7 @@ export function Scene({
   calm,
   hints,
   hush,
+  sound,
   onHinted,
   onTouch,
 }: Props) {
@@ -158,6 +162,8 @@ export function Scene({
         lastBuzz.value = w.time;
         if (popped > 0) scheduleOnRN(buzzPop, popped);
         else scheduleOnRN(buzz, w.impact);
+        if (sound && popped > 0) scheduleOnRN(soundPop, popped);
+        else if (sound) scheduleOnRN(soundBounce, w.impactR, w.impact);
       }
     }
     picture.value = createPicture((canvas) => {

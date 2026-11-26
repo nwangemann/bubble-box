@@ -19,6 +19,7 @@ import Animated, {
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import type { Mode } from '@/config/modes';
 import { POOL } from '@/config/pool';
+import { nextSound, SOUND_CHOICE, soundName, type SoundChoice } from '@/config/sound';
 import {
   computerPlays,
   cueAim,
@@ -41,6 +42,7 @@ import {
   spotBall,
   stillTable,
   traceAhead,
+  newestPot,
 } from '@/core/pool';
 import {
   beginShot,
@@ -58,7 +60,10 @@ import { createRowTurn, followGame, poolRow, potEnds } from '@/core/poolRow';
 import type { Box, Held } from '@/core/types';
 import { advance, beginHold, createWorld, heldBy, moveHold, release, swipeOf } from '@/core/world';
 import { drawPool, getPoolGpu, poolRoom } from '@/scene/drawPool';
+import { soundPot } from '@/services/tones';
 import { Tray } from './Tray';
+
+const SOUND_KEY = 'sound';
 
 const buzz = (strength: number) => {
   const s = Haptics.ImpactFeedbackStyle;
@@ -131,12 +136,15 @@ type Props = {
   /** Reduce Motion: no trails, and calmer pots. */
   calm: boolean;
   onSettings: (settings: PoolSettings) => void;
+  /** The app's one Sound choice: its tile is here too. */
+  sound: SoundChoice;
+  onSound: (sound: SoundChoice) => void;
   /** To the calm room's menu, or to showdowns. */
   onMode: (mode: Mode) => void;
 };
 
 /** The 8-ball trial (docs/pool.md). Opened and left with the mode switch. */
-export function Pool({ settings, calm, onSettings, onMode }: Props) {
+export function Pool({ settings, calm, onSettings, sound, onSound, onMode }: Props) {
   const [open, setOpen] = useState(false);
   // Who won the game just over, until play again.
   const [winner, setWinner] = useState<0 | 1 | null>(null);
@@ -188,6 +196,9 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   const computer = useSharedValue(versus);
   useEffect(() => computer.set(versus), [computer, versus]);
   const opponent = useSharedValue(createOpponent());
+  const tones = sound === 'tones';
+  const sounding = useSharedValue(tones);
+  useEffect(() => sounding.set(tones), [sounding, tones]);
   // The table last drawn on: another redraws even a still one.
   const drawnOn = useSharedValue(cloth);
 
@@ -309,6 +320,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     }
     if (!moved && !shown && !h && !dirty.value) return;
     dirty.value = moved || shown || !!h;
+    if (p.potted > 0 && sounding.value) scheduleOnRN(soundPot, newestPot(p), POOL.pot.meaning);
     if (p.potted > 0) scheduleOnRN(drop);
     else if (p.landed > 0) scheduleOnRN(land);
     else if (p.knock > POOL.hapticLeast && p.time - lastBuzz.value > POOL.hapticGap) {
@@ -472,18 +484,23 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
         onMode={onMode}
         hint="Changes to the next option"
         onTile={(key) =>
-          onSettings(
-            stepPool(
-              POOL_ROWS.find((r) => r.key === key)!,
-              settings,
-            ),
-          )
+          key === SOUND_KEY
+            ? onSound(nextSound(sound))
+            : onSettings(
+                stepPool(
+                  POOL_ROWS.find((r) => r.key === key)!,
+                  settings,
+                ),
+              )
         }
-        tiles={POOL_ROWS.map(({ key, label, options }) => ({
-          key,
-          label,
-          value: options.find((o) => o.id === settings[key])!.name,
-        }))}
+        tiles={[
+          ...POOL_ROWS.map(({ key, label, options }) => ({
+            key,
+            label,
+            value: options.find((o) => o.id === settings[key])!.name,
+          })),
+          { key: SOUND_KEY, label: SOUND_CHOICE.label, value: soundName(sound) },
+        ]}
       />
     </Animated.View>
   );

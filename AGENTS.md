@@ -30,6 +30,8 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Web preview: start, storage, page        | `src/start.web.ts`, `src/services/store.web.ts`, `public/`         |
 | Web preview: after the build, serving    | `scripts/`                                                         |
 | Saved settings, Reduce Motion            | `src/services/`                                                    |
+| Sound: tones, voices, the audio session  | `src/config/sound.ts`, `src/services/sound.ts`, `synth.ts`         |
+| What sounds when, and at what pitch      | `VOICING` in `src/config/sound.ts`, `src/services/tones.ts`        |
 | Options menu and its tiles               | `src/ui/Tray.tsx`                                                  |
 | Calm, Showdown and 8-ball switch         | `src/config/modes.ts`, `src/ui/ModeSwitch.tsx`                     |
 | Preview picker                           | `src/ui/Picker.tsx`                                                |
