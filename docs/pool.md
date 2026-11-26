@@ -1,6 +1,6 @@
 # 8-ball in space
 
-Design for section 1 of the [plan](plan.md), and the trial built for 1.2. Opened and left with the mode switch. Units as in [architecture](architecture.md). Numbers marked _sim_ come from simulated shots, not play.
+Design for 8-ball, section 1 of the [plan](plan.md) (built, under **Built**), and the trial built for 1.2. Opened and left with the mode switch. Units as in [architecture](architecture.md). Numbers marked _sim_ come from simulated shots, not play.
 
 ## First principle: always know where a ball is
 

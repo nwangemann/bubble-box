@@ -4,23 +4,9 @@ For iOS. Each numbered box is one small session. Sections are in order of priori
 
 **Next: 5.1, a themed trail per arena.**
 
+Where things stand (2026-11-25, before a pause): the calm room, showdowns, 8-ball (section 1, now in **Built**) and sound (section 4, also in **Built**) are built and checked on the simulator. None of it has been judged on a phone yet; that is section 10. Open work is showdown trails (5), then liquid-filled bubbles (6), then the store listing (7). Section 8 notes which parked ideas are now unblocked.
+
 Manual verification, whatever needs you or a phone to judge, waits in section 10, at the very end. Nothing else waits for it. Build and check on tests and the simulator, go on, and add what is left to judge to section 10. Section 8 is parked and section 9 is blocked: neither is picked up as a next step.
-
-## 1. 8-ball in space
-
-A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched. As true to billiards as possible, in the calm room, with the cue ball made as a calm bubble is. The aim is that it feels fun and engaging; if it does not, drop it. The design is in [pool](pool.md). Order: see the balls, then make a shot and a pot worth it, then the game, then its looks. It goes on before it has been played on a phone; 1.2 may still drop it.
-
-**A. See and follow** and **B. A pot worth it.** Built; judged in 1.2.
-
-**C. True 8-ball.** Built. Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won. The rules are settled in [pool](pool.md), Rules (1.6).
-
-**D. The table.** Built. Options, so each can be left out without harm. Done when both hold to the first principle.
-
-**E. Later.** Built.
-
-## 4. Sound
-
-One audio decision for the whole app. Off with the silent switch. Synthesised, unless licensed audio is chosen. Built; judged in section 10.
 
 ## 5. Showdown trails
 
@@ -82,16 +68,20 @@ Selectable, with Random available and None as the default.
 
 ### Showdown sound
 
+Unblocked: the audio foundation (4.1) and tones (4.2) are built, so these need only `VOICING` and a call where a showdown merges, pops or ends.
+
 - [ ] 8.20 Coalescence and pop sounds pitched by size, a triumphant flourish for the winner
 - [ ] 8.21 Music per theme
-
-### 8-ball
-
-- [ ] 8.23 Aiming near the top and bottom of the screen: shots there are hard to place, as the finger runs out of glass. Explore a stretch near those edges, so a little more finger travel there reaches further across the glass, and whether it should apply to placing the cue ball, its line or both. Judge on a phone
 
 ### Web preview
 
 - [ ] 8.22 Load faster. Measure first, on a phone in Safari, cold and repeat: first paint, downloads, Skia compiling, first frame. Are preloads used there? Then try, largest first: a smaller CanvasKit (3.3 of the 3.9 MB zipped; does the app need the full build?), Brotli (needs HTTPS), Skia cached for good under a name that changes with it, a service worker, a smaller app script (showdown, preview and 8-ball loaded when opened), running the app script sooner after Skia. Perhaps Home Screen launch images, and an error when the start script itself fails
+
+### 8-ball
+
+Wait for 1.2: tune or drop 8-ball on a phone first.
+
+- [ ] 8.23 Aiming near the top and bottom of the screen: shots there are hard to place, as the finger runs out of glass. Explore a stretch near those edges, so a little more finger travel there reaches further across the glass, and whether it should apply to placing the cue ball, its line or both. Judge on a phone
 
 ## 9. Blocked
 
@@ -100,6 +90,11 @@ Selectable, with Random available and None as the default.
 ## 10. Manual verification
 
 Always last: start only when no step outside 8 and 9 is open. Needs you, most of it a phone. Steps keep their numbers. Add to it whatever a session could not check.
+
+**First time on a phone**
+
+- [ ] 2.1 Install and note what feels wrong; confirm icon and splash
+- [ ] 2.2 Frame time on the oldest phone to support: 10 bubbles, without and with each trail; 10 glowing bubbles in Water; several bursts, with pops pushing neighbours; the picker; showdown with 12, and a mixed one with 24; whether the chooser is slow to open the first time after installing (about a second on the simulator, development build). Repeat after 6.2
 
 **8-ball**
 
@@ -122,10 +117,8 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 - [ ] 4.1 On a phone: is the silent switch respected and music left playing; is 70 ms from touch to tone felt; does the Chime sound soft, without a click at its start or end (`TONES.chime`)
 - [ ] 4.2 On a phone, with Sound on Tones: are wall tones calm with ten Lively bubbles, or a rattle (`VOICING.bubble.gap`); is lower-for-larger heard, and is the range right (`radius`, `per`); is the pop tone light enough beside the haptic; does the pot sound like a ball settling, and are a foul, the last of a group and the 8 told apart; should Sound start on Tones rather than Off; should 8-ball's knocks between balls sound too
 
-**First time on a phone**
+**Tune the calm room**
 
-- [ ] 2.1 Install and note what feels wrong; confirm icon and splash
-- [ ] 2.2 Frame time on the oldest phone to support: 10 bubbles, without and with each trail; 10 glowing bubbles in Water; several bursts, with pops pushing neighbours; the picker; showdown with 12, and a mixed one with 24; whether the chooser is slow to open the first time after installing (about a second on the simulator, development build). Repeat after 6.2
 - [ ] 2.3 Tune the core: growth (start size, pace, largest size), launch (hold power, swipe strength, depth of the box), rebound, drift, wobble, the push of a pop (`TUNING.puff`), haptics
 - [ ] 2.4 Tune gestures: several fingers, `swipe`, `TUNING.sweep`, `spin`, `flick` (does it get in the way of launching from a crowd?), `tilt` (does it want its own setting?), the first-time hint (`TUNING.hint`; is it understood?)
 
@@ -142,7 +135,6 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 
 - A web preview, to try the app in a phone's browser without Xcode ([running](running.md), ADR 3). Safari on the simulator, on the Mac's own processor: 10 bubbles 53 to 60 fps, 8-ball 58 to 60, showdown with 12 at 60. A phone's is not known yet
 - The preview's loading: a breathing bubble inlined in the page, Skia and the app fetched at once, all zipped (10.6 to 3.9 MB), scripts cached. Not timed on a phone
-
 - Foundation: project, docs, physics core with tests, hold, launch, walls, ripples, contacts, 12 styles, 4 environments, 5 feels, tray, glass ripple, tap to pop, defaults and Random ([settings](settings.md))
 - Saved settings, Reduce Motion, first icon and splash
 - Touch: curved-swipe spin, several fingers, flick, tilt, two-finger swipe to pop
@@ -157,6 +149,8 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 - The menu as tiles: each shows a setting and what is chosen, and opens its previews (`ui/Tray`, `TUNING.menu`). Box's sliders moved under its previews
 
 ### 8-ball in space
+
+A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than watched, in the calm room, with the cue ball made as a calm bubble is. Design and rules in [pool](pool.md). Built in five parts: see and follow, a pot worth it, true 8-ball (two players on one phone, or against the computer), the table, and later touches. Kept only if it feels fun on a phone (1.2).
 
 - 1.1 on paper, then rebuilt to a new structure: the calm room and camera, six pockets on the far wall, a cue ball from the calm hold at any moment ([pool](pool.md))
 - The trial of 1.2: exact contacts (`core/pool`), a pyramid of 15 whose break moves them all, a faint draw near pockets, a line straight ahead, opened with a third side of the mode switch. Simulator, release build, 15 balls: 60 fps, 1.4 ms a frame
@@ -179,11 +173,14 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 - 1.4, draw and follow: while placing, a flick as the finger lifts says them, up the screen follows and down draws, and the shot goes from where the finger rested before it (`rollOf` in `core/pool`, `POOL.roll`, `ui/Pool`). Not in flight: it fades on the way, and once the cue ball strikes a ball it runs on or comes back along the way it was going, as a cloth would make it ([pool](pool.md), Physics). The computer does not use it. Tested in core. Development build, simulator (iPhone 17), by touch: a full break with draw brought the cue ball back to the glass; a straight shot with follow ran it on into a pocket, a foul. Frame time not measured: nothing new is drawn, and a few sums a step. Not seen: a cut with either, Reduce Motion. Once, entering 8-ball right after a reload showed an empty room until the menu was opened; not seen again
 - 1.14, a cue: Aim in 8-ball's menu, Line (the default) or Cue (`cueAim` in `config/poolOptions`). With Cue, a stylized cue lies on the glass behind the ball in the hand, pointing through it at where the line meets a ball: blue tip, ferrule, maple shaft, a brass join and a dark butt, wider towards the butt, with a sheen on the lit side, faded as one with the line (`core/cue`, `scene/poolCue`, `POOL.aim.cue`). Its tip draws back from the ball as the shot charges; aimed straight at the far wall it points up the screen. The line, its ring and the target's line stay. A first version lay along the line, from the ball to the ring: in perspective that is short on screen and was lost under the ball in the hand, so it was moved behind. Tested in core and config. Development build, simulator (iPhone 17): straight and cut shots on Space and Felt, full and partial charge, the tile stepping and kept across reopening the menu. Frame time not measured. Not seen: Reduce Motion, a swipe fading it, the cue near a screen edge
 - 1.5, playing alone: Opponent in 8-ball's menu, Friend (the default) or Computer, a fourth tile on a second row (`computerPlays` in `config/poolOptions`). The computer plays player 2 (`core/opponent`, `POOL.opponent`): on a still table it looks at each ball it may strike for straight pots, one ball a frame, scores each by how far its start can be off and still pot, plays the likeliest four and two safe shots out on a copy of the table at 1/30 s steps (`advancePool` takes a step), judged by the real rules, then holds a cue ball beside the shot, eases it on so its line swings in, and sends it at full power, off by 0.03 each way. Against itself it pots 50% of shots with 8% fouls (_sim_, [pool](pool.md), Playing alone). A friend's touch does nothing on its turn; VoiceOver says "You" and "The computer". Tested in core and config. Development build, simulator (iPhone 17): a game played by the computer on both sides, by a probe, to a win and play again; then by touch, Computer chosen in the menu, a break and a foul, and the computer aiming (its line and ring on a stripe) and potting it with two shots. Thinking at most 8 ms a frame, after spreading it over frames (31 before). `advancePool`'s step first came as a default parameter, which a worklet does not capture: tests passed and the UI thread failed; moved into the body, and the rule noted in AGENTS. Not seen: Reduce Motion, VoiceOver, choosing Friend while it holds
+- The aim tells less, so a shot takes skill: the line to where the struck ball goes no longer turns bold when it would drop, and the ring at the 8's called pocket shows only once the shot is sent, not while aiming (`ui/Pool`, `scene/drawPool`, [pool](pool.md), Aiming and Rules). A pocket is called only once the shooter's group is cleared. Tests pass; seen in the web preview with the line thin. The ring after a cleared group not seen
 
 ### Sound
 
-- 4.2, tones (`services/tones`, `VOICING` in `config/sound`): Sound, Off (the default) or Tones, one saved choice with a tile in the calm menu and in 8-ball's, stepping on a tap. In the calm room a wall or the glass sounds Chime, pitched by the radius of the bubble that hit hardest (`World.impactR`), lower for larger, an octave each way, and as loud as the hit, at most one each 0.14 s; a pop sounds Pop, a short airy tone pitched the same way. In 8-ball a pot sounds Pot, a low round tone, by what it means (`newestPot` in `core/pool`): a fourth lower and quieter for a foul, a third higher for the last of a group, a fifth for the 8. Pitches snap to a major pentatonic scale, so tones that overlap agree. Tested in services, config and core. Development build, simulator (iPhone 17), by a probe: three tones loaded, four players each; walls sounding at rate 1.12 for a bubble of radius 0.17 and 0.5 for one of 0.63; a pop of 0.65; two of the computer's pots, plain. Frame time not measured: nothing new is drawn. Not heard (the simulator plays through the Mac); not seen: a foul's or the 8's pot, Reduce Motion
+One audio decision for the whole app: synthesised tones, off with the silent switch, Off by default.
+
 - 4.1, audio foundation: `expo-audio` ([ADR 4](adr/0004-sound.md)). Tones are synthesised at start from sine partials (`config/sound`, `services/synth`), written to the cache as WAVs and loaded into four players each, so they overlap; `playTone(id, volume, rate)` pitches by playback rate, an octave each way. Ambient session: mixes with other apps, silenced by the silent switch. No microphone permission or background audio. Web preview is silent. Nothing plays yet: one tone, Chime, waits for 4.2. Tested in services (samples, WAV header). Development build, simulator (iPhone 17), by a probe: four players loaded, 1.2 s; two at rates 1.5 and 0.75 played together, about 70 ms from `playTone` to sound. Not heard (the simulator plays through the Mac), nor the silent switch
+- 4.2, tones (`services/tones`, `VOICING` in `config/sound`): Sound, Off (the default) or Tones, one saved choice with a tile in the calm menu and in 8-ball's, stepping on a tap. In the calm room a wall or the glass sounds Chime, pitched by the radius of the bubble that hit hardest (`World.impactR`), lower for larger, an octave each way, and as loud as the hit, at most one each 0.14 s; a pop sounds Pop, a short airy tone pitched the same way. In 8-ball a pot sounds Pot, a low round tone, by what it means (`newestPot` in `core/pool`): a fourth lower and quieter for a foul, a third higher for the last of a group, a fifth for the 8. Pitches snap to a major pentatonic scale, so tones that overlap agree. Tested in services, config and core. Development build, simulator (iPhone 17), by a probe: three tones loaded, four players each; walls sounding at rate 1.12 for a bubble of radius 0.17 and 0.5 for one of 0.63; a pop of 0.65; two of the computer's pots, plain. Frame time not measured: nothing new is drawn. Not heard (the simulator plays through the Mac); not seen: a foul's or the 8's pot, Reduce Motion
 
 ### Trails
 
