@@ -21,9 +21,13 @@ Zen simplicity and beauty. Every action is simple, organic and calm.
 
 The one part that is a show. Chosen with the mode switch in the menu, whose sides look like what they lead to, it covers the room, which waits beneath, and one dot leaves. Touch does nothing while it runs, except in the line-up, where a tap chooses a favourite to root for, marked by a soft light. Its arenas are see-through grid boxes like the room, so depth shows; scenery is only a ghost on the back wall. Themes are playful; bubbles and how they meet are realistic: films that bend light, a neck that opens and drains, a surface that rings and settles. Names, the winner's title and a quiet count of crowns and right calls are the exception to having no text; nothing counts against anyone.
 
+## 8-ball
+
+A trial of play rather than watching: pool in the same box, the far wall holding six pockets. The cue ball is grown and sent as a calm bubble is; the player always knows where each ball is from perspective, shadows and light on the walls. Turns, groups and the win are shown without words, by a row of balls and a line under whose half it is. Design and rules are in [pool](pool.md). Kept only if it is fun on a phone.
+
 ## Spirit
 
-A solo, experimental project. Artistic fun decides. Lean on intuitive gestures, but broad accessibility is not the priority: be fun and weird, explore widely, then reduce.
+A solo, experimental project in which artistic play decides. Gestures should be intuitive and found without instructions. Ideas are explored widely, then reduced to what works. Reduce Motion and VoiceOver are supported, but the interaction is designed first for touch and sight.
 
 ## Principles
 

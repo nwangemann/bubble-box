@@ -13,7 +13,7 @@ export type Rule = {
 export const RULES = {
   grow: {
     name: 'Absorb',
-    about: 'The winner takes the loser in and doubles; size sways the odds',
+    about: 'The winner absorbs the loser; size sways the odds',
     absorb: true,
     grow: 2,
     edge: 1 / 3,

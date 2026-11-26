@@ -258,7 +258,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
   },
-  about: { color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 8 },
+  about: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    marginTop: 8,
+    paddingHorizontal: 20,
+    textAlign: 'center',
+  },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   random: {
     minHeight: 40,

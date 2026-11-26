@@ -25,7 +25,7 @@ Add to `src/config/environments.ts`. Give it a `day` palette. For a material, wr
 1. Write `vec3 fx(vec2 p, float t)` in `src/fx/meet.ts` or `pop.ts`. `x` runs along the contact normal; use `hand()` and `spin` for twist, `blend()` for the two bubbles' colours.
 2. Register it in `src/fx/index.ts`. `on` says which settings it appears under; a pop also needs `body`.
 
-![Effects at three ages, meetings left, pops right](effects.png)
+![Effects at three ages, meetings left, pops right](images/effects.png)
 
 ## Glass
 
@@ -51,6 +51,6 @@ A `Theme` is an `Arena` and the `Cast` that belongs there; either can be used wi
 
 Add to `src/config/feels.ts`. A new force is a new `Feel` field plus a line in `step` in `core/world.ts`.
 
-![All styles in the Lattice box](styles.png)
+![All styles in the Lattice box](images/styles.png)
 
 Shaders compile once at start, so relaunch the app after editing one.

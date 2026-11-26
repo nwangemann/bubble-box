@@ -4,9 +4,9 @@ For iOS. Each numbered box is one small session. Sections are in order of priori
 
 **Next: 5.1, a themed trail per arena.**
 
-Where things stand (2026-11-25, before a pause): the calm room, showdowns, 8-ball (section 1, now in **Built**) and sound (section 4, also in **Built**) are built and checked on the simulator. None of it has been judged on a phone yet; that is section 10. Open work is showdown trails (5), then liquid-filled bubbles (6), then the store listing (7). Section 8 notes which parked ideas are now unblocked.
+Where things stand (2026-11-25, paused): the calm room, showdowns, 8-ball and sound are built and checked in tests, on the simulator and in the web preview. None of it has been judged on a phone yet; that is section 10. Open work is showdown trails (5), then liquid-filled bubbles (6), then the store listing (7). The latest review is [reviews/2026-11-25](reviews/2026-11-25.md).
 
-Manual verification, whatever needs you or a phone to judge, waits in section 10, at the very end. Nothing else waits for it. Build and check on tests and the simulator, go on, and add what is left to judge to section 10. Section 8 is parked and section 9 is blocked: neither is picked up as a next step.
+Manual verification, whatever needs a person or a phone to judge, waits in section 10, at the very end. Nothing else waits for it. Build and check on tests and the simulator, go on, and add what is left to judge to section 10. Section 8 is parked and section 9 is blocked: neither is picked up as a next step.
 
 ## 5. Showdown trails
 
@@ -89,7 +89,7 @@ Wait for 1.2: tune or drop 8-ball on a phone first.
 
 ## 10. Manual verification
 
-Always last: start only when no step outside 8 and 9 is open. Needs you, most of it a phone. Steps keep their numbers. Add to it whatever a session could not check.
+Always last: start only when no step outside 8 and 9 is open. Needs a person, most of it with a phone. Steps keep their numbers. Add to it whatever a session could not check.
 
 **First time on a phone**
 

@@ -1,6 +1,7 @@
 {
   "name": "bubble-box",
   "version": "0.1.0",
+  "description": "A calm physics toy for iPhone: bubbles grown under a finger and sent into a 3D box. Expo, React Native and Skia.",
   "main": "index.ts",
   "dependencies": {
     "@shopify/react-native-skia": "2.14.0",
