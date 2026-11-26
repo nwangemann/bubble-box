@@ -40,6 +40,15 @@ export const POOL_ROWS: readonly PoolRow[] = [
     ],
     usual: 'line',
   },
+  {
+    key: 'opponent',
+    label: 'Opponent',
+    options: [
+      { id: 'friend', name: 'Friend' },
+      { id: 'computer', name: 'Computer' },
+    ],
+    usual: 'friend',
+  },
 ];
 
 /** The room pool is played in (`POOL.tables`). */
@@ -47,6 +56,9 @@ export const tableOf = (id: string | undefined): TableId => (id === 'felt' ? 'fe
 
 /** Whether the aim is drawn as a cue (`POOL.aim.cue`) rather than a line. */
 export const cueAim = (id: string | undefined) => id === 'cue';
+
+/** Whether player 2 is played by the phone (`core/opponent`). */
+export const computerPlays = (id: string | undefined) => id === 'computer';
 
 /** How many balls leave trails, the cue ball first. */
 export const trailing = (id: string | undefined) =>

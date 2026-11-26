@@ -44,7 +44,7 @@ export function onEight(game: PoolGame, down: boolean[]) {
  * Whether `first` was not the shooter's to strike first. On the break any ball may be; while open,
  * any but the 8 (WPA 4.4); once taken, their own, or the 8 once that is cleared.
  */
-function wrongFirst(game: PoolGame, first: number) {
+export function wrongFirst(game: PoolGame, first: number) {
   'worklet';
   if (game.breaking || first <= 0) return false;
   const mine = game.groups ? game.groups[game.turn] : null;

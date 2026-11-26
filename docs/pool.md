@@ -79,7 +79,7 @@ Tried and dropped: a wash of the whole room (hides colours and depth); a film sw
 
 ## Options
 
-The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. One row of tiles leaves the far wall clear; keep to three options. They are in `config/poolOptions`, saved together: Trail, Cloth and Aim. Aim is Line, as above, or Cue, the line with a cue behind the ball (Aiming). Cloth is the table (`POOL.tables`): Space, the see-through room, or Felt, the calm box of that name, its pockets edged in leather (`rim`: a dark band, its body and a sheen) and the row's lines and the count in cream rather than the room's blue.
+The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. Keep to four options, two rows at most, so the far wall stays mostly clear. They are in `config/poolOptions`, saved together: Trail, Cloth, Aim and Opponent (Playing alone). Aim is Line, as above, or Cue, the line with a cue behind the ball (Aiming). Cloth is the table (`POOL.tables`): Space, the see-through room, or Felt, the calm box of that name, its pockets edged in leather (`rim`: a dark band, its body and a sheen) and the row's lines and the count in cream rather than the room's blue.
 
 ## Physics
 
@@ -87,7 +87,7 @@ The dot opens pool's own menu, as it does the calm room's: a tile for each optio
 
 ## Rules
 
-Settled in 1.6, for 1.7 to 1.12. The base is the WPA Rules of Play for 8-ball, effective 2025-09-15 (section 4), changed only where this table leaves a rule nothing to act on or makes it a lottery. Where WPA's own Blackball (section 8) already fits, it is used instead: its cue ball in hand in baulk is this table's glass. Two players on one phone, taking turns. Numbers marked _sim_ come from 40 simulated games for each case: a player who aims at a ball of their group, a pot where one is offered, and misses by 0.02 to 0.08 at the glass.
+Settled in 1.6, for 1.7 to 1.12. The base is the WPA Rules of Play for 8-ball, effective 2025-09-15 (section 4), changed only where this table leaves a rule nothing to act on or makes it a lottery. Where WPA's own Blackball (section 8) already fits, it is used instead: its cue ball in hand in baulk is this table's glass. Two players on one phone, taking turns, or one against the phone (Playing alone). Numbers marked _sim_ come from 40 simulated games for each case: a player who aims at a ball of their group, a pot where one is offered, and misses by 0.02 to 0.08 at the glass.
 
 **Turns.** A shot waits for the table to be still. Holding while balls roll does nothing yet; the cue ball comes once all have stopped. The shooter stays on while each shot legally pots a ball of their own group (or, on an open table, any ball). A shot that pots none passes the turn. A foul passes it with two shots: the opponent's turn ends at their second shot that pots nothing, or at once on a foul of their own. This stands in for ball in hand, which is always had here, as two visits did in older pub and league blackball; WPA Blackball's free shot only forgives a wrong ball first, which is rare here (2 to 3% of shots, _sim_), so it would cost nothing.
 
@@ -122,6 +122,25 @@ The one rule changed: **an 8 potted early** (before its owner's group is cleared
 **Left out**: calling other balls and safeties (4.6), the incoming player's choices after a break foul (4.3d, f to h), three fouls, stalemate (no position here blocks every shot), lagging, the shot clock. The old cue ball fades at the next touch, so it never blocks a shot.
 
 **No words.** Players are told apart by side, not name: player 1's balls fill the left of the row, player 2's the right, each group moving under its owner once taken; whose turn is a line under the shooter's half (1.19, Telling balls apart). Who won is the winner's half lit, and play again a round arrow. The exceptions to having no text and no numbers stay the 8's figure and, as in showdowns, a quiet count of wins (1.12).
+
+## Playing alone
+
+Built in 1.5 (`core/opponent`, `POOL.opponent`). Opponent in the menu: Friend, as before, or Computer, which plays player 2. Nothing else changes: same rules, same row, same line under whose turn it is, same count of wins (VoiceOver says "You" and "The computer").
+
+**How it chooses.** Once the table is still on its turn, it looks at each ball it may strike first, one a frame: for each pocket, the straight shot whose cue ball touches that ball on the line from the pocket through it, kept if the aim line's trace says it drops there, cut no thinner than `cut`. Each is scored by how many of eight starts moved by `margin` (0.015 and 0.03, four ways) still drop it. The four most forgiving, then two safe shots (a ball of its own struck full, nearest the glass first), are played out on a copy of the table at steps of 1/30 s (contacts stay exact) until still, and judged by the real rules: a win, then a legal pot, then no foul, then a foul, then a loss. The first to keep the turn is taken. On the break it goes straight at the rack. It only plays straight shots at full power: power barely changes speed here (2.7 to 3.5 per second), and a straight shot is what its line shows truly.
+
+**How it plays.** It waits `pause` (0.6 s) from the table stilling, so its turn is seen to begin. A cue ball swells in `drift` (0.16) from where it will shoot, eases there over `settle` (0.6 s), so its line swings onto the shot as a finger's would, and is sent once held `hold` (1.1 s). Its start is off by a normal error of `miss` (0.03) each way, 0.04 on the break. With Reduce Motion it appears where it shoots. A friend's touch on its turn does nothing; one held through the last shot gets no ball if the turn then passes to it. Choosing Friend while it holds lets its ball go without a shot.
+
+**How well it plays**, against itself (_sim_, 12 games each):
+
+| `miss` | Shots that keep the turn | Fouls | Shots a game |
+| ------ | ------------------------ | ----- | ------------ |
+| 0.02   | 69%                      | 8%    | 18           |
+| 0.025  | 57%                      | 8%    | 21           |
+| 0.03   | 50%                      | 8%    | 26           |
+| 0.035  | 44%                      | 6%    | 31           |
+
+0.03 is a little better than the careful player of Rules (44% of shots pot): beatable by someone who takes care. Played out, its choice agrees with the real 1/120 s shot 340 times in 342. Looking at each ball in a frame of its own and playing out `steps` (15) steps a frame, thinking took 13 to 24 frames, within the pause, and at most 8 ms in any frame, on a still table that otherwise draws nothing (development build, simulator). Looking at every ball in one frame cost up to 31 ms.
 
 ## Fit with the vision
 

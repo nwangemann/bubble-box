@@ -20,6 +20,7 @@ import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import type { Mode } from '@/config/modes';
 import { POOL } from '@/config/pool';
 import {
+  computerPlays,
   cueAim,
   POOL_ROWS,
   stepPool,
@@ -51,6 +52,7 @@ import {
   onEight,
   weigh,
 } from '@/core/poolGame';
+import { createOpponent, opponentTurn, restOpponent } from '@/core/opponent';
 import { createRowTurn, followGame, poolRow, potEnds } from '@/core/poolRow';
 import type { Box } from '@/core/types';
 import { advance, beginHold, createWorld, heldBy, moveHold, release, swipeOf } from '@/core/world';
@@ -80,6 +82,8 @@ const tick = () => {
 };
 
 const HANDS = [FEELS.weightless];
+/** The hold that is the computer's, as no finger's id is. */
+const COMPUTER = -2;
 
 /** Round again: an arc of the room's ink with its head, for play again. */
 const AGAIN = (() => {
@@ -104,9 +108,15 @@ const AGAIN = (() => {
 })();
 const TALLY_WIDTH = 40;
 
+/** What VoiceOver calls each player. */
+const namesOf = (computer: boolean) =>
+  computer ? (['You', 'The computer'] as const) : (['Player 1', 'Player 2'] as const);
+
 /** Who won, and the count so far, for VoiceOver. */
-const told = (winner: 0 | 1, wins: [number, number]) =>
-  `Player ${winner + 1} won. Player 1 has ${wins[0]}, player 2 ${wins[1]}`;
+const told = (winner: 0 | 1, wins: [number, number], computer: boolean) => {
+  const [one, two] = namesOf(computer);
+  return `${winner === 0 ? one : two} won. ${one} ${computer ? 'have' : 'has'} ${wins[0]}, ${two.toLowerCase()} ${wins[1]}`;
+};
 
 type Props = {
   settings: PoolSettings;
@@ -165,6 +175,11 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   const asCue = cueAim(settings.aim);
   const aimCue = useSharedValue(asCue);
   useEffect(() => aimCue.set(asCue), [aimCue, asCue]);
+  // Player 2 played by the phone.
+  const versus = computerPlays(settings.opponent);
+  const computer = useSharedValue(versus);
+  useEffect(() => computer.set(versus), [computer, versus]);
+  const opponent = useSharedValue(createOpponent());
   // The table last drawn on: another redraws even a still one.
   const drawnOn = useSharedValue(cloth);
 
@@ -178,6 +193,44 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     dirty.value = true;
   };
 
+  const launch = (swiped: boolean) => {
+    'worklet';
+    const w = hand.value;
+    const h = heldBy(w, finger.value);
+    if (!h) return;
+    const v = swiped && h.seconds < POOL.aim.place ? swipeOf(h) : { x: 0, y: 0 };
+    // A straight shot calls the pocket its line marks for the 8; a swiped one, whose line fades,
+    // calls none.
+    const p = pool.value;
+    let called = -1;
+    if (v.x === 0 && v.y === 0) {
+      const t = traceAhead(p, box, fitCue(p, box, h.bubble.p, h.bubble.r), h.bubble.r);
+      if (t.hit === EIGHT && t.drops) called = t.pocket;
+    }
+    release(w, v.x, v.y, POOL.cue.speed, finger.value);
+    const bubble = w.bubbles.pop();
+    if (bubble) {
+      enter(p, box, bubble);
+      beginShot(game.value, p, called);
+    }
+    finger.set(-1);
+    dirty.set(true);
+  };
+  const cancel = () => {
+    'worklet';
+    waiting.set(-1);
+    // The computer's hold is not a finger's to end.
+    if (finger.value !== COMPUTER) launch(false);
+  };
+  /** Lets the computer's hold go without a shot. */
+  const unhold = () => {
+    'worklet';
+    if (finger.value !== COMPUTER) return;
+    release(hand.value, 0, 0, 0, COMPUTER);
+    hand.value.bubbles.pop();
+    finger.value = -1;
+    dirty.value = true;
+  };
   useFrameCallback((frame) => {
     const p = pool.value;
     const w = hand.value;
@@ -204,9 +257,25 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
       spotBall(p, box, EIGHT);
       g.spotting = false;
     }
+    const ready = !g.shooting && !g.spotting && !g.racking && g.winner === null;
+    const its = computer.value && g.turn === 1;
+    // A finger held through the last shot gets nothing on the computer's turn.
+    if (ready && its) waiting.value = -1;
     if (!g.shooting && !g.spotting && !g.racking && waiting.value !== -1) {
       hold(waitAt.value.x, waitAt.value.y, waiting.value);
       waiting.value = -1;
+    }
+    const op = opponent.value;
+    if (ready && its && (finger.value === -1 || finger.value === COMPUTER)) {
+      const mine = heldBy(w, COMPUTER);
+      const act = opponentTurn(op, p, g, box, dt, mine ? mine.seconds : -1, p.calm, Math.random);
+      if (act.kind === 'hold') hold(act.x, act.y, COMPUTER);
+      else if (act.kind === 'move') moveHold(w, act.x, act.y, COMPUTER);
+      else if (act.kind === 'send') launch(false);
+    } else if (op.phase !== 'rest' || finger.value === COMPUTER) {
+      // Its turn is over, or a friend plays now.
+      unhold();
+      restOpponent(op);
     }
     const shown = followGame(turn.value, g, dt, p.calm);
     const h = w.holds[0];
@@ -214,7 +283,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     if (h) advance(w, box, HANDS, 1, dt);
     // From here the finger places the shot rather than swipes it.
     const { place, ease, swipe } = POOL.aim;
-    if (h && heldFor < place && h.seconds >= place) scheduleOnRN(tick);
+    if (h && heldFor < place && h.seconds >= place && finger.value !== COMPUTER) scheduleOnRN(tick);
     // A still table draws nothing.
     if (drawnOn.value !== tableId.value) {
       drawnOn.value = tableId.value;
@@ -253,34 +322,6 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     });
   });
 
-  const launch = (swiped: boolean) => {
-    'worklet';
-    const w = hand.value;
-    const h = heldBy(w, finger.value);
-    if (!h) return;
-    const v = swiped && h.seconds < POOL.aim.place ? swipeOf(h) : { x: 0, y: 0 };
-    // A straight shot calls the pocket its line marks for the 8; a swiped one, whose line fades,
-    // calls none.
-    const p = pool.value;
-    let called = -1;
-    if (v.x === 0 && v.y === 0) {
-      const t = traceAhead(p, box, fitCue(p, box, h.bubble.p, h.bubble.r), h.bubble.r);
-      if (t.hit === EIGHT && t.drops) called = t.pocket;
-    }
-    release(w, v.x, v.y, POOL.cue.speed, finger.value);
-    const bubble = w.bubbles.pop();
-    if (bubble) {
-      enter(p, box, bubble);
-      beginShot(game.value, p, called);
-    }
-    finger.set(-1);
-    dirty.set(true);
-  };
-  const cancel = () => {
-    'worklet';
-    waiting.set(-1);
-    launch(false);
-  };
   const touch = useManualGesture({
     shouldCancelWhenOutside: false,
     onTouchesDown: (e) => {
@@ -289,6 +330,8 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
       const g = game.value;
       // Once over, only play again goes on.
       if (!t || finger.value !== -1 || waiting.value !== -1 || g.winner !== null) return;
+      // The computer's turn is its own.
+      if (computer.value && g.turn === 1 && !g.shooting) return;
       const x = (t.x - view.cx) / view.ppu;
       const y = (t.y - view.cy) / view.ppu;
       // A shot waits for a still table.
@@ -316,8 +359,8 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   });
 
   useEffect(() => {
-    if (winner !== null) AccessibilityInfo.announceForAccessibility(told(winner, wins));
-  }, [winner, wins]);
+    if (winner !== null) AccessibilityInfo.announceForAccessibility(told(winner, wins, versus));
+  }, [winner, wins, versus]);
   /** What is left fades, the table is set again, and the other player breaks. */
   const again = () => {
     setWinner(null);
@@ -361,7 +404,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
           >
             <Text
               style={[styles.count, { color: `rgba(${mark},${POOL.row.tally.opacity})` }]}
-              accessibilityLabel={`Player ${who + 1}: ${wins[who]} won`}
+              accessibilityLabel={`${namesOf(versus)[who]}: ${wins[who]} won`}
             >
               {wins[who]}
             </Text>
@@ -376,7 +419,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
           <Pressable
             onPress={again}
             accessibilityRole="button"
-            accessibilityLabel={`${told(winner, wins)}. Play again`}
+            accessibilityLabel={`${told(winner, wins, versus)}. Play again`}
             hitSlop={12}
             style={({ pressed }) => [
               styles.ring,

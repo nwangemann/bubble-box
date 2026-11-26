@@ -69,6 +69,33 @@ export const POOL = {
       sheen: { width: 0.28, offset: 0.22, opacity: 0.45 },
     },
   },
+  /**
+   * Player 2 played by the phone (Opponent in the menu, `core/opponent`). It tries a shot at each
+   * ball it may strike first into each pocket, cut no thinner than `cut` (the cosine between the
+   * glass's normal and the target's way to the pocket), and keeps those whose line still drops it
+   * when its start is moved by `margin`. The `tries` most forgiving, then `safe` shots that only
+   * strike a ball of its own, are played out on a copy of the table, `steps` steps of `every`
+   * seconds a frame, each until still or for at most `look` seconds, and the best kept. It then waits
+   * until `pause` seconds have passed since the table stilled, holds the cue ball `drift` from its
+   * place, eases there over `settle` seconds and sends it once held `hold` (at full power, past
+   * `cue.charge`). Its start is off by `miss`, more or less, in each direction; `breakMiss` on the
+   * break.
+   */
+  opponent: {
+    cut: 0.2,
+    margin: [0.015, 0.03],
+    tries: 4,
+    safe: 2,
+    steps: 15,
+    every: 1 / 30,
+    look: 8,
+    pause: 0.6,
+    drift: 0.16,
+    settle: 0.6,
+    hold: 1.1,
+    miss: 0.03,
+    breakMiss: 0.04,
+  },
   /** The 8 set back on its spot: seconds it takes to ease in, and steps along the line to find room. */
   spot: { ease: 0.6, step: 0.01 },
   /**

@@ -52,6 +52,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | 8-ball trial: light of a pot             | `src/scene/poolPots.ts`                                            |
 | 8-ball trial: options                    | `src/config/poolOptions.ts`                                        |
 | 8-ball: the cue that aims                | `POOL.aim.cue`, `src/core/cue.ts`, `src/scene/poolCue.ts`          |
+| 8-ball: the computer opponent            | `POOL.opponent`, `src/core/opponent.ts`                            |
 | 8-ball rules: turns, fouls, the wait     | `src/config/poolRules.ts`, `src/core/poolGame.ts`                  |
 | 8-ball trial: shadows, light on walls    | `src/scene/poolWalls.ts`                                           |
 | 8-ball trial: drawing, screen            | `src/scene/drawPool.ts`, `src/ui/Pool.tsx`                         |
@@ -68,7 +69,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 
 ## Rules
 
-- `src/core` imports no React, Skia or Expo. Every function there starts with `'worklet'`, and is defined above anything that calls it: worklets capture what exists when they are defined, so no forward calls or mutual recursion.
+- `src/core` imports no React, Skia or Expo. Every function there starts with `'worklet'`, and is defined above anything that calls it: worklets capture what exists when they are defined, so no forward calls or mutual recursion. Nor default parameter values that name anything outside the function: the worklet does not capture them, and only the UI thread fails, not tests.
 - Tunable numbers live in `src/config`, not inline.
 - Nothing in the frame loop goes through React state.
 - No new dependency without an ADR in `docs/adr`. No physics or 3D engine (ADR 1).

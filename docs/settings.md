@@ -39,10 +39,12 @@ With Reduce Motion it runs slower and motes, swaying, rising titles and a favour
 
 Its options are its own, apart from the calm room's: tiles in its menu, opened from its dot. A tap moves to the next option; the table is the preview. They are in `src/config/poolOptions.ts`. They have no Random.
 
-| Setting | Default   | Other options  | What it does                                |
-| ------- | --------- | -------------- | ------------------------------------------- |
-| Trail   | All balls | Cue ball, None | A short streak shows which way and how fast |
-| Cloth   | Space     | Felt           | The table: the see-through room, or felt    |
+| Setting  | Default   | Other options  | What it does                                                 |
+| -------- | --------- | -------------- | ------------------------------------------------------------ |
+| Trail    | All balls | Cue ball, None | A short streak shows which way and how fast                  |
+| Cloth    | Space     | Felt           | The table: the see-through room, or felt                     |
+| Aim      | Line      | Cue            | A line ahead, or a cue behind the ball too                   |
+| Opponent | Friend    | Computer       | Who plays player 2: a friend on the same phone, or the phone |
 
 ## Custom
 

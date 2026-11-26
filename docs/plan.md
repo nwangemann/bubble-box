@@ -19,7 +19,6 @@ A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than wat
 **E. Later.**
 
 - [ ] 1.4 More from spin: draw and follow, if a swipe can say them
-- [ ] 1.5 An opponent to play alone
 
 ## 4. Sound
 
@@ -49,6 +48,8 @@ A trial of bubbles that hold a liquid with its own behaviour. Start from `scene/
 MVP is done when a stranger understands it without words, and it holds 60 fps with 10 bubbles.
 
 ## 8. Parked
+
+- 1.5, playing alone: Opponent in 8-ball's menu, Friend (the default) or Computer, a fourth tile on a second row (`computerPlays` in `config/poolOptions`). The computer plays player 2 (`core/opponent`, `POOL.opponent`): on a still table it looks at each ball it may strike for straight pots, one ball a frame, scores each by how far its start can be off and still pot, plays the likeliest four and two safe shots out on a copy of the table at 1/30 s steps (`advancePool` takes a step), judged by the real rules, then holds a cue ball beside the shot, eases it on so its line swings in, and sends it at full power, off by 0.03 each way. Against itself it pots 50% of shots with 8% fouls (_sim_, [pool](pool.md), Playing alone). A friend's touch does nothing on its turn; VoiceOver says "You" and "The computer". Tested in core and config. Development build, simulator (iPhone 17): a game played by the computer on both sides, by a probe, to a win and play again; then by touch, Computer chosen in the menu, a break and a foul, and the computer aiming (its line and ring on a stripe) and potting it with two shots. Thinking at most 8 ms a frame, after spreading it over frames (31 before). `advancePool`'s step first came as a default parameter, which a worklet does not capture: tests passed and the UI thread failed; moved into the body, and the rule noted in AGENTS. Not seen: Reduce Motion, VoiceOver, choosing Friend while it holds
 
 ### Trails
 
@@ -115,6 +116,7 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
   - 1.12: is the count of wins quiet enough yet found when wanted, and read as whose without words; should it outlive leaving 8-ball
   - 1.13: does Felt read as a pool table, and should it, not Space, be what 8-ball starts with; are shadows, the light of moving balls and trails as easy to follow on it, in play; can the green solid be told from the cloth at the far wall, and the row's rings against the cloth; is Felt too bright for a calm room at night
   - 1.14: does the cue make aiming clearer or only busier; does its pull read as power without hiding balls near the glass; is a cue on the glass, behind a ball going into the screen, natural, or would players rather it lay along the line; should it, not the line, be what 8-ball starts with
+  - 1.5, the computer opponent: is it fair (it pots half its shots), too strong or too weak, and should it have levels; is its turn read without words, from the line under its half and a ball that appears by itself; does its ball easing onto the shot read as aiming, and is 0.6 s before it and 1.1 s holding right, or slow; should Computer, not Friend, be what 8-ball starts with; should the count of wins start again when the opponent changes; does a second row of tiles cover too much of the table; with VoiceOver, are "You" and "The computer" right
   - 1.6, the rules in play, once 1.7 to 1.11 are built: is the wait between shots short enough, and late drag unnoticed; do two shots after a foul sting enough; is the early 8 set back (not lost) right, or should the WPA loss return; is calling the 8 by the aim line understood
 
 **First time on a phone**

@@ -594,9 +594,14 @@ export function spotBall(pool: Pool, box: Box, i: number) {
   b.emptying = true;
 }
 
-/** Advances by real elapsed seconds. Returns whether anything moved or is leaving. */
-export function advancePool(pool: Pool, box: Box, seconds: number) {
+/**
+ * Advances by real elapsed seconds, in steps of `every`. Returns whether anything moved or is
+ * leaving. Contacts are exact at any step; a longer one only coarsens drag and the pockets' draw.
+ */
+export function advancePool(pool: Pool, box: Box, seconds: number, stepOf?: number) {
   'worklet';
+  // Not a default value: a worklet captures only what its body names.
+  const every = stepOf ?? POOL.step;
   const { balls } = pool;
   const moving = balls.some((b) =>
     b.sunk >= 0 ? b.sunk < POOL.sink : b.v.x !== 0 || b.v.y !== 0 || b.v.z !== 0,
@@ -614,10 +619,10 @@ export function advancePool(pool: Pool, box: Box, seconds: number) {
   if (busy) {
     const holes = snugs(box);
     pool.leftover += seconds;
-    while (pool.leftover >= POOL.step) {
-      pool.leftover -= POOL.step;
-      pool.time += POOL.step;
-      step(pool, box, holes, POOL.step);
+    while (pool.leftover >= every) {
+      pool.leftover -= every;
+      pool.time += every;
+      step(pool, box, holes, every);
     }
   } else pool.time += seconds;
   const fading = fadeTrails(pool);

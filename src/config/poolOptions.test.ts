@@ -1,5 +1,13 @@
 import { POOL } from './pool';
-import { cleanPool, cueAim, POOL_ROWS, stepPool, tableOf, type PoolRow } from './poolOptions';
+import {
+  cleanPool,
+  computerPlays,
+  cueAim,
+  POOL_ROWS,
+  stepPool,
+  tableOf,
+  type PoolRow,
+} from './poolOptions';
 
 const ROW: PoolRow = {
   key: 'cloth',
@@ -34,11 +42,19 @@ test('each cloth is a table of its own', () => {
   expect(tableOf(undefined)).toBe(cloth.usual);
 });
 
-test('the aim is a line unless a cue is chosen, and the menu keeps to three tiles', () => {
+test('the aim is a line unless a cue is chosen', () => {
   const aim = POOL_ROWS.find((r) => r.key === 'aim')!;
   expect(aim.usual).toBe('line');
   expect(aim.options.map((o) => cueAim(o.id))).toEqual([false, true]);
   expect(cueAim(undefined)).toBe(false);
   expect(cleanPool({}).aim).toBe('line');
-  expect(POOL_ROWS.length).toBeLessThanOrEqual(3);
+});
+
+test('a friend plays player 2 unless the computer is chosen, and the menu keeps to four tiles', () => {
+  const opponent = POOL_ROWS.find((r) => r.key === 'opponent')!;
+  expect(opponent.usual).toBe('friend');
+  expect(opponent.options.map((o) => computerPlays(o.id))).toEqual([false, true]);
+  expect(computerPlays(undefined)).toBe(false);
+  // Two rows of tiles at most, so the far wall stays mostly clear.
+  expect(POOL_ROWS.length).toBeLessThanOrEqual(4);
 });
