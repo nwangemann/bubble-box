@@ -381,11 +381,12 @@ export function drawPool(
   }
   drawWakes(canvas, gpu, pieces, next, -Infinity, pool.time, box, v);
   if (trace?.lands) {
-    // Where the one it would meet goes.
+    // Where the one it would meet goes. The same whether it drops or not: telling would play the
+    // shot for you.
     const a = at(pool.balls[trace.hit]!.p);
     const b = at(trace.lands);
     const [r, g, bl] = MARKS[trace.hit] as [number, number, number];
-    ink(line, true, r, g, bl, 0.8 * sure, trace.drops ? 2.4 : 1.2);
+    ink(line, true, r, g, bl, 0.8 * sure, 1.2);
     canvas.drawLine(a.x, a.y, b.x, b.y, line);
     canvas.drawCircle(b.x, b.y, POOL.radius * b.s, line);
   }

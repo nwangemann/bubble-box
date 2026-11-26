@@ -31,7 +31,7 @@ A ball drops when its middle comes within 0.2 of where it would sit snug in a po
 
 ## Aiming
 
-A faint line runs straight ahead, as a release without a swipe would go, with a ring where the cue ball would touch and a line to where the ball it meets would land, bolder if that drops. A quick swipe fades it, as it no longer tells the truth; once placing, it always shows. Because the shot starts at the finger and flies at the vanishing point, where you put your finger is how you cut the ball. The ball in the hand is translucent so as not to hide its target.
+A faint line runs straight ahead, as a release without a swipe would go, with a ring where the cue ball would touch and a line to where the ball it meets would land. That line is the same whether the ball would drop or not: it was once bolder for a pot, which told the player too much and took the skill out of a shot. A quick swipe fades it, as it no longer tells the truth; once placing, it always shows. Because the shot starts at the finger and flies at the vanishing point, where you put your finger is how you cut the ball. The ball in the hand is translucent so as not to hide its target.
 
 **As a cue** (1.14, Aim in the menu): a stylized cue lies on the glass behind the ball in the hand, pointing through it at where the line meets a ball, and fades with the line. Its tip draws back from the ball as the shot charges, up to `POOL.aim.cue.pull`; aimed straight at the far wall, it points up the screen. Geometry in `core/cue`, drawing in `scene/poolCue`. It lay along the line at first, from the ball to the ring, but in perspective that stretch is short on screen and hid under the ball in the hand.
 
