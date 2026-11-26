@@ -2,6 +2,8 @@
 export type BallKind = 'plain' | 'solid' | 'stripe' | 'eight';
 
 /** The 8-ball trial, in the calm room's box. Lengths as in `tuning`; see docs/pool.md. */
+type Rgb = [number, number, number];
+
 export const POOL = {
   /** Every ball, the cue ball too: about a third of the largest calm bubble. */
   radius: 0.22,
@@ -179,7 +181,8 @@ export const POOL = {
   /**
    * The rooms pool can be played in, chosen by Cloth in its menu (`config/poolOptions`). `room` is
    * drawn as a calm box is; `air` is what far balls haze into, near the far wall's colour; `mark` is
-   * the colour of pockets' edges, the row's lines and rings, the count and play again.
+   * the colour of the row's lines and rings, the count and play again; `rim` is each pocket's edge,
+   * stroked in order, widest first.
    */
   tables: {
     space: {
@@ -195,6 +198,7 @@ export const POOL = {
       },
       air: [0.05, 0.14, 0.22] as [number, number, number],
       mark: [150, 205, 240] as [number, number, number],
+      rim: [{ color: [150, 205, 240] as Rgb, width: 1.4, opacity: 0.7 }],
     },
     felt: {
       room: {
@@ -210,10 +214,16 @@ export const POOL = {
       },
       air: [0.07, 0.2, 0.13] as [number, number, number],
       mark: [236, 228, 204] as [number, number, number],
+      // Leather: a dark band, its body, and a sheen along the top.
+      rim: [
+        { color: [38, 20, 10] as Rgb, width: 7, opacity: 0.9 },
+        { color: [104, 58, 30] as Rgb, width: 4.5, opacity: 1 },
+        { color: [176, 116, 68] as Rgb, width: 1.2, opacity: 0.75 },
+      ],
     },
   },
   /** Pockets as drawn. `side` is how far a middle one spreads each way; looks only, `mouth` decides. */
-  holes: { side: 0.42, fill: 0.7, edge: 0.7 },
+  holes: { side: 0.42, fill: 0.7 },
   hapticGap: 0.05,
   hapticLeast: 0.3,
 };

@@ -77,7 +77,7 @@ Tried and dropped: a wash of the whole room (hides colours and depth); a film sw
 
 ## Options
 
-The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. One row of tiles leaves the far wall clear; keep to three options. They are in `config/poolOptions`, saved together: Trail and Cloth. Cloth is the table (`POOL.tables`): Space, the see-through room, or Felt, the calm box of that name, with pockets, the row's lines and the count in cream rather than the room's blue.
+The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. One row of tiles leaves the far wall clear; keep to three options. They are in `config/poolOptions`, saved together: Trail and Cloth. Cloth is the table (`POOL.tables`): Space, the see-through room, or Felt, the calm box of that name, its pockets edged in leather (`rim`: a dark band, its body and a sheen) and the row's lines and the count in cream rather than the room's blue.
 
 ## Physics
 

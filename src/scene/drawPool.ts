@@ -2,6 +2,8 @@ import {
   createPicture,
   PaintStyle,
   Skia,
+  StrokeCap,
+  StrokeJoin,
   type SkCanvas,
   type SkPaint,
   type SkPicture,
@@ -104,17 +106,21 @@ export function poolRoom(box: Box, view: View, table: Table): SkPicture {
   // Where a ball resting against each wall would drop: `out` from a wall.
   const out = POOL.radius + POOL.mouth;
   const corner = Math.hypot(out, POOL.radius);
-  const [r, g, b] = table.mark;
   return createPicture((canvas) => {
     canvas.drawPicture(room);
     const fill = Skia.Paint();
     fill.setAntiAlias(true);
     fill.setColor(Float32Array.of(0, 0.01, 0.02, POOL.holes.fill));
-    const line = Skia.Paint();
-    line.setAntiAlias(true);
-    line.setStyle(PaintStyle.Stroke);
-    line.setStrokeWidth(1.4);
-    line.setColor(Float32Array.of(r / 255, g / 255, b / 255, POOL.holes.edge));
+    const rims = table.rim.map(({ color: [r, g, b], width, opacity }) => {
+      const line = Skia.Paint();
+      line.setAntiAlias(true);
+      line.setStyle(PaintStyle.Stroke);
+      line.setStrokeCap(StrokeCap.Round);
+      line.setStrokeJoin(StrokeJoin.Round);
+      line.setStrokeWidth(width);
+      line.setColor(Float32Array.of(r / 255, g / 255, b / 255, opacity));
+      return line;
+    });
     for (const q of pockets(box)) {
       const middle = q.y === 0;
       const inX = -Math.sign(q.x);
@@ -131,7 +137,8 @@ export function poolRoom(box: Box, view: View, table: Table): SkPicture {
           else arc.push(at(q.x + inX * c, q.y, q.z - s));
         }
         canvas.drawPath(Skia.Path.Polygon([at(q.x, q.y, q.z), ...arc], true), fill);
-        canvas.drawPath(Skia.Path.Polygon(arc, false), line);
+        const edge = Skia.Path.Polygon(arc, false);
+        for (const line of rims) canvas.drawPath(edge, line);
       }
     }
   });
