@@ -85,6 +85,10 @@ Selectable, with Random available and None as the default.
 - [ ] 8.20 Coalescence and pop sounds pitched by size, a triumphant flourish for the winner
 - [ ] 8.21 Music per theme
 
+### 8-ball
+
+- [ ] 8.23 Aiming near the top and bottom of the screen: shots there are hard to place, as the finger runs out of glass. Explore a stretch near those edges, so a little more finger travel there reaches further across the glass, and whether it should apply to placing the cue ball, its line or both. Judge on a phone
+
 ### Web preview
 
 - [ ] 8.22 Load faster. Measure first, on a phone in Safari, cold and repeat: first paint, downloads, Skia compiling, first frame. Are preloads used there? Then try, largest first: a smaller CanvasKit (3.3 of the 3.9 MB zipped; does the app need the full build?), Brotli (needs HTTPS), Skia cached for good under a name that changes with it, a service worker, a smaller app script (showdown, preview and 8-ball loaded when opened), running the app script sooner after Skia. Perhaps Home Screen launch images, and an error when the start script itself fails
