@@ -31,10 +31,22 @@ export const POOL_ROWS: readonly PoolRow[] = [
     ],
     usual: 'space',
   },
+  {
+    key: 'aim',
+    label: 'Aim',
+    options: [
+      { id: 'line', name: 'Line' },
+      { id: 'cue', name: 'Cue' },
+    ],
+    usual: 'line',
+  },
 ];
 
 /** The room pool is played in (`POOL.tables`). */
 export const tableOf = (id: string | undefined): TableId => (id === 'felt' ? 'felt' : 'space');
+
+/** Whether the aim is drawn as a cue (`POOL.aim.cue`) rather than a line. */
+export const cueAim = (id: string | undefined) => id === 'cue';
 
 /** How many balls leave trails, the cue ball first. */
 export const trailing = (id: string | undefined) =>

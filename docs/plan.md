@@ -2,7 +2,7 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Sections keep their numbers when reordered. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2, in section 10.
 
-**Next: 1.14, a pool cue.**
+**Next: 1.4, more from spin.**
 
 Manual verification, whatever needs you or a phone to judge, waits in section 10, at the very end. Nothing else waits for it. Build and check on tests and the simulator, go on, and add what is left to judge to section 10. Section 8 is parked and section 9 is blocked: neither is picked up as a next step.
 
@@ -14,9 +14,7 @@ A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than wat
 
 **C. True 8-ball.** Built. Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won. The rules are settled in [pool](pool.md), Rules (1.6).
 
-**D. The table.** Options, so each can be left out without harm. Done when both hold to the first principle.
-
-- [ ] 1.14 A stylized pool cue as a trajectory indicator, a setting for pool to toggle on; the present line stays the default
+**D. The table.** Built. Options, so each can be left out without harm. Done when both hold to the first principle.
 
 **E. Later.**
 
@@ -116,6 +114,7 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
   - 1.11: is the winner read from their lit half of the row and their line, without words, and a loss as the line crossing to the other player; is the round arrow read as play again, and is 1.6 s before it shows right; does the rack swelling back in, with the other player's line, say whose break it is
   - 1.12: is the count of wins quiet enough yet found when wanted, and read as whose without words; should it outlive leaving 8-ball
   - 1.13: does Felt read as a pool table, and should it, not Space, be what 8-ball starts with; are shadows, the light of moving balls and trails as easy to follow on it, in play; can the green solid be told from the cloth at the far wall, and the row's rings against the cloth; is Felt too bright for a calm room at night
+  - 1.14: does the cue make aiming clearer or only busier; does its pull read as power without hiding balls near the glass; is a cue on the glass, behind a ball going into the screen, natural, or would players rather it lay along the line; should it, not the line, be what 8-ball starts with
   - 1.6, the rules in play, once 1.7 to 1.11 are built: is the wait between shots short enough, and late drag unnoticed; do two shots after a foul sting enough; is the early 8 set back (not lost) right, or should the WPA loss return; is calling the 8 by the aim line understood
 
 **First time on a phone**
@@ -172,6 +171,7 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 - 1.11, win and loss (`core/poolGame`, `clearTable` in `core/pool`, `POOL.row.win`, `ui/Pool`): once over, the table holds as it ended and ignores touches; the turn line goes to the winner and brightens, and a ring lights round each of their places and the 8's, from the 8 outwards (`RowTurn.won`, `crownAt`). After 1.6 s a round arrow above the dot plays again (VoiceOver: "Player 1 won. Play again", announced as it ends): what is left on the table fades where it rests, the rack swells back in as potted balls' places empty (`Ball.emptying`), and the other player breaks (`PoolGame.breaker`, `nextGame`); the first shot waits for the rack (`racking`). A cleared table no longer sets itself again while a game is over (`Pool.over`). Tested in core. Development build, simulator (iPhone 17), tables set by a probe: a win with the 8 in the called pocket, a touch on the table doing nothing, play again, the rack swelling in with player 2's line, and player 2's break; a loss (no pocket called, forced by the probe) crossing the line to player 2 and lighting the stripes. A first version filled the places of balls left on the table as the rack came back; fixed. 61 fps, 2.3 to 3.2 ms a frame, at most 5.4. Not seen: Reduce Motion, VoiceOver, a loss by a scratch on the 8
 - 1.12, wins: a count for each player, kept between games while 8-ball is open (`PoolGame.wins`, `nextGame`), a faint figure under the outer end of each half of the row once anyone has won, the new one fading in as the rings finish (`POOL.row.tally`, `ui/Pool`); VoiceOver hears it with who won. Tested in core. Development build, simulator (iPhone 17), every shot made a win by a probe: 1 and 0 after the first game, then player 2's figure fading in to 1 and 1 after the second, player 1's staying. Frame time not measured: nothing is drawn per frame. Not seen: Reduce Motion, VoiceOver, leaving and coming back, counts of two figures
 - 1.13, felt: Felt, an opaque cloth under a lamp, a fine nap and faint mottle, darker at the cushions (`felt` in `scene/walls`), is a calm box (`ENVIRONMENTS.felt`, bouncing a little less) and 8-ball's second table, chosen by Cloth in its menu: Space, as before and the default, or Felt (`POOL.tables`, `tableOf` in `config/poolOptions`). Each table has its own room, the air far balls haze into, a colour for the row's lines and rings, the count and play again, cream on felt, and the pockets' edges (`rim`), leather on felt, seen on the simulator. Tested in config. Development build, simulator (iPhone 17): Felt in the Box picker and full screen in the calm room; in 8-ball, Cloth switching the table at once; a break on felt with shadows on the far wall and floor, the cue ball's light beneath it and its trail (rechecking 1.15 and 1.16). 60 fps, about 3 ms a frame, at most 5.4. Not seen: day light, softness and opacity on Felt, a calm bubble's ripples on it, pots on felt, Reduce Motion
+- 1.14, a cue: Aim in 8-ball's menu, Line (the default) or Cue (`cueAim` in `config/poolOptions`). With Cue, a stylized cue lies on the glass behind the ball in the hand, pointing through it at where the line meets a ball: blue tip, ferrule, maple shaft, a brass join and a dark butt, wider towards the butt, with a sheen on the lit side, faded as one with the line (`core/cue`, `scene/poolCue`, `POOL.aim.cue`). Its tip draws back from the ball as the shot charges; aimed straight at the far wall it points up the screen. The line, its ring and the target's line stay. A first version lay along the line, from the ball to the ring: in perspective that is short on screen and was lost under the ball in the hand, so it was moved behind. Tested in core and config. Development build, simulator (iPhone 17): straight and cut shots on Space and Felt, full and partial charge, the tile stepping and kept across reopening the menu. Frame time not measured. Not seen: Reduce Motion, a swipe fading it, the cue near a screen edge
 
 ### Trails
 

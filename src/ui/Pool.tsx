@@ -19,7 +19,14 @@ import Animated, {
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import type { Mode } from '@/config/modes';
 import { POOL } from '@/config/pool';
-import { POOL_ROWS, stepPool, tableOf, trailing, type PoolSettings } from '@/config/poolOptions';
+import {
+  cueAim,
+  POOL_ROWS,
+  stepPool,
+  tableOf,
+  trailing,
+  type PoolSettings,
+} from '@/config/poolOptions';
 import { TUNING } from '@/config/tuning';
 import { FEELS } from '@/config/feels';
 import {
@@ -155,6 +162,9 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   useEffect(() => still.set(calm), [still, calm]);
   const tableId = useSharedValue(cloth);
   useEffect(() => tableId.set(cloth), [tableId, cloth]);
+  const asCue = cueAim(settings.aim);
+  const aimCue = useSharedValue(asCue);
+  useEffect(() => aimCue.set(asCue), [aimCue, asCue]);
   // The table last drawn on: another redraws even a still one.
   const drawnOn = useSharedValue(cloth);
 
@@ -234,10 +244,12 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     const called =
       trace && trace.hit === EIGHT && trace.drops && onEight(g, downOf(p)) ? trace.pocket : -1;
     const grown = h ? Math.min(1, h.seconds / POOL.cue.appear) : 0;
+    const power = h ? Math.min(1, h.seconds / POOL.cue.charge) : 0;
     picture.value = createPicture((canvas) => {
       'worklet';
       const t = POOL.tables[tableId.value];
-      drawPool(canvas, gpu, p, held, grown, trace, sure, called, row, turn.value, box, view, t);
+      const c = aimCue.value ? power : -1;
+      drawPool(canvas, gpu, p, held, grown, trace, sure, called, row, turn.value, box, view, t, c);
     });
   });
 

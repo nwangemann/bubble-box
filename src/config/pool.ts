@@ -39,6 +39,35 @@ export const POOL = {
     ease: 0.15,
     /** The pocket the line calls for the 8: a ring this many radii round where it would sit. */
     call: { size: 1.6, opacity: 0.7, width: 1.6 },
+    /**
+     * Aim as a cue (Aim in the menu, `config/poolOptions`), lying on the glass behind the ball in
+     * the hand and pointing where it goes, `length` long, `butt` and `tip` its full widths, all in
+     * box units. Its tip waits `short` px off the ball and draws back `pull` px as the shot charges.
+     * Aimed straight at the far wall it points up the screen, leaning that way within `steady` px.
+     * From the butt: it takes `share` of the length, then a `join` band, the shaft, a `ferrule` and
+     * the `tip`. A `sheen` along the lit side rounds it.
+     */
+    cue: {
+      length: 1.5,
+      butt: 0.075,
+      tip: 0.034,
+      short: 4,
+      pull: 22,
+      steady: 24,
+      opacity: 0.9,
+      share: 0.34,
+      join: 0.025,
+      ferrule: 0.06,
+      end: 0.025,
+      colors: {
+        butt: [52, 30, 20] as Rgb,
+        join: [208, 176, 112] as Rgb,
+        shaft: [228, 206, 160] as Rgb,
+        ferrule: [242, 238, 228] as Rgb,
+        tip: [72, 124, 196] as Rgb,
+      },
+      sheen: { width: 0.28, offset: 0.22, opacity: 0.45 },
+    },
   },
   /** The 8 set back on its spot: seconds it takes to ease in, and steps along the line to find room. */
   spot: { ease: 0.6, step: 0.01 },

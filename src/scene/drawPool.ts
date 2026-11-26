@@ -29,6 +29,7 @@ import { roomPicture } from './roomPicture';
 import { compilePots, drawMotes, drawPots } from './poolPots';
 import { compilePoolWalls, drawPoolWalls, LIGHTS } from './poolWalls';
 import { compileLooks, cutTrail, drawPiece, type Piece } from './trails';
+import { drawCue, makeCue } from './poolCue';
 
 /** A film round a tinted middle. Uniform order matches `drawBall`. */
 const BALL = `
@@ -90,7 +91,16 @@ function make() {
   }
   const { look } = POOL.trail;
   const trails = compileLooks({ [look.id]: look }, { [look.id]: WAKE });
-  return { line, ball, contact, effect, walls: compilePoolWalls(), pots: compilePots(), trails };
+  return {
+    line,
+    ball,
+    contact,
+    effect,
+    walls: compilePoolWalls(),
+    pots: compilePots(),
+    trails,
+    cue: makeCue(),
+  };
 }
 export type PoolGpu = ReturnType<typeof make>;
 let made: PoolGpu | null = null;
@@ -314,6 +324,8 @@ export function drawPool(
   box: Box,
   v: View,
   table: Table,
+  /** With the aim as a cue, how far the shot has charged, 0 to 1; -1 for the line alone. */
+  cue: number,
 ) {
   'worklet';
   const { effect, line } = gpu;
@@ -392,6 +404,11 @@ export function drawPool(
     const rx = r * (1 + held.d.x - held.d.z * 0.3);
     const ry = r * (1 + held.d.y - held.d.z * 0.3);
     drawDisc(canvas, gpu.ball, effect, 0, c.x, c.y, rx, ry, POOL.cue.held, 0, 0.4, air);
+    if (trace && cue >= 0) {
+      // A cue on the glass behind it, pointing where the line goes.
+      const b = at(trace.to);
+      drawCue(canvas, gpu.cue, c.x, c.y, Math.max(rx, ry), b.x, b.y, cue, v.ppu, sure);
+    }
   }
   drawRow(
     canvas,

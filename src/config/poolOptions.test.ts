@@ -1,5 +1,5 @@
 import { POOL } from './pool';
-import { cleanPool, POOL_ROWS, stepPool, tableOf, type PoolRow } from './poolOptions';
+import { cleanPool, cueAim, POOL_ROWS, stepPool, tableOf, type PoolRow } from './poolOptions';
 
 const ROW: PoolRow = {
   key: 'cloth',
@@ -32,4 +32,13 @@ test('each cloth is a table of its own', () => {
   const cloth = POOL_ROWS.find((r) => r.key === 'cloth')!;
   expect(cloth.options.map((o) => tableOf(o.id))).toEqual(Object.keys(POOL.tables));
   expect(tableOf(undefined)).toBe(cloth.usual);
+});
+
+test('the aim is a line unless a cue is chosen, and the menu keeps to three tiles', () => {
+  const aim = POOL_ROWS.find((r) => r.key === 'aim')!;
+  expect(aim.usual).toBe('line');
+  expect(aim.options.map((o) => cueAim(o.id))).toEqual([false, true]);
+  expect(cueAim(undefined)).toBe(false);
+  expect(cleanPool({}).aim).toBe('line');
+  expect(POOL_ROWS.length).toBeLessThanOrEqual(3);
 });

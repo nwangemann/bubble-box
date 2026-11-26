@@ -33,6 +33,8 @@ A ball drops when its middle comes within 0.2 of where it would sit snug in a po
 
 A faint line runs straight ahead, as a release without a swipe would go, with a ring where the cue ball would touch and a line to where the ball it meets would land, bolder if that drops. A quick swipe fades it, as it no longer tells the truth; once placing, it always shows. Because the shot starts at the finger and flies at the vanishing point, where you put your finger is how you cut the ball. The ball in the hand is translucent so as not to hide its target.
 
+**As a cue** (1.14, Aim in the menu): a stylized cue lies on the glass behind the ball in the hand, pointing through it at where the line meets a ball, and fades with the line. Its tip draws back from the ball as the shot charges, up to `POOL.aim.cue.pull`; aimed straight at the far wall, it points up the screen. Geometry in `core/cue`, drawing in `scene/poolCue`. It lay along the line at first, from the ball to the ring, but in perspective that stretch is short on screen and hid under the ball in the hand.
+
 ## How depth shows
 
 - **Shadows**, straight across from each ball. The far wall's carry all the way, so how far one sits from its ball is how deep the ball is. The rest show only on walls within 1.1, firmest where a ball presses.
@@ -77,7 +79,7 @@ Tried and dropped: a wash of the whole room (hides colours and depth); a film sw
 
 ## Options
 
-The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. One row of tiles leaves the far wall clear; keep to three options. They are in `config/poolOptions`, saved together: Trail and Cloth. Cloth is the table (`POOL.tables`): Space, the see-through room, or Felt, the calm box of that name, its pockets edged in leather (`rim`: a dark band, its body and a sheen) and the row's lines and the count in cream rather than the room's blue.
+The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. One row of tiles leaves the far wall clear; keep to three options. They are in `config/poolOptions`, saved together: Trail, Cloth and Aim. Aim is Line, as above, or Cue, the line with a cue behind the ball (Aiming). Cloth is the table (`POOL.tables`): Space, the see-through room, or Felt, the calm box of that name, its pockets edged in leather (`rim`: a dark band, its body and a sheen) and the row's lines and the count in cream rather than the room's blue.
 
 ## Physics
 
