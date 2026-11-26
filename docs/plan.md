@@ -2,7 +2,7 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Sections keep their numbers when reordered. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2, in section 10.
 
-**Next: 1.12, win tracking.**
+**Next: 1.14, a pool cue.**
 
 Manual verification, whatever needs you or a phone to judge, waits in section 10, at the very end. Nothing else waits for it. Build and check on tests and the simulator, go on, and add what is left to judge to section 10. Section 8 is parked and section 9 is blocked: neither is picked up as a next step.
 
@@ -12,13 +12,10 @@ A third mode beside Calm and Showdown: 8-ball pool in 3D, played rather than wat
 
 **A. See and follow** and **B. A pot worth it.** Built; judged in 1.2.
 
-**C. True 8-ball.** Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won. The rules are settled in [pool](pool.md), Rules (1.6).
-
-- [ ] 1.12 Win tracking: wins for each player, kept between games
+**C. True 8-ball.** Built. Done when two people can play a whole game on one phone and know whose turn it is, what is theirs and who won. The rules are settled in [pool](pool.md), Rules (1.6).
 
 **D. The table.** Options, so each can be left out without harm. Done when both hold to the first principle.
 
-- [ ] 1.13 A felt, pool-table-like, opaque option among the environments (`config/environments`). Pool uses its own look (`POOL.look`), not the calm boxes, so decide whether calm gets it too. Recheck 1.15 and 1.16 on it
 - [ ] 1.14 A stylized pool cue as a trajectory indicator, a setting for pool to toggle on; the present line stays the default
 
 **E. Later.**
@@ -117,6 +114,8 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
   - 1.19: is the line under a half read as whose turn, and the shorter one beneath as a second shot, without being told; while the table is open, do players take the solids on the left for player 1's; does the swap of groups catch the eye without distracting
   - 1.10: is the ring at the called pocket read as calling it, and is a swiped shot calling none fair; are the brighter and muted pots felt as meaning without words; is the 8 easing back onto its spot followed
   - 1.11: is the winner read from their lit half of the row and their line, without words, and a loss as the line crossing to the other player; is the round arrow read as play again, and is 1.6 s before it shows right; does the rack swelling back in, with the other player's line, say whose break it is
+  - 1.12: is the count of wins quiet enough yet found when wanted, and read as whose without words; should it outlive leaving 8-ball
+  - 1.13: does Felt read as a pool table, and should it, not Space, be what 8-ball starts with; are shadows, the light of moving balls and trails as easy to follow on it, in play; can the green solid be told from the cloth at the far wall, and the row's rings against the cloth; is Felt too bright for a calm room at night
   - 1.6, the rules in play, once 1.7 to 1.11 are built: is the wait between shots short enough, and late drag unnoticed; do two shots after a foul sting enough; is the early 8 set back (not lost) right, or should the WPA loss return; is calling the 8 by the aim line understood
 
 **First time on a phone**
@@ -171,6 +170,8 @@ Always last: start only when no step outside 8 and 9 is open. Needs you, most of
 - 1.20, what 1.17 and 1.18 left unseen, on a simulator (iPhone 17, development build); nothing needed a fix. The 8's own pot, its ball placed by a probe: pale light and front, a pale mote, its figure legible in the row. Reduce Motion switched in the system's Settings while 8-ball was open: followed both ways without a restart; on, trails stop, a pot is only a dimmer light and its place fills. The menu: tiles step and act at once, a tap on the table closes it without playing, both other sides leave, Trail survives a restart. Breaks of 15: 60 fps, about 3.5 ms a frame with trails, the menu open or closed, under 2 with none. Pots and breaks were set off by the probe, not by a finger
 - 1.10, the 8 (`core/poolGame`, `spotBall` in `core/pool`): called by the aim line, a ring round the pocket it marks once the shooter's group is cleared; a straight shot calls that pocket at release, a swiped one none. Won with it legally in the called pocket, lost on a foul, in another pocket or with none called (`PoolGame.winner`; the turn stays, the win itself is 1.11). On the break or early, set back on its spot once its pot has played out, easing in as its place in the row empties; the next shot waits for it. Pots weighed as they drop: muted on a foul, brighter for the last of a group, brightest for the 8 called (`POOL.pot.meaning`). Tested in core. Development build, simulator (iPhone 17), tables set by a probe: the ring at a side pocket, the 8 potted there with the brightest light and widest bloom and the turn kept, an early 8 muted, its place filled then emptied, the turn passed with two shots, and the 8 easing back in. 60 fps, about 2.5 ms a frame through shot, pot and set-back, at most 11. Not seen: a loss, the break's 8, Reduce Motion; a spot straight behind a ball nearer the glass hides the 8
 - 1.11, win and loss (`core/poolGame`, `clearTable` in `core/pool`, `POOL.row.win`, `ui/Pool`): once over, the table holds as it ended and ignores touches; the turn line goes to the winner and brightens, and a ring lights round each of their places and the 8's, from the 8 outwards (`RowTurn.won`, `crownAt`). After 1.6 s a round arrow above the dot plays again (VoiceOver: "Player 1 won. Play again", announced as it ends): what is left on the table fades where it rests, the rack swells back in as potted balls' places empty (`Ball.emptying`), and the other player breaks (`PoolGame.breaker`, `nextGame`); the first shot waits for the rack (`racking`). A cleared table no longer sets itself again while a game is over (`Pool.over`). Tested in core. Development build, simulator (iPhone 17), tables set by a probe: a win with the 8 in the called pocket, a touch on the table doing nothing, play again, the rack swelling in with player 2's line, and player 2's break; a loss (no pocket called, forced by the probe) crossing the line to player 2 and lighting the stripes. A first version filled the places of balls left on the table as the rack came back; fixed. 61 fps, 2.3 to 3.2 ms a frame, at most 5.4. Not seen: Reduce Motion, VoiceOver, a loss by a scratch on the 8
+- 1.12, wins: a count for each player, kept between games while 8-ball is open (`PoolGame.wins`, `nextGame`), a faint figure under the outer end of each half of the row once anyone has won, the new one fading in as the rings finish (`POOL.row.tally`, `ui/Pool`); VoiceOver hears it with who won. Tested in core. Development build, simulator (iPhone 17), every shot made a win by a probe: 1 and 0 after the first game, then player 2's figure fading in to 1 and 1 after the second, player 1's staying. Frame time not measured: nothing is drawn per frame. Not seen: Reduce Motion, VoiceOver, leaving and coming back, counts of two figures
+- 1.13, felt: Felt, an opaque cloth under a lamp, a fine nap and faint mottle, darker at the cushions (`felt` in `scene/walls`), is a calm box (`ENVIRONMENTS.felt`, bouncing a little less) and 8-ball's second table, chosen by Cloth in its menu: Space, as before and the default, or Felt (`POOL.tables`, `tableOf` in `config/poolOptions`). Each table has its own room, the air far balls haze into, and a colour for pockets' edges, the row's lines and rings, the count and play again: cream on felt. Tested in config. Development build, simulator (iPhone 17): Felt in the Box picker and full screen in the calm room; in 8-ball, Cloth switching the table at once; a break on felt with shadows on the far wall and floor, the cue ball's light beneath it and its trail (rechecking 1.15 and 1.16). 60 fps, about 3 ms a frame, at most 5.4. Not seen: day light, softness and opacity on Felt, a calm bubble's ripples on it, pots on felt, Reduce Motion
 
 ### Trails
 

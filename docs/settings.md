@@ -5,7 +5,7 @@ The menu opens from the dot: a tile for each setting, with its name and what is 
 | Setting | Default    | Other options                                                                               | What Random does                                |
 | ------- | ---------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
 | Bubble  | Soap       | Glass, Pearl, Lantern, Aurora, Tide, Nebula, Ink, Mercury, Contour, Eclipse, Medusa, Custom | Each new bubble                                 |
-| Box     | Lattice    | Invisible, Whisper, Dusk, Frost, Water, Silk, Stone                                         | One box when chosen; choose again for another   |
+| Box     | Lattice    | Invisible, Whisper, Dusk, Frost, Water, Silk, Stone, Felt                                   | One box when chosen; choose again for another   |
 | Light   | Night      | Day                                                                                         | One light when chosen; choose again for another |
 | Feel    | Drift      | Weightless, Lively, Syrup, Ascend                                                           | Each bubble, for life                           |
 | Glass   | Ripple     | Still                                                                                       | Each hit on the screen side                     |
@@ -42,6 +42,7 @@ Its options are its own, apart from the calm room's: tiles in its menu, opened f
 | Setting | Default   | Other options  | What it does                                |
 | ------- | --------- | -------------- | ------------------------------------------- |
 | Trail   | All balls | Cue ball, None | A short streak shows which way and how fast |
+| Cloth   | Space     | Felt           | The table: the see-through room, or felt    |
 
 ## Custom
 

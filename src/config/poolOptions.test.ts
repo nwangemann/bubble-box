@@ -1,4 +1,5 @@
-import { cleanPool, POOL_ROWS, stepPool, type PoolRow } from './poolOptions';
+import { POOL } from './pool';
+import { cleanPool, POOL_ROWS, stepPool, tableOf, type PoolRow } from './poolOptions';
 
 const ROW: PoolRow = {
   key: 'cloth',
@@ -25,4 +26,10 @@ test('a tap steps through the options and round again', () => {
   const next = stepPool(ROW, { cloth: 'space', cue: 'line' });
   expect(next).toEqual({ cloth: 'felt', cue: 'line' });
   expect(stepPool(ROW, next).cloth).toBe('space');
+});
+
+test('each cloth is a table of its own', () => {
+  const cloth = POOL_ROWS.find((r) => r.key === 'cloth')!;
+  expect(cloth.options.map((o) => tableOf(o.id))).toEqual(Object.keys(POOL.tables));
+  expect(tableOf(undefined)).toBe(cloth.usual);
 });

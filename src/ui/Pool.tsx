@@ -1,7 +1,14 @@
 import { Canvas, createPicture, Path, Picture, Skia } from '@shopify/react-native-skia';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AccessibilityInfo, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { GestureDetector, useManualGesture } from 'react-native-gesture-handler';
 import Animated, {
   FadeIn,
@@ -12,7 +19,7 @@ import Animated, {
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import type { Mode } from '@/config/modes';
 import { POOL } from '@/config/pool';
-import { POOL_ROWS, stepPool, trailing, type PoolSettings } from '@/config/poolOptions';
+import { POOL_ROWS, stepPool, tableOf, trailing, type PoolSettings } from '@/config/poolOptions';
 import { TUNING } from '@/config/tuning';
 import { FEELS } from '@/config/feels';
 import {
@@ -88,7 +95,11 @@ const AGAIN = (() => {
   path.lineTo(p2.x, p2.y);
   return path.detach();
 })();
-const INK = `rgb(${POOL.look.ink.join(',')})`;
+const TALLY_WIDTH = 40;
+
+/** Who won, and the count so far, for VoiceOver. */
+const told = (winner: 0 | 1, wins: [number, number]) =>
+  `Player ${winner + 1} won. Player 1 has ${wins[0]}, player 2 ${wins[1]}`;
 
 type Props = {
   settings: PoolSettings;
@@ -104,12 +115,22 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   const [open, setOpen] = useState(false);
   // Who won the game just over, until play again.
   const [winner, setWinner] = useState<0 | 1 | null>(null);
+  // Wins since 8-ball was opened; leaving it starts again.
+  const [wins, setWins] = useState<[number, number]>([0, 0]);
   const close = useCallback(() => setOpen(false), []);
+  /** A game is over: who won, and the count with it, together so VoiceOver hears both. */
+  const ended = useCallback((who: 0 | 1, count: [number, number]) => {
+    setWinner(who);
+    setWins(count);
+  }, []);
   const { width, height } = useWindowDimensions();
   // The calm room's own box and view.
   const view = useMemo(() => ({ cx: width / 2, cy: height / 2, ppu: width / 2 }), [width, height]);
   const box = useMemo<Box>(() => ({ hw: 1, hh: height / width, ...TUNING.box }), [width, height]);
-  const room = useMemo(() => poolRoom(box, view), [box, view]);
+  const cloth = tableOf(settings.cloth);
+  const table = POOL.tables[cloth];
+  const room = useMemo(() => poolRoom(box, view, POOL.tables[cloth]), [box, view, cloth]);
+  const mark = table.mark.join(',');
   const row = useMemo(() => poolRow(width), [width]);
   const [gpu] = useState(getPoolGpu);
   const [start] = useState(() => createPool(box));
@@ -132,6 +153,10 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   useEffect(() => trails.set(leaving), [trails, leaving]);
   const still = useSharedValue(calm);
   useEffect(() => still.set(calm), [still, calm]);
+  const tableId = useSharedValue(cloth);
+  useEffect(() => tableId.set(cloth), [tableId, cloth]);
+  // The table last drawn on: another redraws even a still one.
+  const drawnOn = useSharedValue(cloth);
 
   /** A cue ball into the hand at a place in box units. */
   const hold = (x: number, y: number, id: number) => {
@@ -158,7 +183,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
         // Over: the table holds as it ended until play again.
         p.over = true;
         waiting.value = -1;
-        scheduleOnRN(setWinner, g.winner);
+        scheduleOnRN(ended, g.winner, g.wins);
       }
     }
     // A new game's first shot waits for its rack to have swelled in.
@@ -181,6 +206,10 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     const { place, ease, swipe } = POOL.aim;
     if (h && heldFor < place && h.seconds >= place) scheduleOnRN(tick);
     // A still table draws nothing.
+    if (drawnOn.value !== tableId.value) {
+      drawnOn.value = tableId.value;
+      dirty.value = true;
+    }
     if (!moved && !shown && !h && !dirty.value) return;
     dirty.value = moved || shown || !!h;
     if (p.potted > 0) scheduleOnRN(drop);
@@ -207,7 +236,8 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     const grown = h ? Math.min(1, h.seconds / POOL.cue.appear) : 0;
     picture.value = createPicture((canvas) => {
       'worklet';
-      drawPool(canvas, gpu, p, held, grown, trace, sure, called, row, turn.value, box, view);
+      const t = POOL.tables[tableId.value];
+      drawPool(canvas, gpu, p, held, grown, trace, sure, called, row, turn.value, box, view, t);
     });
   });
 
@@ -274,8 +304,8 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   });
 
   useEffect(() => {
-    if (winner !== null) AccessibilityInfo.announceForAccessibility(`Player ${winner + 1} won`);
-  }, [winner]);
+    if (winner !== null) AccessibilityInfo.announceForAccessibility(told(winner, wins));
+  }, [winner, wins]);
   /** What is left fades, the table is set again, and the other player breaks. */
   const again = () => {
     setWinner(null);
@@ -305,6 +335,26 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
           </Canvas>
         </View>
       </GestureDetector>
+      {wins[0] + wins[1] > 0 &&
+        ([0, 1] as const).map((who) => (
+          <Animated.View
+            // A new count fades in as the winner's rings finish lighting.
+            key={`${who}-${wins[who]}`}
+            entering={FadeIn.delay(calm ? 0 : POOL.row.win.seconds * 1000).duration(500)}
+            pointerEvents="none"
+            style={[
+              styles.tally,
+              { left: width / 2 + (who === 0 ? -1 : 1) * (row.end - row.radius) - TALLY_WIDTH / 2 },
+            ]}
+          >
+            <Text
+              style={[styles.count, { color: `rgba(${mark},${POOL.row.tally.opacity})` }]}
+              accessibilityLabel={`Player ${who + 1}: ${wins[who]} won`}
+            >
+              {wins[who]}
+            </Text>
+          </Animated.View>
+        ))}
       {winner !== null && (
         <Animated.View
           entering={FadeIn.delay(calm ? 0 : POOL.row.win.after * 1000).duration(600)}
@@ -314,14 +364,18 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
           <Pressable
             onPress={again}
             accessibilityRole="button"
-            accessibilityLabel={`Player ${winner + 1} won. Play again`}
+            accessibilityLabel={`${told(winner, wins)}. Play again`}
             hitSlop={12}
-            style={({ pressed }) => [styles.ring, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.ring,
+              { borderColor: `rgba(${mark},0.6)` },
+              pressed && styles.pressed,
+            ]}
           >
             <Canvas style={styles.glyph} pointerEvents="none">
               <Path
                 path={AGAIN}
-                color={INK}
+                color={`rgb(${mark})`}
                 style="stroke"
                 strokeWidth={2}
                 strokeCap="round"
@@ -366,11 +420,17 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderWidth: 1.5,
-    borderColor: `rgba(${POOL.look.ink.join(',')},0.6)`,
     backgroundColor: 'rgba(5,8,20,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   pressed: { opacity: 0.6 },
+  tally: { position: 'absolute', top: POOL.row.top + POOL.row.tally.below, width: TALLY_WIDTH },
+  count: {
+    textAlign: 'center',
+    fontSize: POOL.row.tally.size,
+    fontWeight: '300',
+    fontVariant: ['tabular-nums'],
+  },
   glyph: { width: 40, height: 40 },
 });

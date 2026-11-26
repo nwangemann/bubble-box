@@ -132,6 +132,12 @@ export const POOL = {
      * seconds.
      */
     win: { seconds: 1.4, spread: 0.5, out: 3, opacity: 0.75, width: 1.4, line: 1, after: 1.6 },
+    /**
+     * Wins since 8-ball was opened: a small figure `below` the row under the outer end of each
+     * half, in the room's ink at `opacity`, once anyone has won. A new count fades in as the
+     * winner's rings finish lighting.
+     */
+    tally: { below: 36, size: 13, opacity: 0.5 },
   },
   /** How balls look with distance, at the far wall: haze into the air, dimming, and duller shine. */
   far: { haze: 0.35, dim: 0.2, dull: 0.8 },
@@ -170,18 +176,47 @@ export const POOL = {
     corner: 0.98,
     most: 64,
   },
-  look: {
-    backdrop: ['#12304a', '#04080f'] as [string, string],
-    ink: [150, 205, 240] as [number, number, number],
-    edgeOpacity: 0.34,
-    grid: 6,
-    gridOpacity: 0.07,
-    faceOpacity: 0.012,
-    wallOpacity: 1,
-    softness: 0,
+  /**
+   * The rooms pool can be played in, chosen by Cloth in its menu (`config/poolOptions`). `room` is
+   * drawn as a calm box is; `air` is what far balls haze into, near the far wall's colour; `mark` is
+   * the colour of pockets' edges, the row's lines and rings, the count and play again.
+   */
+  tables: {
+    space: {
+      room: {
+        backdrop: ['#12304a', '#04080f'] as [string, string],
+        ink: [150, 205, 240] as [number, number, number],
+        edgeOpacity: 0.34,
+        grid: 6,
+        gridOpacity: 0.07,
+        faceOpacity: 0.012,
+        wallOpacity: 1,
+        softness: 0,
+      },
+      air: [0.05, 0.14, 0.22] as [number, number, number],
+      mark: [150, 205, 240] as [number, number, number],
+    },
+    felt: {
+      room: {
+        backdrop: ['#0f3322', '#04100a'] as [string, string],
+        ink: [56, 184, 112] as [number, number, number],
+        edgeOpacity: 0,
+        grid: 0,
+        gridOpacity: 0,
+        faceOpacity: 0,
+        wall: 'felt' as const,
+        wallOpacity: 1,
+        softness: 0,
+      },
+      air: [0.07, 0.2, 0.13] as [number, number, number],
+      mark: [236, 228, 204] as [number, number, number],
+    },
   },
   /** Pockets as drawn. `side` is how far a middle one spreads each way; looks only, `mouth` decides. */
   holes: { side: 0.42, fill: 0.7, edge: 0.7 },
   hapticGap: 0.05,
   hapticLeast: 0.3,
 };
+
+export type TableId = keyof typeof POOL.tables;
+export type Table = (typeof POOL.tables)[TableId];

@@ -93,6 +93,19 @@ vec4 wall(vec2 t) {
   vec3 c = ink * (0.2 + 0.3 * mix(b, 0.5, soft * 0.6) + bump * 0.2 * sharp + speck * 0.16 * sharp) + ink * vein * 0.16 * sharp;
   return vec4(c * lit * mix(0.55, 1.0, smoothstep(0.0, 0.8, corner)), 0.92);
 }`,
+  // Cloth under a lamp: a fine nap and a faint mottle, a little darker at the cushions. Opaque.
+  felt: `
+vec4 wall(vec2 t) {
+  float sharp = 1.0 - soft * 0.8;
+  float mottle = fbm(t * 1.3) - 0.5;
+  float nap = fbm(t * vec2(34.0, 27.0)) - 0.5;
+  float fibre = hash(floor(t * 140.0)) - 0.5;
+  float lit = face == 4.0 ? 1.0 : face == 2.0 ? 0.8 : face == 3.0 ? 0.94 : 0.88;
+  float cushion = mix(0.7, 1.0, smoothstep(0.0, 0.25, corner));
+  float lamp = mix(0.78, 1.0, smoothstep(0.0, 1.2, corner));
+  vec3 c = ink * (0.5 + 0.06 * mottle + (0.09 * nap + 0.04 * fibre) * sharp);
+  return vec4(c * lit * cushion * lamp, 1.0);
+}`,
 };
 
 const materialSource = (wall: string) => `

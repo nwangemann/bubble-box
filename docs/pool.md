@@ -42,7 +42,7 @@ A faint line runs straight ahead, as a release without a swipe would go, with a 
 
 Tried and dropped: a halo round each ball (easy to track, no depth, and it hides neighbours); a line on the walls at each ball's depth (thin ones cannot be placed, thick ones repeat the light); mirror images on the walls, as showdowns have (they read as ghost balls); light that reaches further (it greys the room and belongs to no ball). Shadows on all walls from anywhere give each ball five marks, too many to pair with their balls.
 
-All of it holds on an opaque green wall, the light more weakly than the shadows. Balls haze towards the blue room's air, which felt (1.13) would want to change.
+All of it holds on felt (1.13), the light more weakly than the shadows. Each table has its own air for balls to haze into: blue in Space, a dark green near the cloth's on Felt.
 
 ## How forgiving a pocket is, simulated
 
@@ -77,7 +77,7 @@ Tried and dropped: a wash of the whole room (hides colours and depth); a film sw
 
 ## Options
 
-The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. One row of tiles leaves the far wall clear; keep to three options. They are in `config/poolOptions`, saved together: so far only Trail.
+The dot opens pool's own menu, as it does the calm room's: a tile for each option, and the mode switch, whose other sides leave. The table keeps playing behind and is the preview: a tap on a tile moves to the next option, seen at once, so nothing covers the balls. A touch on the table closes it without playing. One row of tiles leaves the far wall clear; keep to three options. They are in `config/poolOptions`, saved together: Trail and Cloth. Cloth is the table (`POOL.tables`): Space, the see-through room, or Felt, the calm box of that name, with pockets, the row's lines and the count in cream rather than the room's blue.
 
 ## Physics
 
@@ -115,13 +115,15 @@ The one rule changed: **an 8 potted early** (before its owner's group is cleared
 
 **The end** (1.11, `nextGame`, `clearTable`, `POOL.row.win`): once a game is over the table holds as it ended (`Pool.over`, so a cleared one is not set again) and touches on it do nothing. The turn line goes to the winner and brightens, and a ring of the room's ink lights round each of their places and the 8's, from the 8 outwards, so who won is read from the row, not told. After `win.after` seconds a round arrow above the dot plays again. What is left on the table then fades where it rests, never filling its place; the rack swells back in as potted balls' places empty (`Ball.emptying`); and the other player breaks (`PoolGame.breaker`), the first shot waiting for the rack (`racking`). VoiceOver hears who won, and the arrow is "Play again". With Reduce Motion the light and the arrow come at once.
 
+**Wins** (1.12, `PoolGame.wins`, `POOL.row.tally`): each game won adds one to the winner's count, whichever way it was won or lost, and `nextGame` keeps it. Once anyone has won, a small faint figure of the room's ink sits under the outer end of each half of the row, player 1's left and player 2's right; a new one fades in as the winner's rings finish lighting (at once with Reduce Motion). Kept only while 8-ball is open: leaving it starts again at nothing, as it starts again with player 1, since nothing says the same two will play next time. VoiceOver hears the count with who won.
+
 **Left out**: calling other balls and safeties (4.6), the incoming player's choices after a break foul (4.3d, f to h), three fouls, stalemate (no position here blocks every shot), lagging, the shot clock. The old cue ball fades at the next touch, so it never blocks a shot.
 
 **No words.** Players are told apart by side, not name: player 1's balls fill the left of the row, player 2's the right, each group moving under its owner once taken; whose turn is a line under the shooter's half (1.19, Telling balls apart). Who won is the winner's half lit, and play again a round arrow. The exceptions to having no text and no numbers stay the 8's figure and, as in showdowns, a quiet count of wins (1.12).
 
 ## Fit with the vision
 
-The balls left are the score, shown one by one at the top. No timer or words, and no number but the 8's own.
+The balls left are the score, shown one by one at the top. No timer or words, and no number but the 8's own and the quiet count of wins.
 
 ## What the trial must answer, on a phone
 

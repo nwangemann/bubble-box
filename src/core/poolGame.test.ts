@@ -490,3 +490,24 @@ test('breaks alternate: the next game opens with the other player breaking, afte
   nextGame(game);
   expect([game.turn, game.breaker]).toEqual([0, 0]);
 });
+
+test('wins are counted for each player, by whoever won however, and kept between games', () => {
+  const game = createGame();
+  expect(game.wins).toEqual([0, 0]);
+  game.groups = ['solid', 'stripe'];
+  endShot(game, verdict({ player: 0, won: true, potted: [EIGHT], first: EIGHT }));
+  expect(game.wins).toEqual([1, 0]);
+  nextGame(game);
+  expect(game.wins).toEqual([1, 0]);
+  // Player 2 loses with the 8: player 1's.
+  endShot(game, verdict({ player: 1, lost: true, foul: 'scratch' }));
+  nextGame(game);
+  // Player 1 loses: player 2's.
+  endShot(game, verdict({ player: 0, lost: true, potted: [EIGHT] }));
+  expect(game.wins).toEqual([2, 1]);
+  // A shot that ends nothing counts nothing.
+  nextGame(game);
+  endShot(game, verdict({ player: 1, keeps: true, potted: [1], first: 1 }));
+  expect(game.wins).toEqual([2, 1]);
+  expect(createGame(1).wins).toEqual([0, 0]);
+});

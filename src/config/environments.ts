@@ -1,4 +1,4 @@
-export type WallId = 'frost' | 'water' | 'silk' | 'stone';
+export type WallId = 'frost' | 'water' | 'silk' | 'stone' | 'felt';
 type Rgb = [number, number, number];
 
 /** How a box looks by day: the same room in other light. */
@@ -155,6 +155,20 @@ export const ENVIRONMENTS = {
     bounce: 1,
     wall: 'stone',
     lit: 1.3,
+  },
+  felt: {
+    name: 'Felt',
+    backdrop: ['#0f3322', '#04100a'],
+    ink: [56, 184, 112],
+    day: { backdrop: ['#5f9e78', '#2e6046'], ink: [84, 214, 138] },
+    edgeOpacity: 0,
+    grid: 0,
+    gridOpacity: 0,
+    faceOpacity: 0,
+    rippleOpacity: 0.35,
+    bounce: 0.88,
+    wall: 'felt',
+    lit: 0.9,
   },
 } satisfies Record<string, BoxLook>;
 

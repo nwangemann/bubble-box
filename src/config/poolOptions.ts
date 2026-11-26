@@ -1,3 +1,5 @@
+import type { TableId } from './pool';
+
 /** One of 8-ball's options. Ids are saved, so keep them when renaming. */
 export type PoolRow = {
   key: string;
@@ -20,7 +22,19 @@ export const POOL_ROWS: readonly PoolRow[] = [
     ],
     usual: 'all',
   },
+  {
+    key: 'cloth',
+    label: 'Cloth',
+    options: [
+      { id: 'space', name: 'Space' },
+      { id: 'felt', name: 'Felt' },
+    ],
+    usual: 'space',
+  },
 ];
+
+/** The room pool is played in (`POOL.tables`). */
+export const tableOf = (id: string | undefined): TableId => (id === 'felt' ? 'felt' : 'space');
 
 /** How many balls leave trails, the cue ball first. */
 export const trailing = (id: string | undefined) =>

@@ -100,6 +100,8 @@ export type PoolGame = {
   breaker: 0 | 1;
   /** The table is being set again for this game: the first shot waits for the rack. */
   racking: boolean;
+  /** Games each player has won since 8-ball was opened, kept by `nextGame`. */
+  wins: [number, number];
   last: Verdict | null;
 };
 
@@ -118,17 +120,20 @@ export function createGame(breaker: 0 | 1 = 0): PoolGame {
     winner: null,
     breaker,
     racking: false,
+    wins: [0, 0],
     last: null,
   };
 }
 
 /**
  * The next game, after one is over: the other player breaks, on a table set again. `racking` holds
- * the first shot until the rack is there.
+ * the first shot until the rack is there. The wins so far are kept.
  */
 export function nextGame(game: PoolGame) {
   'worklet';
+  const wins = game.wins;
   Object.assign(game, createGame(game.breaker === 0 ? 1 : 0));
+  game.wins = wins;
   game.racking = true;
 }
 
@@ -234,7 +239,9 @@ export function endShot(game: PoolGame, verdict: Verdict) {
   game.spotting = verdict.spot;
   if (verdict.won || verdict.lost) {
     // Over: the turn stays where it ended until `nextGame`.
-    game.winner = verdict.won === (verdict.player === 0) ? 0 : 1;
+    const winner = verdict.won === (verdict.player === 0) ? 0 : 1;
+    game.winner = winner;
+    game.wins = winner === 0 ? [game.wins[0] + 1, game.wins[1]] : [game.wins[0], game.wins[1] + 1];
     return;
   }
   if (verdict.takes) {

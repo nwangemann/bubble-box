@@ -12,6 +12,7 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 import { customLook, DEFAULT_CUSTOM } from '@/config/custom';
 import { DEFAULT_WALLS, dress, ENVIRONMENTS, LIGHTS } from '@/config/environments';
 import { MODE_SWITCH as M, type Mode } from '@/config/modes';
+import { POOL } from '@/config/pool';
 import { TUNING } from '@/config/tuning';
 import { createWorld, newBubble } from '@/core/world';
 import { drawFigure, drawLiquid, showdownLook } from '@/scene/drawShowdown';
@@ -22,6 +23,8 @@ import { pictureShader } from '@/scene/showdownPictures';
 import { THEMES } from '@/showdown';
 
 const MARGIN = 14;
+/** Its balls are near, so the haze of either table would do. */
+const AIR = POOL.tables.space.air;
 
 /** Drifting soap bubbles in a quiet dusk, drawn by the room's own shaders. */
 function calmPicture(w: number, h: number) {
@@ -157,7 +160,7 @@ function poolPicture(w: number, h: number) {
     if (!effect) return;
     for (const b of M.pool.balls) {
       const r = b.r * h;
-      drawDisc(canvas, ball, effect, b.ball, b.x * w, b.y * h, r, r, 1, 0, 0);
+      drawDisc(canvas, ball, effect, b.ball, b.x * w, b.y * h, r, r, 1, 0, 0, AIR);
     }
   });
 }
