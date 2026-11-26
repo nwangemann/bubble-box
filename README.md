@@ -68,7 +68,7 @@ More in [docs/running.md](docs/running.md).
 
 ## Status
 
-Phase 1 is complete and tagged `v0.1.0`. The calm room, Showdown, 8-ball and sound are built and checked in tests, the iOS simulator and the browser preview. Feel, haptics, sound and frame time on a physical phone have not yet been judged; those checks are listed at the end of the [plan](docs/plan.md). The latest review is [docs/reviews/2026-11-25.md](docs/reviews/2026-11-25.md).
+Phase 1 is complete and tagged `v0.1.0`. The calm room, Showdown, 8-ball and sound are built and checked in tests, the iOS simulator and the browser preview. Feel, haptics, sound and frame time on a physical phone have not yet been judged. Showdown trails and liquid-filled bubbles are the likely next steps.
 
 ## Built with an AI agent
 
@@ -77,7 +77,6 @@ Bubble Box was written largely by an AI coding agent (Claude Code), steered by a
 ## Docs
 
 - [Vision](docs/vision.md): the interaction and principles
-- [Plan](docs/plan.md): what is built, what is next, what needs a person
 - [Architecture](docs/architecture.md) and [decisions](docs/adr)
 - [Settings and defaults](docs/settings.md)
 - [8-ball design and rules](docs/pool.md)

@@ -7,8 +7,8 @@ Most of Bubble Box was written by an AI coding agent (Claude Code), steered by a
 The agent reads these at the start of every session, so each session can start cold instead of relying on chat history.
 
 - [`AGENTS.md`](../AGENTS.md) (loaded through `CLAUDE.md`): a table of where every kind of change lives, the docs to read before working, the house rules and the routine for finishing a session. The rules include: `src/core` imports no React, Skia or Expo; tunable numbers live in `src/config`; nothing in the frame loop goes through React state; no new dependency without an ADR; docs change with the code.
-- [The plan](plan.md): the roadmap as numbered, session-sized steps, with a **Next** marker. Its **Built** section records, step by step, what was checked, how (tests, simulator, web preview), the frame time measured, and what was not seen. It is the project's memory between sessions.
-- [Decision records](adr/): four short ADRs, for the stack, saved settings, the web preview and sound. A later session reads the decision instead of making it again.
+- A plan: the roadmap as numbered, session-sized steps, with a **Next** marker. Its **Built** section records, step by step, what was checked, how (tests, simulator, web preview), the frame time measured, and what was not seen. It is the project's memory between sessions. Like the dated reviews, it is a working note kept outside the repository (in a git-ignored `dev/` folder), so the repository holds only the project and its documentation.
+- [Decision records](adr/): five short ADRs, for the stack, saved settings, the web preview, sound and the live demo. A later session reads the decision instead of making it again.
 - [Vision](vision.md) and [settings](settings.md): what the interaction should feel like, and every option with its default, so visible changes stay consistent.
 - `npm run check`: types, lint, formatting and unit tests, run before a session is called done. [CI](../.github/workflows/check.yml) runs the same check on every push to `main` and every pull request.
 
@@ -29,4 +29,4 @@ The agent reads these at the start of every session, so each session can start c
 
 ## What is left to a person
 
-Section 10 of the [plan](plan.md) collects everything a simulator cannot judge: feel and tuning on a phone, haptics, sound through a speaker and the silent switch, frame time on the oldest supported phone, whether gestures are found without being told, and VoiceOver. It is deliberately last and never blocks other work.
+The last section of the plan collects everything a simulator cannot judge: feel and tuning on a phone, haptics, sound through a speaker and the silent switch, frame time on the oldest supported phone, whether gestures are found without being told, and VoiceOver. It is deliberately last and never blocks other work.

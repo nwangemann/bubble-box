@@ -42,3 +42,6 @@ yarn-error.*
 
 # copied by npm run web:build
 /public/canvaskit.wasm
+
+# Process notes: plans, backlogs, handoffs, reviews (local only)
+/dev/

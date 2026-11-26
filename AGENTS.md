@@ -62,13 +62,13 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 
 ## Read before working
 
-1. [docs/plan.md](docs/plan.md): next step. Do one step per session.
+1. `dev/plan.md`: next step. Do one step per session. `dev/` holds the process notes (plan, reviews); it is git-ignored and never linked from committed files.
 2. [docs/architecture.md](docs/architecture.md): only when touching core or scene.
 3. [docs/extending.md](docs/extending.md): when adding a style, box or feel.
 4. [docs/vision.md](docs/vision.md): for any visible change.
 5. [docs/running.md](docs/running.md): before running npm, pod or simulator commands.
 6. [docs/settings.md](docs/settings.md): when touching options or defaults.
-7. [docs/pool.md](docs/pool.md): when working on 8-ball (its steps are in **Built** in the plan, and 8.23 is parked).
+7. [docs/pool.md](docs/pool.md): when working on 8-ball.
 
 ## Rules
 
@@ -76,8 +76,8 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 - Tunable numbers live in `src/config`, not inline.
 - Nothing in the frame loop goes through React state.
 - No new dependency without an ADR in `docs/adr`. No physics or 3D engine (ADR 1).
-- Update the matching doc in the same change.
-- Manual verification (anything a person or phone must judge) goes last, in all work: put it in section 10 of `docs/plan.md`, rank every other step above it, and never wait for it or name it **Next** while another step is open. What you can check yourself, with tests or a simulator, is not manual: do it in the same session.
+- Update the matching doc in the same change. Project docs (architecture, systems, ADRs, settings, README) are committed; plans, reviews and other process notes go in `dev/`, which is not.
+- Manual verification (anything a person or phone must judge) goes last, in all work: put it in section 10 of `dev/plan.md`, rank every other step above it, and never wait for it or name it **Next** while another step is open. What you can check yourself, with tests or a simulator, is not manual: do it in the same session.
 - Look at shader changes on a simulator; tests cannot see them.
 - Expo changes every SDK. Read installed types in `node_modules` before using an API. Add packages with `npx expo install`.
 - `ios/` and `android/` are generated. Configure through `app.json`.
@@ -86,5 +86,5 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 
 1. Remove temporary probes and logging, then run `npm run check`.
 2. Delete the simulators, servers and scratch files this session made. Leave any it did not make: other sessions may be using them. Need a simulator while all are in use? Create one, and delete it here.
-3. Move the step to **Built** in `docs/plan.md`, add what only a person can verify to section 10, and move **Next**.
-4. End with one line to start the next session, such as "Execute step 1.1 from docs/plan.md", with one short sentence on what that step is and its phase, and say what is uncommitted, unfinished or unverified.
+3. Move the step to **Built** in `dev/plan.md`, add what only a person can verify to section 10, and move **Next**.
+4. End with one line to start the next session, such as "Execute step 1.1 from dev/plan.md", with one short sentence on what that step is and its phase, and say what is uncommitted, unfinished or unverified.
