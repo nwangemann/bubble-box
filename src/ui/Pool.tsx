@@ -234,7 +234,7 @@ export function Pool({ settings, calm, onSettings, sound, onSound, onMode }: Pro
     let called = -1;
     if (v.x === 0 && v.y === 0) {
       const t = traceAhead(p, box, fitCue(p, box, h.bubble.p, h.bubble.r), h.bubble.r);
-      if (t.hit === EIGHT && t.drops) called = t.pocket;
+      if (t.hit === EIGHT && t.drops && onEight(game.value, downOf(p))) called = t.pocket;
     }
     release(w, v.x, v.y, POOL.cue.speed, finger.value);
     const bubble = w.bubbles.pop();
@@ -344,9 +344,9 @@ export function Pool({ settings, calm, onSettings, sound, onSound, onMode }: Pro
     const at = h && h.seconds >= place ? { ...h.bubble.p, ...steady.value } : h?.bubble.p;
     const held = h && at ? { ...h.bubble, p: fitCue(p, box, at, h.bubble.r) } : null;
     const trace = held && sure > 0 ? traceAhead(p, box, held.p, held.r) : null;
-    // Once the shooter's group is cleared, the line calls the pocket it would send the 8 into.
-    const called =
-      trace && trace.hit === EIGHT && trace.drops && onEight(g, downOf(p)) ? trace.pocket : -1;
+    // The pocket called for the 8 shows only once the shot is sent: shown while aiming, it would
+    // say whether the 8 drops.
+    const called = g.shooting ? g.called : -1;
     const grown = h ? Math.min(1, h.seconds / POOL.cue.appear) : 0;
     const power = h ? Math.min(1, h.seconds / POOL.cue.charge) : 0;
     picture.value = createPicture((canvas) => {

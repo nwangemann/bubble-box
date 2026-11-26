@@ -392,11 +392,11 @@ export function drawPool(
   }
   const hole = snugs(box)[called];
   if (hole) {
-    // The pocket called for the 8: a ring round where it would sit.
+    // The pocket called for the 8, once the shot is sent: a ring round where it would sit.
     const { size, opacity, width } = POOL.aim.call;
     const c = at(hole);
     const [r, g, bl] = MARKS[EIGHT] as [number, number, number];
-    ink(line, true, r, g, bl, opacity * sure, width);
+    ink(line, true, r, g, bl, opacity, width);
     canvas.drawCircle(c.x, c.y, POOL.radius * size * c.s, line);
   }
   if (held) {
