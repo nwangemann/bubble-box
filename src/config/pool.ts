@@ -20,6 +20,13 @@ export const POOL = {
   spinFade: 1.8,
   /** How far the cue ball's spin bends its path. */
   curve: 0.45,
+  /**
+   * Draw and follow: while placing, a flick at lifting faster than `least` (units per second)
+   * says them, all of it at `full`: up the screen follows, down draws. Struck straight, the cue
+   * ball runs on or comes back by up to `most` of its speed when it strikes, in about `take`
+   * seconds, to the last `done`. Unspent, it fades over `fade` seconds on the way.
+   */
+  roll: { least: 2, full: 5, most: 0.4, take: 0.15, done: 0.002, fade: 3 },
   /** Speed kept between balls and off cushions, and how firmly a cushion grips. */
   ballBounce: 0.95,
   cushion: 0.8,

@@ -17,6 +17,14 @@ export type Ball = {
   p: Vec3;
   v: Vec3;
   w: Vec3;
+  /**
+   * Draw (below 0) or follow (above): the share of its speed it comes back or runs on by once it
+   * strikes a ball, fading on the way there. Then it is spent into `rolling`, the speed still to
+   * come along `along`, the way it was going when it struck.
+   */
+  roll: number;
+  rolling: number;
+  along: Vec3;
   sunk: number;
   pocket: number;
   lively: number;
@@ -97,6 +105,9 @@ function newBall(p: Vec3, r: number): Ball {
     p: { x: p.x, y: p.y, z: p.z },
     v: { x: 0, y: 0, z: 0 },
     w: { x: 0, y: 0, z: 0 },
+    roll: 0,
+    rolling: 0,
+    along: { x: 0, y: 0, z: 0 },
     sunk: -1,
     pocket: -1,
     lively: 0,
@@ -104,6 +115,12 @@ function newBall(p: Vec3, r: number): Ball {
     back: -1,
     emptying: false,
   };
+}
+
+/** Moving, or about to be by its draw or follow. */
+function moves(b: Ball) {
+  'worklet';
+  return b.v.x !== 0 || b.v.y !== 0 || b.v.z !== 0 || b.rolling !== 0;
 }
 
 function unit(x: number, y: number, z: number): Vec3 {
@@ -403,6 +420,35 @@ function turn(pool: Pool, i: number, box: Box) {
   if (trail.points.length > POOL.trail.most) trail.points.shift();
 }
 
+/** The cue ball strikes a ball: its draw or follow is spent from here, the way it was going. */
+function strikeRoll(cue: Ball) {
+  'worklet';
+  if (cue.roll === 0) return;
+  const speed = Math.hypot(cue.v.x, cue.v.y, cue.v.z);
+  cue.along = unit(cue.v.x, cue.v.y, cue.v.z);
+  cue.rolling = cue.roll * POOL.roll.most * speed;
+  cue.roll = 0;
+}
+
+/** Draw or follow fades on the way, and once it has struck, pulls the cue ball back or on. */
+function spendRoll(cue: Ball, dt: number) {
+  'worklet';
+  const R = POOL.roll;
+  if (cue.sunk >= 0) {
+    cue.roll = 0;
+    cue.rolling = 0;
+    return;
+  }
+  cue.roll *= Math.exp(-dt / R.fade);
+  if (cue.rolling === 0) return;
+  const left = cue.rolling * Math.exp(-dt / R.take);
+  const now = Math.abs(left) < R.done ? cue.rolling : cue.rolling - left;
+  cue.v.x += cue.along.x * now;
+  cue.v.y += cue.along.y * now;
+  cue.v.z += cue.along.z * now;
+  cue.rolling -= now;
+}
+
 function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
   'worklet';
   const { balls } = pool;
@@ -422,6 +468,7 @@ function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
     if (hit.kind === 'none') break;
     mark(pool, hit.i, box, true);
     if (hit.kind === 'ball') mark(pool, hit.j, box, true);
+    if (hit.kind === 'ball' && hit.i === 0) strikeRoll(cue);
     const hard = resolve(balls, hit);
     pool.knock = Math.max(pool.knock, hard);
     if (pool.racked && hit.kind === 'ball' && hard > 0) burst(pool, hard);
@@ -430,6 +477,7 @@ function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
     turn(pool, hit.i, box);
     if (hit.kind === 'ball') turn(pool, hit.j, box);
   }
+  spendRoll(cue, dt);
   const fade = Math.exp(-dt / POOL.spinFade);
   const { after, drag: harder } = POOL_RULES.hurry;
   const drag = pool.hurry >= after ? POOL.drag * harder : POOL.drag;
@@ -438,7 +486,7 @@ function step(pool: Pool, box: Box, holes: Vec3[], dt: number) {
     const draw = drawOf(holes, b.p);
     const drawn = Math.hypot(draw.x, draw.y, draw.z) > drag;
     // Too faint to start a resting ball, it still bends a moving one.
-    if (drawn || b.v.x !== 0 || b.v.y !== 0 || b.v.z !== 0) {
+    if (drawn || moves(b)) {
       b.v.x += draw.x * dt;
       b.v.y += draw.y * dt;
       b.v.z += draw.z * dt;
@@ -520,8 +568,7 @@ function tipping(pool: Pool, box: Box) {
 /** Every ball on the table has stopped, and none will drift in: the next shot may be played. */
 export function stillTable(pool: Pool, box: Box) {
   'worklet';
-  if (pool.balls.some((b) => b.sunk < 0 && (b.v.x !== 0 || b.v.y !== 0 || b.v.z !== 0)))
-    return false;
+  if (pool.balls.some((b) => b.sunk < 0 && moves(b))) return false;
   return !tipping(pool, box);
 }
 
@@ -603,9 +650,7 @@ export function advancePool(pool: Pool, box: Box, seconds: number, stepOf?: numb
   // Not a default value: a worklet captures only what its body names.
   const every = stepOf ?? POOL.step;
   const { balls } = pool;
-  const moving = balls.some((b) =>
-    b.sunk >= 0 ? b.sunk < POOL.sink : b.v.x !== 0 || b.v.y !== 0 || b.v.z !== 0,
-  );
+  const moving = balls.some((b) => (b.sunk >= 0 ? b.sunk < POOL.sink : moves(b)));
   if (pool.hurry >= 0) pool.hurry = moving ? pool.hurry + seconds : -1;
   // Stopped on a lip by harder drag, a ball still tips in once it eases.
   const busy = moving || (pool.hurry < 0 && tipping(pool, box));
@@ -652,14 +697,27 @@ export function advancePool(pool: Pool, box: Box, seconds: number, stepOf?: numb
   return true;
 }
 
-/** Puts a ball made by a finger into play, with what the launch gave it. */
-export function enter(pool: Pool, box: Box, bubble: Bubble) {
+/**
+ * Draw or follow from the finger's velocity at lifting, in units per second, screen y down: up
+ * the screen follows, down draws, -1 to 1. A slower lift says neither.
+ */
+export function rollOf(swipe: { x: number; y: number }) {
+  'worklet';
+  const R = POOL.roll;
+  if (Math.hypot(swipe.x, swipe.y) < R.least) return 0;
+  // Not -0 for a flick straight across.
+  return Math.max(-1, Math.min(1, -swipe.y / R.full)) || 0;
+}
+
+/** Puts a ball made by a finger into play, with what the launch gave it, and its draw or follow. */
+export function enter(pool: Pool, box: Box, bubble: Bubble, roll?: number) {
   'worklet';
   // What the last one left fades where it hangs.
   for (const trail of pool.trails) if (trail.bubble === 0) trail.bubble = -1;
   const cue = newBall(fitCue(pool, box, bubble.p, bubble.r), bubble.r);
   cue.v = { x: bubble.v.x, y: bubble.v.y, z: bubble.v.z };
   cue.w.z = bubble.spin;
+  cue.roll = roll ?? 0;
   pool.balls[0] = cue;
   pool.first = -1;
   // A break keeps plain drag.

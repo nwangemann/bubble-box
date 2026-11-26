@@ -7,6 +7,7 @@ import {
   enter,
   pockets,
   retire,
+  rollOf,
   snugs,
   traceAhead,
   type Pool,
@@ -385,4 +386,66 @@ test('a cue ball lands nowhere', () => {
   retire(pool);
   for (let t = 0; t < 3; t += 1 / 60) advancePool(pool, box, 1 / 60);
   expect(pool.landed).toBe(0);
+});
+
+test('a flick at lifting says follow up the screen and draw down it, and a slow lift neither', () => {
+  const { least, full } = POOL.roll;
+  expect(rollOf({ x: 0, y: -full })).toBe(1);
+  expect(rollOf({ x: 0, y: full * 3 })).toBe(-1);
+  expect(rollOf({ x: 0, y: -full / 2 })).toBeCloseTo(0.5);
+  expect(rollOf({ x: 0, y: -least * 0.9 })).toBe(0);
+  expect(rollOf({ x: full, y: 0 })).toBe(0);
+});
+
+test('struck straight, the cue ball stops without roll, runs on with follow and comes back with draw', () => {
+  plainly(() => {
+    const after = (roll: number) => {
+      const pool = table([0, 0, 1], [0, 0, 3], [[0, 0, 2]]);
+      const cue = pool.balls[0]!;
+      cue.roll = roll;
+      until(pool, () => pool.first >= 0);
+      const spending = cue.rolling;
+      // Long enough for nearly all to be spent, not to reach a wall.
+      for (let n = 0; n < 60; n++) advancePool(pool, box, 1 / 120);
+      expect(Math.abs(cue.rolling)).toBeLessThanOrEqual(Math.abs(spending) * 0.05);
+      expect(Math.abs(cue.v.x) + Math.abs(cue.v.y)).toBeCloseTo(0, 6);
+      return cue.v.z;
+    };
+    const plain = after(0);
+    expect(Math.abs(plain)).toBeLessThan(0.1);
+    // Near all of `most` of the 3 it struck at.
+    const most = POOL.roll.most * 3;
+    expect(after(1)).toBeGreaterThan(plain + most * 0.8);
+    expect(after(-1)).toBeLessThan(plain - most * 0.8);
+  });
+});
+
+test('a cut with draw comes back off the line it would take, and the table is not still meanwhile', () => {
+  plainly(() => {
+    const pool = table([0, 0, 1], [0, 0, 3], [[0.25, 0, 2]]);
+    const cue = pool.balls[0]!;
+    cue.roll = -1;
+    until(pool, () => pool.first >= 0);
+    expect(cue.rolling).toBeLessThan(0);
+    const going = { ...cue.v };
+    for (let n = 0; n < 60; n++) advancePool(pool, box, 1 / 120);
+    // Sideways as before, and pulled back towards the glass.
+    expect(Math.sign(cue.v.x)).toBe(Math.sign(going.x));
+    expect(cue.v.z).toBeLessThan(going.z - 0.8);
+  });
+  const resting = table([0, 0, 1], [0, 0, 0], [[0, 0, 3]]);
+  resting.balls[0]!.rolling = 0.5;
+  resting.balls[0]!.along = { x: 0, y: 0, z: -1 };
+  expect(advancePool(resting, box, 1 / 60)).toBe(true);
+});
+
+test('unspent draw fades on the way, and a cue ball sent with it keeps it', () => {
+  const pool = table([0, 0, 1], [0, 0, 0.5], [[0, 1.5, 4]]);
+  const sent = newBubble(createWorld(), 'soap', r, at([0, 0, r]));
+  sent.v = at([0, 0, 0.5]);
+  enter(pool, box, sent, -1);
+  const cue = pool.balls[0]!;
+  expect(cue.roll).toBe(-1);
+  advancePool(pool, box, POOL.roll.fade);
+  expect(cue.roll).toBeCloseTo(-Math.exp(-1), 2);
 });

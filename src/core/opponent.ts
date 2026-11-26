@@ -99,6 +99,7 @@ function copyPool(pool: Pool): Pool {
       p: { ...b.p },
       v: { ...b.v },
       w: { ...b.w },
+      along: { ...b.along },
     })),
     trailing: 0,
     trails: [],

@@ -37,6 +37,7 @@ import {
   enter,
   fitCue,
   retire,
+  rollOf,
   spotBall,
   stillTable,
   traceAhead,
@@ -54,7 +55,7 @@ import {
 } from '@/core/poolGame';
 import { createOpponent, opponentTurn, restOpponent } from '@/core/opponent';
 import { createRowTurn, followGame, poolRow, potEnds } from '@/core/poolRow';
-import type { Box } from '@/core/types';
+import type { Box, Held } from '@/core/types';
 import { advance, beginHold, createWorld, heldBy, moveHold, release, swipeOf } from '@/core/world';
 import { drawPool, getPoolGpu, poolRoom } from '@/scene/drawPool';
 import { Tray } from './Tray';
@@ -82,6 +83,13 @@ const tick = () => {
 };
 
 const HANDS = [FEELS.weightless];
+
+/** The finger is moving fast enough for a flick that says draw or follow. */
+const flicked = (h: Held) => {
+  'worklet';
+  const s = swipeOf(h);
+  return Math.hypot(s.x, s.y) >= POOL.roll.least;
+};
 /** The hold that is the computer's, as no finger's id is. */
 const COMPUTER = -2;
 
@@ -183,6 +191,9 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
   // The table last drawn on: another redraws even a still one.
   const drawnOn = useSharedValue(cloth);
 
+  // Where the ball in the hand was before a flick began.
+  const steady = useSharedValue({ x: 0, y: 0 });
+
   /** A cue ball into the hand at a place in box units. */
   const hold = (x: number, y: number, id: number) => {
     'worklet';
@@ -198,7 +209,14 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     const w = hand.value;
     const h = heldBy(w, finger.value);
     if (!h) return;
-    const v = swiped && h.seconds < POOL.aim.place ? swipeOf(h) : { x: 0, y: 0 };
+    const placing = h.seconds >= POOL.aim.place;
+    const v = swiped && !placing ? swipeOf(h) : { x: 0, y: 0 };
+    // While placing, a flick at lifting says draw or follow, and it goes from where it was before.
+    const roll = swiped && placing ? rollOf(swipeOf(h)) : 0;
+    if (swiped && placing && flicked(h)) {
+      h.bubble.p.x = steady.value.x;
+      h.bubble.p.y = steady.value.y;
+    }
     // A straight shot calls the pocket its line marks for the 8; a swiped one, whose line fades,
     // calls none.
     const p = pool.value;
@@ -210,7 +228,7 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     release(w, v.x, v.y, POOL.cue.speed, finger.value);
     const bubble = w.bubbles.pop();
     if (bubble) {
-      enter(p, box, bubble);
+      enter(p, box, bubble, roll);
       beginShot(game.value, p, called);
     }
     finger.set(-1);
@@ -300,6 +318,10 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
     p.potted = 0;
     p.landed = 0;
     p.knock = 0;
+    // A flick while placing leaves the shot where it was.
+    if (h && !(h.seconds >= place && flicked(h))) {
+      steady.value = { x: h.bubble.p.x, y: h.bubble.p.y };
+    }
     let sure = 0;
     if (h) {
       const s = swipeOf(h);
@@ -307,7 +329,8 @@ export function Pool({ settings, calm, onSettings, onMode }: Props) {
       sure = Math.max(placing, 1 - Math.hypot(s.x, s.y) / swipe);
     }
     // Where it would start: clear of any ball resting against the glass.
-    const held = h ? { ...h.bubble, p: fitCue(p, box, h.bubble.p, h.bubble.r) } : null;
+    const at = h && h.seconds >= place ? { ...h.bubble.p, ...steady.value } : h?.bubble.p;
+    const held = h && at ? { ...h.bubble, p: fitCue(p, box, at, h.bubble.r) } : null;
     const trace = held && sure > 0 ? traceAhead(p, box, held.p, held.r) : null;
     // Once the shooter's group is cleared, the line calls the pocket it would send the 8 into.
     const called =

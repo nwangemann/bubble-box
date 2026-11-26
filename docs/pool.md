@@ -10,7 +10,7 @@ How and where balls move must be intuitive, natural and fluid to follow. Keep th
 
 - **The calm room.** Same box, same camera. The far wall is the table: a long rectangle seen face on.
 - **Pockets**: 6, all on the far wall: its 4 corners, and the middles of its 2 long edges. Nothing on the near face, which is only a cushion.
-- **Cue ball**: made as a calm bubble is, but at one size, the size of the rest. Hold anywhere and it swells into the hand, release to send it. A quick swipe steers and a curved one spins. After 0.35 s the finger is placing the shot (a soft tick): drag to move it, the line follows, and lifting sends it along the line, however the finger moves. Power rises with the hold for 0.8 s and no more (`POOL.cue.charge`), so taking time to aim costs nothing.
+- **Cue ball**: made as a calm bubble is, but at one size, the size of the rest. Hold anywhere and it swells into the hand, release to send it. A quick swipe steers and a curved one spins. After 0.35 s the finger is placing the shot (a soft tick): drag to move it, the line follows, and lifting sends it along the line, however the finger moves. A flick as it lifts says draw or follow (1.4): up the screen, through the ball, follows; down, back towards you, draws. The shot still goes from where the finger rested. Power rises with the hold for 0.8 s and no more (`POOL.cue.charge`), so taking time to aim costs nothing.
 - **One at a time**: touching lets the last fade. A shot waits for a still table (Rules); a finger put down before then gets its cue ball once all have stopped, where it is by then.
 
 ## Balls and the rack
@@ -84,6 +84,8 @@ The dot opens pool's own menu, as it does the calm room's: a tile for each optio
 ## Physics
 
 `core/pool`, apart from `core/world`, whose soft contacts are wrong for this: at 1/120 s a 30 degree cut came out 2 to 5 degrees off. Each step finds the earliest contact among balls, cushions and pockets, moves to it, resolves it and goes on, up to a limit, so contacts are exact at any speed (ADR 1). The line uses the same contacts, but not the pockets' draw, so near a pocket it is a little off. Balls have equal density and push only along the line between them. The cue ball's spin bends its path and kicks off cushions.
+
+**Draw and follow** (1.4, `POOL.roll`). Here no cloth grips a ball, so this is the one other thing that is not true physics: it acts as a table's cloth would. A flick at lifting while placing, faster than `least`, gives the cue ball a roll of -1 to 1, all of it at `full` (`rollOf`); a slower lift gives none, so placing by dragging is unchanged. The roll does nothing in flight but fade, over `fade` seconds, so a long shot keeps less of it. When the cue ball first strikes a ball, the roll is spent along the way it was going: struck straight it stops, then within about `take` seconds runs on (follow) or comes back (draw) at up to `most` of the speed it struck at; on a cut, follow bends it towards the object ball's path and draw away from it. Its spin about the line of flight, from a curved swipe, is apart and unchanged. The line does not show it, as it is said only at lifting. The computer plays without it. Tested in core: a straight hit stopping plain, running on, coming back; a cut with draw; the roll fading. On the simulator a full break with draw brought the cue ball back to the glass.
 
 ## Rules
 
