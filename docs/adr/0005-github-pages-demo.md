@@ -4,9 +4,9 @@ Status: accepted, 2026-11-26
 
 ## Decision
 
-The `deploy` job in `.github/workflows/check.yml` publishes the web preview (ADR 3) to GitHub Pages at https://nwangemann.github.io/bubble-box/, on every push to `main` once `check` passes.
+The `pages` and `deploy` jobs in `.github/workflows/check.yml` build and publish the web preview (ADR 3) to GitHub Pages at https://nwangemann.github.io/bubble-box/, on every push to `main` once `check` passes.
 
-A project site lives under `/bubble-box/`. `app.config.ts` sets Expo's `experiments.baseUrl` from `BUBBLE_BOX_BASE_URL`, which only the deploy job sets, so local builds still serve from the root. Skia is located beside the page (`src/start.web.ts`) and the preloads added by `scripts/web-finish.mjs` are relative, so both work at the root and under the base path. The deploy drops the `.gz` copies, since Pages compresses on its own.
+A project site lives under `/bubble-box/`. `app.config.ts` sets Expo's `experiments.baseUrl` from `BUBBLE_BOX_BASE_URL`, which only the `pages` job sets, so local builds still serve from the root. Skia is located beside the page (`src/start.web.ts`) and the preloads added by `scripts/web-finish.mjs` are relative, so both work at the root and under the base path. The build drops the `.gz` copies, since Pages compresses on its own. Building and deploying are separate jobs: `deploy-pages` run in the same job as the upload could look the artifact up before it was listed, and fail.
 
 ## Why
 
