@@ -27,8 +27,9 @@ function fail(e: unknown) {
   loading.append(note);
 }
 
-// Skia must be ready before anything that touches it is imported.
-LoadSkiaWeb({ locateFile: (file: string) => `/${file}` })
+// Skia must be ready before anything that touches it is imported. It sits beside the page,
+// at the root locally and under /bubble-box/ on GitHub Pages (ADR 5).
+LoadSkiaWeb({ locateFile: (file: string) => new URL(file, document.baseURI).href })
   .then(() => import('../App'))
   .then(({ default: App }) => {
     registerRootComponent(App);

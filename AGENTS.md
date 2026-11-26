@@ -29,6 +29,7 @@ A zen toy. Hold the screen to grow a bubble; release to send it into a box whose
 | Default settings, menu tiles, Random     | `src/config/defaults.ts`                                           |
 | Web preview: start, storage, page        | `src/start.web.ts`, `src/services/store.web.ts`, `public/`         |
 | Web preview: after the build, serving    | `scripts/`                                                         |
+| Live demo: base path, deploy             | `app.config.ts`, `.github/workflows/check.yml`                     |
 | Saved settings, Reduce Motion            | `src/services/`                                                    |
 | Sound: tones, voices, the audio session  | `src/config/sound.ts`, `src/services/sound.ts`, `synth.ts`         |
 | What sounds when, and at what pitch      | `VOICING` in `src/config/sound.ts`, `src/services/tones.ts`        |

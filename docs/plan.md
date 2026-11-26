@@ -2,9 +2,9 @@
 
 For iOS. Each numbered box is one small session. Sections are in order of priority: do the first open step, top to bottom, then move it to **Built** and move **Next**. Sections keep their numbers when reordered. Numbers of finished steps are not reused. For anything that draws, check frame time on the simulator in the same session; device numbers come in 2.2, in section 10.
 
-**Next: 5.1, a themed trail per arena.**
+**Next, when a new phase starts: 5.1, a themed trail per arena.**
 
-Where things stand (2026-11-25, paused): the calm room, showdowns, 8-ball and sound are built and checked in tests, on the simulator and in the web preview. None of it has been judged on a phone yet; that is section 10. Open work is showdown trails (5), then liquid-filled bubbles (6), then the store listing (7). The latest review is [reviews/2026-11-25](reviews/2026-11-25.md).
+Where things stand (2026-11-26, phase 1 complete): the calm room, showdowns, 8-ball and sound are built and checked in tests, on the simulator and in the web preview. Phase 1 is tagged `v0.1.0`, and the web preview is live at https://nwangemann.github.io/bubble-box/ ([ADR 5](adr/0005-github-pages-demo.md)). None of it has been judged on a phone yet; that is section 10. Open work for a later phase is showdown trails (5), then liquid-filled bubbles (6), then the store listing (7). The latest review is [reviews/2026-11-25](reviews/2026-11-25.md).
 
 Manual verification, whatever needs a person or a phone to judge, waits in section 10, at the very end. Nothing else waits for it. Build and check on tests and the simulator, go on, and add what is left to judge to section 10. Section 8 is parked and section 9 is blocked: neither is picked up as a next step.
 
@@ -94,6 +94,7 @@ Always last: start only when no step outside 8 and 9 is open. Needs a person, mo
 **First time on a phone**
 
 - [ ] 2.1 Install and note what feels wrong; confirm icon and splash
+- [ ] 7.6 Open the live demo (ADR 5) in Safari on a phone: it loads, a hold grows a bubble, and Add to Home Screen works under `/bubble-box/`. Checked by the agent only in a desktop browser
 - [ ] 2.2 Frame time on the oldest phone to support: 10 bubbles, without and with each trail; 10 glowing bubbles in Water; several bursts, with pops pushing neighbours; the picker; showdown with 12, and a mixed one with 24; whether the chooser is slow to open the first time after installing (about a second on the simulator, development build). Repeat after 6.2
 
 **8-ball**

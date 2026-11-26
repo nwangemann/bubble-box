@@ -12,9 +12,10 @@ if (app.length !== 1) throw new Error(`Expected one App script, found ${app.leng
 const page = join(DIST, 'index.html');
 const html = readFileSync(page, 'utf8');
 // Skia is fetched with same-origin credentials, which `crossorigin` matches; the app by a script tag.
+// Relative, so they resolve to the same URLs at the root and under a base path (ADR 5).
 const ahead = [
-  '<link rel="preload" href="/canvaskit.wasm" as="fetch" type="application/wasm" crossorigin>',
-  `<link rel="preload" href="/${SCRIPTS}/${app[0]}" as="script">`,
+  '<link rel="preload" href="canvaskit.wasm" as="fetch" type="application/wasm" crossorigin>',
+  `<link rel="preload" href="${SCRIPTS}/${app[0]}" as="script">`,
 ].join('');
 if (!html.includes('</head>')) throw new Error('No head to add to');
 writeFileSync(page, html.replace('</head>', `${ahead}</head>`));

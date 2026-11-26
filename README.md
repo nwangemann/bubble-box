@@ -1,6 +1,10 @@
 # Bubble Box
 
+[![check](https://github.com/nwangemann/bubble-box/actions/workflows/check.yml/badge.svg)](https://github.com/nwangemann/bubble-box/actions/workflows/check.yml)
+
 A calm physics toy for iPhone. Hold the screen to grow a bubble, release to send it into a box whose near face is the glass, and watch it drift, bounce and come back. Built with Expo, React Native and Skia, with hand-written physics and shaders.
+
+**Try it in a browser: [nwangemann.github.io/bubble-box](https://nwangemann.github.io/bubble-box/)**, best on a phone. It is the web preview: no haptics, sound or Glass ripples there.
 
 <p>
   <img src="docs/images/calm.jpg" alt="The calm room: a see-through grid box with five bubbles in different styles, one glowing orange, one an eclipse, two half-filled with water, leaving thin trails of light" width="200">
@@ -47,7 +51,7 @@ Touch, physics and drawing all run on the UI thread, so there is no bridge betwe
 - **3D from 2D shaders.** Each bubble is one rectangle with a fragment shader that computes its own normal, so films, glass and glow look spherical without meshes or a 3D renderer. Showdown merges are ray-marched per pixel as one smooth surface.
 - **A rules engine and an opponent for 8-ball.** Exact contacts in `core/pool`, turns and fouls in `core/poolGame`, and a computer player that plays candidate shots out on a copy of the table, spread across frames so it never costs more than about 8 ms. The rules were chosen with simulated games ([docs/pool.md](docs/pool.md)).
 - **Sound with no audio files** ([ADR 4](docs/adr/0004-sound.md)). Tones are synthesised from sine partials at launch, written as WAVs and pitched by playback rate, snapped to a pentatonic scale so overlapping tones agree.
-- **A browser preview from the same code** ([ADR 3](docs/adr/0003-web-preview.md)). Skia runs on CanvasKit; only the start-up and storage differ. Useful for trying the app on a phone without a native build.
+- **A browser preview from the same code** ([ADR 3](docs/adr/0003-web-preview.md)). Skia runs on CanvasKit; only the start-up and storage differ. Useful for trying the app on a phone without a native build, and deployed as the [live demo](https://nwangemann.github.io/bubble-box/) ([ADR 5](docs/adr/0005-github-pages-demo.md)).
 
 ## Run and test
 
@@ -64,7 +68,7 @@ More in [docs/running.md](docs/running.md).
 
 ## Status
 
-The calm room, Showdown, 8-ball and sound are built and checked in tests, the iOS simulator and the browser preview. Feel, haptics, sound and frame time on a physical phone have not yet been judged; those checks are listed at the end of the [plan](docs/plan.md). The latest review is [docs/reviews/2026-11-25.md](docs/reviews/2026-11-25.md).
+Phase 1 is complete and tagged `v0.1.0`. The calm room, Showdown, 8-ball and sound are built and checked in tests, the iOS simulator and the browser preview. Feel, haptics, sound and frame time on a physical phone have not yet been judged; those checks are listed at the end of the [plan](docs/plan.md). The latest review is [docs/reviews/2026-11-25.md](docs/reviews/2026-11-25.md).
 
 ## Built with an AI agent
 
